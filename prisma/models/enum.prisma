@@ -1,0 +1,17 @@
+// ENUMS_START
+
+enum ChartType {
+  PIE
+  BAR
+  LINE
+  DONUT_PIE
+  HEATMAP
+}
+
+enum NodeType {
+  LEAF
+  INTERMEDIATE
+  ROOT
+}
+
+// ENUMS_END
