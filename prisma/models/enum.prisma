@@ -1,17 +1,37 @@
-// ENUMS_START
-
-enum ChartType {
-  PIE
-  BAR
-  LINE
-  DONUT_PIE
-  HEATMAP
+enum Role {
+    ADMIN
+    DOCTOR
+    PATIENT
 }
 
-enum NodeType {
-  LEAF
-  INTERMEDIATE
-  ROOT
+enum UserStatus {
+    ACTIVE
+    DISABLED
+    BLOCKED
+    SUSPENDED
+    DELETED
 }
 
-// ENUMS_END
+enum CategoryStatus {
+    ACTIVE
+    DISABLED
+}
+
+enum AssessmentStatus {
+    DRAFT
+    ACTIVE
+    DISABLED
+}
+
+enum QuestionType {
+    INFORMATION_ONLY
+    SINGLE_CHOICE
+    MULTIPLE_CHOICE
+    INPUT
+}
+
+enum Alignment {
+    LEFT
+    CENTER
+    RIGHT
+}
