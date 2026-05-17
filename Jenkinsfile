@@ -253,7 +253,7 @@ pipeline {
 
   post {
     always {
-      sh 'docker image prune -f || true'
+      echo 'Pipeline finished.'
     }
     success {
       echo "Build succeeded: ${CANDIDATE_IMAGE}"
