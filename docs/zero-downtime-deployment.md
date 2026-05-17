@@ -132,10 +132,12 @@ For bigger scale later, move this same pattern to Kubernetes with separate `Depl
 
 The included `Jenkinsfile` builds one immutable Docker image, deploys it to prerelease, verifies health, waits for approval unless `PROMOTE_TO_LIVE=true`, then promotes the same image to live.
 
+If a GitLab push triggers Jenkins but the log immediately says `Finished: SUCCESS` without showing Pipeline stages, Jenkins is not reading the repository `Jenkinsfile`. Configure the job as **Pipeline script from SCM** with script path `Jenkinsfile`. See `docs/jenkins-job-setup.md`.
+
 Create these Jenkins credentials:
 
-- `dockerhub-credentials`: username/password credential for Docker Hub.
-- `doc-backend-vps-ssh`: SSH username with private key for the VPS.
+- `dockerhub-creds`: username/password credential for Docker Hub.
+- `doc-vps-ssh`: SSH username with private key for the VPS.
 - `doc-backend-vps-host`: secret text containing the VPS hostname or IP.
 - `doc-backend-vps-user`: secret text containing the VPS Linux username.
 - `doc-backend-live-domain`: secret text such as `api.example.com`.
