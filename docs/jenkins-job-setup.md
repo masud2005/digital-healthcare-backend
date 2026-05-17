@@ -61,7 +61,6 @@ Jenkinsfile
 - GitLab
 - SSH Agent
 - Credentials Binding
-- AnsiColor
 
 The Jenkins agent also needs:
 
