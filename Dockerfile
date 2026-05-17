@@ -20,7 +20,7 @@ COPY . .
 RUN npm run prisma:generate
 
 # Build the app
-RUN npm i build
+RUN npm run build
 
 # Stage 2: Run
 FROM node:20-alpine
@@ -38,4 +38,4 @@ COPY --from=builder /app/prisma.config.ts ./prisma.config.ts
 ENV NODE_ENV=production
 EXPOSE 5056
 
-CMD ["npm", "run", "start:docker"]
+CMD ["npm", "run", "start:web"]

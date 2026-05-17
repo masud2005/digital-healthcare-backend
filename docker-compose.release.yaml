@@ -1,0 +1,111 @@
+services:
+    caddy:
+        image: caddy:2-alpine
+        container_name: doc-backend-caddy
+        ports:
+            - "80:80"
+            - "443:443"
+        volumes:
+            - ./Caddyfile.release:/etc/caddy/Caddyfile:ro
+            - caddy_data:/data
+            - caddy_config:/config
+        depends_on:
+            app_live:
+                condition: service_healthy
+            app_pre:
+                condition: service_healthy
+        restart: unless-stopped
+        networks:
+            - doc_release
+
+    app_live:
+        image: ${APP_IMAGE:?set APP_IMAGE}
+        container_name: doc-backend-live
+        env_file:
+            - path: .env.production
+              required: false
+        environment:
+            - NODE_ENV=production
+            - PORT=5056
+        depends_on:
+            db_live:
+                condition: service_healthy
+        healthcheck:
+            test: ["CMD-SHELL", "wget -qO- http://localhost:5056/api/health >/dev/null || exit 1"]
+            interval: 10s
+            timeout: 5s
+            retries: 12
+            start_period: 20s
+        restart: unless-stopped
+        networks:
+            - doc_release
+
+    app_pre:
+        image: ${PRE_IMAGE:-${APP_IMAGE:?set APP_IMAGE}}
+        container_name: doc-backend-pre
+        env_file:
+            - path: .env.prerelease
+              required: false
+        environment:
+            - NODE_ENV=staging
+            - PORT=5056
+        depends_on:
+            db_pre:
+                condition: service_healthy
+        healthcheck:
+            test: ["CMD-SHELL", "wget -qO- http://localhost:5056/api/health >/dev/null || exit 1"]
+            interval: 10s
+            timeout: 5s
+            retries: 12
+            start_period: 20s
+        restart: unless-stopped
+        networks:
+            - doc_release
+
+    db_live:
+        image: postgres:16-alpine
+        container_name: doc-backend-db-live
+        environment:
+            - POSTGRES_USER=${POSTGRES_USER:-doc}
+            - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-doc}
+            - POSTGRES_DB=${POSTGRES_DB:-doc}
+            - PGDATA=/var/lib/postgresql/data/pgdata
+        volumes:
+            - doc_live_data:/var/lib/postgresql/data
+        healthcheck:
+            test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-doc} -d ${POSTGRES_DB:-doc}"]
+            interval: 10s
+            timeout: 5s
+            retries: 5
+        restart: unless-stopped
+        networks:
+            - doc_release
+
+    db_pre:
+        image: postgres:16-alpine
+        container_name: doc-backend-db-pre
+        environment:
+            - POSTGRES_USER=${POSTGRES_USER:-doc}
+            - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-doc}
+            - POSTGRES_DB=${POSTGRES_DB:-doc}
+            - PGDATA=/var/lib/postgresql/data/pgdata
+        volumes:
+            - doc_pre_data:/var/lib/postgresql/data
+        healthcheck:
+            test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-doc} -d ${POSTGRES_DB:-doc}"]
+            interval: 10s
+            timeout: 5s
+            retries: 5
+        restart: unless-stopped
+        networks:
+            - doc_release
+
+volumes:
+    caddy_data:
+    caddy_config:
+    doc_live_data:
+    doc_pre_data:
+
+networks:
+    doc_release:
+        driver: bridge

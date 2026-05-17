@@ -10,6 +10,7 @@
         "lint": "eslint . --ext .ts",
         "dev": "npx prisma generate && npx prisma migrate deploy && nest start --watch",
         "start:prod": "node dist/main",
+        "start:web": "node dist/main",
         "start": "npx prisma generate && npx prisma migrate deploy && node dist/main",
         "start:docker": "prisma generate && prisma migrate deploy && node dist/main",
         "generate:enum": "tsx src/scripts/generate.enum.ts",
@@ -25,7 +26,7 @@
         "format:fix": "prettier --ignore-path .gitignore --write \"**/*.+(js|ts|json)\"",
         "lint:fix": "eslint . --ext .ts,.js,.jsx,.tsx --fix",
         "ci:check": "npm run format && npm run lint && npm run prisma:validate && npm run build && npm run start:prod",
-        "deploy:check": "docker compsoe --profile prod build --no-cache",
+        "deploy:check": "docker compose --profile prod build --no-cache",
         "ci:fix": "npm run format:fix",
         "prepare": "husky"
     },
