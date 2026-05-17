@@ -1,5 +1,3 @@
-export const chartType = ["PIE", "BAR", "LINE", "DONUT_PIE", "HEATMAP"] as const;
-export type ChartType = (typeof chartType)[number];
+export const orderStatus = ["PENDING", "SHIPPED", "DELIVERED", "CANCELLED"] as const;
 
-export const nodeType = ["LEAF", "INTERMEDIATE", "ROOT"] as const;
-export type NodeType = (typeof nodeType)[number];
+export type OrderStatus = (typeof orderStatus)[number];

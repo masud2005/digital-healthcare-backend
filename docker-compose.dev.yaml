@@ -11,7 +11,7 @@ services:
         ports:
             - 5056:5056
         env_file:
-            - .env.production
+            - .env.development
         depends_on:
             db:
                 condition: service_healthy
@@ -25,16 +25,16 @@ services:
             - dev
             - prod
         environment:
-            - POSTGRES_USER=${PG_USERNAME}
-            - POSTGRES_PASSWORD=${PG_PASSWORD}
-            - POSTGRES_DB=${PG_DATABASE}
+            - POSTGRES_USER=doc
+            - POSTGRES_PASSWORD=doc
+            - POSTGRES_DB=doc
             - PGDATA=/var/lib/postgresql/data/pgdata
         ports:
-            - "${PG_PORT}:${PG_PORT}"
+            - 5432:5432
         volumes:
-            - postgres_data:/var/lib/postgresql/data
+            - doc_data:/var/lib/postgresql/data
         healthcheck:
-            test: ["CMD-SHELL", "pg_isready -U ${PG_USERNAME} -d ${PG_DATABASE}"]
+            test: ["CMD-SHELL", "pg_isready -U doc -d doc"]
             interval: 10s
             timeout: 5s
             retries: 5
@@ -43,7 +43,7 @@ services:
             - doc
 
 volumes:
-    postgres_data:
+    doc_data:
         driver: local
 networks:
     doc:
