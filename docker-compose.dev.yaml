@@ -1,9 +1,9 @@
 services:
     app:
-        image: softvence/${PACKAGE_NAME}:latest
-        container_name: ${PACKAGE_NAME}
+        image: softvence/doc-backend:dev
+        container_name: doc-backend-dev
         profiles:
-            - prod
+            - dev
         platform: linux/amd64
         build:
             context: .

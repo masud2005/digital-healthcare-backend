@@ -1,7 +1,7 @@
 services:
     app:
-        image: softvence/${PACKAGE_NAME}:latest
-        container_name: ${PACKAGE_NAME}
+        image: softvence/doc-backend:prod
+        container_name: doc-backend-prod
         profiles:
             - prod
         platform: linux/amd64
@@ -25,16 +25,14 @@ services:
             - dev
             - prod
         environment:
-            - POSTGRES_USER=${PG_USERNAME}
-            - POSTGRES_PASSWORD=${PG_PASSWORD}
-            - POSTGRES_DB=${PG_DATABASE}
+            - POSTGRES_USER=doc
+            - POSTGRES_PASSWORD=doc
+            - POSTGRES_DB=doc
             - PGDATA=/var/lib/postgresql/data/pgdata
-        ports:
-            - "${PG_PORT}:${PG_PORT}"
         volumes:
-            - postgres_data:/var/lib/postgresql/data
+            - doc_data:/var/lib/postgresql/data
         healthcheck:
-            test: ["CMD-SHELL", "pg_isready -U ${PG_USERNAME} -d ${PG_DATABASE}"]
+            test: ["CMD-SHELL", "pg_isready -U doc -d doc"]
             interval: 10s
             timeout: 5s
             retries: 5
@@ -43,7 +41,7 @@ services:
             - doc
 
 volumes:
-    postgres_data:
+    doc_data:
         driver: local
 networks:
     doc:
