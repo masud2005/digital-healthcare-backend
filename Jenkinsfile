@@ -38,7 +38,7 @@ pipeline {
     LIVE_DOMAIN = 'doco-prod.duckdns.org'
     // PRE_DOMAIN = credentials('doc-backend-pre-domain')
     PRE_DOMAIN = 'doco-pre.duckdns.org'
-    SERVER_DIR = "/home/${VPS_USER}/projects/${APP_NAME}"
+    SERVER_DIR = "~/projects/${APP_NAME}"
     COMPOSE_FILE = 'docker-compose.release.yaml'
   }
 
@@ -104,7 +104,7 @@ pipeline {
             sh '''
               set -eu
               ssh -o StrictHostKeyChecking=no "$VPS_USER@$VPS_HOST" "mkdir -p '$SERVER_DIR/scripts'"
-              scp -o StrictHostKeyChecking=no "$COMPOSE_FILE" Caddyfile "$VPS_USER@$VPS_HOST:$SERVER_DIR/"
+              scp -o StrictHostKeyChecking=no "$COMPOSE_FILE" "$VPS_USER@$VPS_HOST:$SERVER_DIR/"
               scp -o StrictHostKeyChecking=no scripts/clone-db-for-prerelease.sh "$VPS_USER@$VPS_HOST:$SERVER_DIR/scripts/"
               scp -o StrictHostKeyChecking=no "$PROD_ENV_FILE" "$VPS_USER@$VPS_HOST:$SERVER_DIR/.env.production"
               scp -o StrictHostKeyChecking=no "$PRE_ENV_FILE" "$VPS_USER@$VPS_HOST:$SERVER_DIR/.env.prerelease"
