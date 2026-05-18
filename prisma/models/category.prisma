@@ -4,10 +4,10 @@ model Category {
     description String?        @db.Text
     status      CategoryStatus @default(ACTIVE)
 
-    // Relationships
-    products Product[]
-    // assessments Assessment[] 
-    patients User[]
+    // Relations
+    products    Product[]
+    assessments Assessment[]
+    patients    User[]
 
     createdAt DateTime @default(now())
     updatedAt DateTime @updatedAt

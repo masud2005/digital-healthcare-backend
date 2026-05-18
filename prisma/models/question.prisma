@@ -1,0 +1,44 @@
+model Question {
+    id               String       @id @default(uuid())
+    type             QuestionType
+    heading          String?
+    media            String?
+    questionText     String?      @db.Text
+    description      String?      @db.Text
+    contentAlignment Alignment    @default(LEFT)
+    isRequired       Boolean      @default(true)
+
+    // Relationships
+    assessmentId   String
+    assessment     Assessment      @relation(fields: [assessmentId], references: [id], onDelete: Cascade)
+    parentOptionId String?
+    parentOption   QuestionOption? @relation("OptionToSubQuestions", fields: [parentOptionId], references: [id], onDelete: Cascade)
+
+    options QuestionOption[]
+
+    createdAt         DateTime           @default(now())
+    updatedAt         DateTime           @updatedAt
+    submissionAnswers SubmissionAnswer[]
+
+    @@index([assessmentId])
+    @@index([parentOptionId])
+}
+
+model QuestionOption {
+    id          String  @id @default(uuid())
+    label       String
+    placeholder String?
+    inputType   String?
+
+    // Relationships
+    questionId String
+    question   Question @relation(fields: [questionId], references: [id], onDelete: Cascade)
+
+    subQuestions Question[] @relation("OptionToSubQuestions")
+
+    createdAt       DateTime         @default(now())
+    updatedAt       DateTime         @updatedAt
+    selectedOptions SelectedOption[]
+
+    @@index([questionId])
+}

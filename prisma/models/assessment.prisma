@@ -1,0 +1,16 @@
+model Assessment {
+    id          String           @id @default(uuid())
+    title       String
+    thumbnail   String?
+    description String           @db.Text
+    status      AssessmentStatus @default(DRAFT)
+
+    // Relations
+    categoryId            String
+    category              Category               @relation(fields: [categoryId], references: [id])
+    questions             Question[]
+    assessmentSubmissions AssessmentSubmission[]
+
+    createdAt DateTime @default(now())
+    updatedAt DateTime @updatedAt
+}
