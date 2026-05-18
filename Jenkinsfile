@@ -32,12 +32,12 @@ pipeline {
     DOCKER_CREDENTIALS_ID = 'dockerhub-creds'
     VPS_SSH_CREDENTIALS_ID = 'doc-vps-ssh'
     // VPS_HOST = credentials('doc-backend-vps-host')
-    VPS_HOST = '172.252.13.132'
-    VPS_USER = 'root'
+    VPS_HOST = '13.214.29.147'
+    VPS_USER = 'admin'
     // LIVE_DOMAIN = credentials('doc-backend-live-domain')
-    LIVE_DOMAIN = 'doco.softvence.com'
+    LIVE_DOMAIN = 'doco-prod.duckdns.org'
     // PRE_DOMAIN = credentials('doc-backend-pre-domain')
-    PRE_DOMAIN = 'pre-doco.softvence.com'
+    PRE_DOMAIN = 'doco-pre.duckdns.org'
     SERVER_DIR = "/${VPS_USER}/projects/${APP_NAME}"
     COMPOSE_FILE = 'docker-compose.release.yaml'
   }
