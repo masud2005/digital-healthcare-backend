@@ -39,8 +39,6 @@ pipeline {
     LIVE_DOMAIN = 'doco.softvence.com'
     // PRE_DOMAIN = credentials('doc-backend-pre-domain')
     PRE_DOMAIN = 'pre.doco.softvence.com'
-    PROD_ENV_FILE = credentials('doc-backend-env-production')
-    PRE_ENV_FILE = credentials('doc-backend-env-prerelease')
     SERVER_DIR = "/${VPS_USER}/projects/${APP_NAME}"
     COMPOSE_FILE = 'docker-compose.release.yaml'
   }
@@ -114,16 +112,21 @@ pipeline {
         expression { return params.DEPLOY_PRERELEASE || params.PROMOTE_TO_LIVE }
       }
       steps {
-        sshagent(credentials: ["${VPS_SSH_CREDENTIALS_ID}"]) {
-          sh '''
-            set -eu
-            ssh -o StrictHostKeyChecking=no "$VPS_USER@$VPS_HOST" "mkdir -p '$SERVER_DIR/scripts'"
-            scp -o StrictHostKeyChecking=no "$COMPOSE_FILE" Caddyfile.release "$VPS_USER@$VPS_HOST:$SERVER_DIR/"
-            scp -o StrictHostKeyChecking=no scripts/clone-db-for-prerelease.sh "$VPS_USER@$VPS_HOST:$SERVER_DIR/scripts/"
-            scp -o StrictHostKeyChecking=no "$PROD_ENV_FILE" "$VPS_USER@$VPS_HOST:$SERVER_DIR/.env.production"
-            scp -o StrictHostKeyChecking=no "$PRE_ENV_FILE" "$VPS_USER@$VPS_HOST:$SERVER_DIR/.env.prerelease"
-            ssh -o StrictHostKeyChecking=no "$VPS_USER@$VPS_HOST" "chmod +x '$SERVER_DIR/scripts/clone-db-for-prerelease.sh'"
-          '''
+        withCredentials([
+          file(credentialsId: 'doc-backend-env-production', variable: 'PROD_ENV_FILE'),
+          file(credentialsId: 'doc-backend-env-prerelease', variable: 'PRE_ENV_FILE')
+        ]) {
+          sshagent(credentials: ["${VPS_SSH_CREDENTIALS_ID}"]) {
+            sh '''
+              set -eu
+              ssh -o StrictHostKeyChecking=no "$VPS_USER@$VPS_HOST" "mkdir -p '$SERVER_DIR/scripts'"
+              scp -o StrictHostKeyChecking=no "$COMPOSE_FILE" Caddyfile.release "$VPS_USER@$VPS_HOST:$SERVER_DIR/"
+              scp -o StrictHostKeyChecking=no scripts/clone-db-for-prerelease.sh "$VPS_USER@$VPS_HOST:$SERVER_DIR/scripts/"
+              scp -o StrictHostKeyChecking=no "$PROD_ENV_FILE" "$VPS_USER@$VPS_HOST:$SERVER_DIR/.env.production"
+              scp -o StrictHostKeyChecking=no "$PRE_ENV_FILE" "$VPS_USER@$VPS_HOST:$SERVER_DIR/.env.prerelease"
+              ssh -o StrictHostKeyChecking=no "$VPS_USER@$VPS_HOST" "chmod +x '$SERVER_DIR/scripts/clone-db-for-prerelease.sh'"
+            '''
+          }
         }
       }
     }
