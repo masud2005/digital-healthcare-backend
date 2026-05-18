@@ -38,7 +38,7 @@ pipeline {
     LIVE_DOMAIN = 'doco-prod.duckdns.org'
     // PRE_DOMAIN = credentials('doc-backend-pre-domain')
     PRE_DOMAIN = 'doco-pre.duckdns.org'
-    SERVER_DIR = "/${VPS_USER}/projects/${APP_NAME}"
+    SERVER_DIR = "/home/${VPS_USER}/projects/${APP_NAME}"
     COMPOSE_FILE = 'docker-compose.release.yaml'
   }
 
