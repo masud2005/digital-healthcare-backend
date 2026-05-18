@@ -120,26 +120,34 @@ pipeline {
         expression { return params.DEPLOY_PRERELEASE }
       }
       steps {
-        sshagent(credentials: ["${VPS_SSH_CREDENTIALS_ID}"]) {
-          sh '''
-            set -eu
-            ssh -o StrictHostKeyChecking=no "$VPS_USER@$VPS_HOST" "
+        withCredentials([usernamePassword(
+          credentialsId: "${DOCKER_CREDENTIALS_ID}",
+          usernameVariable: 'DOCKER_USERNAME',
+          passwordVariable: 'DOCKER_PASSWORD'
+        )]) {
+          sshagent(credentials: ["${VPS_SSH_CREDENTIALS_ID}"]) {
+            sh '''
               set -eu
-              cd '$SERVER_DIR'
-              export LIVE_DOMAIN='$LIVE_DOMAIN'
-              export PRE_DOMAIN='$PRE_DOMAIN'
-              export APP_IMAGE='$CANDIDATE_IMAGE'
-              export PRE_IMAGE='$CANDIDATE_IMAGE'
-              docker compose -f '$COMPOSE_FILE' pull app_pre || true
-              docker compose -f '$COMPOSE_FILE' up -d db_live db_pre
-              if [ '${REFRESH_PRERELEASE_DB}' = 'true' ]; then
-                sh scripts/clone-db-for-prerelease.sh
-              fi
-              docker compose -f '$COMPOSE_FILE' run --rm app_pre npm run prisma:migrate
-              docker compose -f '$COMPOSE_FILE' up -d --no-deps app_pre caddy
-              docker compose -f '$COMPOSE_FILE' ps
-            "
-          '''
+              ssh -o StrictHostKeyChecking=no "$VPS_USER@$VPS_HOST" "
+                set -eu
+                cd '$SERVER_DIR'
+                export LIVE_DOMAIN='$LIVE_DOMAIN'
+                export PRE_DOMAIN='$PRE_DOMAIN'
+                export APP_IMAGE='$CANDIDATE_IMAGE'
+                export PRE_IMAGE='$CANDIDATE_IMAGE'
+                printf '%s' '$DOCKER_PASSWORD' | docker login -u '$DOCKER_USERNAME' --password-stdin
+                docker compose -f '$COMPOSE_FILE' pull app_pre || true
+                docker compose -f '$COMPOSE_FILE' up -d db_live db_pre
+                if [ '${REFRESH_PRERELEASE_DB}' = 'true' ]; then
+                  sh scripts/clone-db-for-prerelease.sh
+                fi
+                docker compose -f '$COMPOSE_FILE' run --rm app_pre npm run prisma:migrate
+                docker compose -f '$COMPOSE_FILE' up -d --no-deps app_pre caddy
+                docker compose -f '$COMPOSE_FILE' ps
+                docker logout || true
+              "
+            '''
+          }
         }
       }
     }
@@ -176,11 +184,6 @@ pipeline {
         allOf {
           expression { return params.DEPLOY_PRERELEASE }
           expression { return !params.PROMOTE_TO_LIVE }
-          anyOf {
-            branch 'main'
-            branch 'master'
-            branch 'dev'
-          }
         }
       }
       steps {
@@ -197,42 +200,44 @@ pipeline {
       when {
         anyOf {
           expression { return params.PROMOTE_TO_LIVE }
-          allOf {
-            expression { return params.DEPLOY_PRERELEASE }
-            anyOf {
-              branch 'main'
-              branch 'master'
-              branch 'dev'
-            }
-          }
+          expression { return params.DEPLOY_PRERELEASE }
         }
       }
       steps {
-        sshagent(credentials: ["${VPS_SSH_CREDENTIALS_ID}"]) {
-          sh '''
-            set -eu
-            ssh -o StrictHostKeyChecking=no "$VPS_USER@$VPS_HOST" "
+        withCredentials([usernamePassword(
+          credentialsId: "${DOCKER_CREDENTIALS_ID}",
+          usernameVariable: 'DOCKER_USERNAME',
+          passwordVariable: 'DOCKER_PASSWORD'
+        )]) {
+          sshagent(credentials: ["${VPS_SSH_CREDENTIALS_ID}"]) {
+            sh '''
               set -eu
-              cd '$SERVER_DIR'
-              export LIVE_DOMAIN='$LIVE_DOMAIN'
-              export PRE_DOMAIN='$PRE_DOMAIN'
-              export APP_IMAGE='$CANDIDATE_IMAGE'
-              export PRE_IMAGE='$CANDIDATE_IMAGE'
-              docker compose -f '$COMPOSE_FILE' pull app_live || true
-              docker compose -f '$COMPOSE_FILE' run --rm app_live npm run prisma:migrate
-              docker compose -f '$COMPOSE_FILE' up -d --no-deps app_live caddy
-              for i in \$(seq 1 30); do
-                if curl -fsS 'https://$LIVE_DOMAIN/api/health' >/dev/null; then
-                  echo 'Live is healthy now'
-                  exit 0
-                fi
-                echo \"Waiting for live health... \$i/30\"
-                sleep 5
-              done
-              docker compose -f '$COMPOSE_FILE' logs --tail=200 app_live
-              exit 1
-            "
-          '''
+              ssh -o StrictHostKeyChecking=no "$VPS_USER@$VPS_HOST" "
+                set -eu
+                cd '$SERVER_DIR'
+                export LIVE_DOMAIN='$LIVE_DOMAIN'
+                export PRE_DOMAIN='$PRE_DOMAIN'
+                export APP_IMAGE='$CANDIDATE_IMAGE'
+                export PRE_IMAGE='$CANDIDATE_IMAGE'
+                printf '%s' '$DOCKER_PASSWORD' | docker login -u '$DOCKER_USERNAME' --password-stdin
+                docker compose -f '$COMPOSE_FILE' pull app_live || true
+                docker compose -f '$COMPOSE_FILE' run --rm app_live npm run prisma:migrate
+                docker compose -f '$COMPOSE_FILE' up -d --no-deps app_live caddy
+                for i in \$(seq 1 30); do
+                  if curl -fsS 'https://$LIVE_DOMAIN/api/health' >/dev/null; then
+                    echo 'Live is healthy now'
+                    docker logout || true
+                    exit 0
+                  fi
+                  echo \"Waiting for live health... \$i/30\"
+                  sleep 5
+                done
+                docker compose -f '$COMPOSE_FILE' logs --tail=200 app_live
+                docker logout || true
+                exit 1
+              "
+            '''
+          }
         }
       }
     }
