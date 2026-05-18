@@ -32,7 +32,7 @@ export class AppController {
                     {
                         name: "Md. Masud Rana",
                         role: "Backend Developer",
-                    }
+                    },
                 ],
             },
         });
