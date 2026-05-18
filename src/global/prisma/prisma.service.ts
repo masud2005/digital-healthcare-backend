@@ -4,10 +4,7 @@ import { Prisma, PrismaClient } from "@prisma/client";
 import "dotenv/config";
 
 @Injectable()
-export class PrismaService
-    extends PrismaClient
-    implements OnModuleInit, OnModuleDestroy
-{
+export class PrismaService extends PrismaClient implements OnModuleInit, OnModuleDestroy {
     private readonly logger = new Logger(PrismaService.name);
     // * Expose Prisma utils (enums, filters, etc.)
     readonly utils = Prisma;
