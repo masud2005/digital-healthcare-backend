@@ -5,9 +5,9 @@ model Category {
     status      CategoryStatus @default(ACTIVE)
 
     // Relationships
-    products Product[]
-    // assessments Assessment[] 
-    patients User[]
+    products    Product[]
+    assessments Assessment[]
+    patients    User[]
 
     createdAt DateTime @default(now())
     updatedAt DateTime @updatedAt
