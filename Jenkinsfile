@@ -104,7 +104,7 @@ pipeline {
             sh '''
               set -eu
               ssh -o StrictHostKeyChecking=no "$VPS_USER@$VPS_HOST" "mkdir -p '$SERVER_DIR/scripts'"
-              scp -o StrictHostKeyChecking=no "$COMPOSE_FILE" Caddyfile.release "$VPS_USER@$VPS_HOST:$SERVER_DIR/"
+              scp -o StrictHostKeyChecking=no "$COMPOSE_FILE" Caddyfile "$VPS_USER@$VPS_HOST:$SERVER_DIR/"
               scp -o StrictHostKeyChecking=no scripts/clone-db-for-prerelease.sh "$VPS_USER@$VPS_HOST:$SERVER_DIR/scripts/"
               scp -o StrictHostKeyChecking=no "$PROD_ENV_FILE" "$VPS_USER@$VPS_HOST:$SERVER_DIR/.env.production"
               scp -o StrictHostKeyChecking=no "$PRE_ENV_FILE" "$VPS_USER@$VPS_HOST:$SERVER_DIR/.env.prerelease"
