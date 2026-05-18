@@ -37,7 +37,7 @@ pipeline {
     // LIVE_DOMAIN = credentials('doc-backend-live-domain')
     LIVE_DOMAIN = 'doco.softvence.com'
     // PRE_DOMAIN = credentials('doc-backend-pre-domain')
-    PRE_DOMAIN = 'pre.doco.softvence.com'
+    PRE_DOMAIN = 'pre-doco.softvence.com'
     SERVER_DIR = "/${VPS_USER}/projects/${APP_NAME}"
     COMPOSE_FILE = 'docker-compose.release.yaml'
   }
