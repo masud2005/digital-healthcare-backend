@@ -107,6 +107,9 @@ pipeline {
               echo "Creating remote directories..."
               ssh $SSH_OPTIONS "$VPS_USER@$VPS_HOST" "
                 mkdir -p '$SERVER_DIR/scripts'
+                if [ -d '$SERVER_DIR/Caddyfile' ]; then
+                  rm -rf '$SERVER_DIR/Caddyfile'
+                fi
               "
               echo "Uploading docker compose..."
               scp $SSH_OPTIONS \
