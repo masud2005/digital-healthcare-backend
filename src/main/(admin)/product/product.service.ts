@@ -1,4 +1,9 @@
-import { BadRequestException, ConflictException, Injectable, NotFoundException } from "@nestjs/common";
+import {
+    BadRequestException,
+    ConflictException,
+    Injectable,
+    NotFoundException,
+} from "@nestjs/common";
 import { slugify } from "@util/functions";
 import { CreateProductDto } from "./dto/create-product.dto";
 import { ProductQueryDto } from "./dto/product-query.dto";
