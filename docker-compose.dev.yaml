@@ -1,23 +1,4 @@
 services:
-    app:
-        image: softvence/doc-backend:dev
-        container_name: doc-backend-dev
-        profiles:
-            - dev
-        platform: linux/amd64
-        build:
-            context: .
-            dockerfile: Dockerfile
-        ports:
-            - 5056:5056
-        env_file:
-            - .env.development
-        depends_on:
-            db:
-                condition: service_healthy
-        restart: unless-stopped
-        networks:
-            - doc
     db:
         image: postgres:16-alpine
         container_name: pg-db
@@ -30,7 +11,7 @@ services:
             - POSTGRES_DB=doc
             - PGDATA=/var/lib/postgresql/data/pgdata
         ports:
-            - 5432:5432
+            - "5431:5432"
         volumes:
             - doc_data:/var/lib/postgresql/data
         healthcheck:

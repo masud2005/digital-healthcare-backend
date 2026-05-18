@@ -1,14 +1,10 @@
 import { Injectable, Logger, OnModuleDestroy, OnModuleInit } from "@nestjs/common";
 import { PrismaPg } from "@prisma/adapter-pg";
-import { Prisma, PrismaClient } from "@prisma/client/extension";
-import { PrismaClientOptions } from "@prisma/client/runtime/client";
+import { Prisma, PrismaClient } from "@prisma/client";
 import "dotenv/config";
 
 @Injectable()
-export class PrismaService
-    extends PrismaClient<PrismaClientOptions, "query" | "error">
-    implements OnModuleInit, OnModuleDestroy
-{
+export class PrismaService extends PrismaClient implements OnModuleInit, OnModuleDestroy {
     private readonly logger = new Logger(PrismaService.name);
     // * Expose Prisma utils (enums, filters, etc.)
     readonly utils = Prisma;
