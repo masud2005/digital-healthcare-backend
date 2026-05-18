@@ -17,3 +17,6 @@ export type QuestionType = (typeof questionType)[number];
 
 export const alignment = ["LEFT", "CENTER", "RIGHT"] as const;
 export type Alignment = (typeof alignment)[number];
+
+export const submissionStatus = ["PENDING", "ACCEPTED", "REJECTED"] as const;
+export type SubmissionStatus = (typeof submissionStatus)[number];

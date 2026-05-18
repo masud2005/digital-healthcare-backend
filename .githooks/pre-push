@@ -1,0 +1,16 @@
+#!/usr/bin/env bash
+
+# DOSE Pre-Push Hook
+# Scans the entire project before allowing a push.
+
+echo -e "\n🛡️  Running DOSE full security audit (all files)..."
+
+dose-scan --all
+
+# Stop push if scan fails
+if [ $? -ne 0 ]; then
+  echo -e "\n❌ DOSE scan failed. Push blocked."
+  exit 1
+fi
+
+echo -e "✅ DOSE scan passed. Proceeding with push.\n"

@@ -32,7 +32,7 @@ enum Role {
 
 enum SubmissionStatus {
   PENDING
-  APPROVED
+  ACCEPTED
   REJECTED
 }
 

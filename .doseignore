@@ -1,0 +1,9 @@
+.githooks
+node_modules
+.vscode
+dist
+docs
+scripts
+test
+pnpm-workspace.yaml
+bun.lock

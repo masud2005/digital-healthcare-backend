@@ -1,0 +1,16 @@
+#!/usr/bin/env bash
+
+# DOSE Pre-Commit Hook
+# Scans staged files before allowing a commit.
+
+echo -e "\n🛡️  Running DOSE security scan (staged files)..."
+
+dose-scan --staged
+
+# Stop commit if scan fails
+if [ $? -ne 0 ]; then
+  echo -e "\n❌ DOSE scan failed. Commit blocked."
+  exit 1
+fi
+
+echo -e "✅ DOSE scan passed. Proceeding with commit.\n"
