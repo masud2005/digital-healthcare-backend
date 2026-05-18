@@ -59,22 +59,7 @@ pipeline {
       }
     }
 
-    stage('Install') {
-      steps {
-        sh 'npm ci || npm install'
-      }
-    }
 
-    stage('Quality Gate') {
-      environment {
-        DATABASE_URL = 'postgresql://doc:doc@localhost:5432/doc'
-      }
-      steps {
-        sh 'npm run prisma:validate'
-        sh 'npm run prisma:generate'
-        sh 'npm run build'
-      }
-    }
 
     stage('Build Image') {
       steps {

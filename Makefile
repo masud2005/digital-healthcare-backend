@@ -5,7 +5,7 @@ start-dev:
 	docker compose -f docker-compose.dev.yaml --profile dev up -d
 
 build-prod:
-	docker compose -f docker-compose.yaml build --profile prod --no-cache
+	docker compose -f docker-compose.yaml --profile prod build
 
 start-prod:
 	docker compose -f docker-compose.yaml --profile prod up -d

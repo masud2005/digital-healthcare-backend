@@ -1,9 +1,6 @@
-## v0.0.1
+## 18-05-2026
 
-- **block** Change log 1
-- **fix:** Change log 2
-
-## 0.0.2
-
-- **feat:** Change log 1
-- **chore:** Change log 2
+- chore: application health check setup
+- feat: Jenkins setup for continouse delivery
+- fix: prisma client issues fix
+- feat: category module created

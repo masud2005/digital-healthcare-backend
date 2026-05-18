@@ -62,6 +62,12 @@ export class CategoryRepository {
         });
     }
 
+    findByName(name: string) {
+        return this.prisma.category.findUnique({
+            where: { name },
+        });
+    }
+
     update(id: string, data: CategoryUpdateData) {
         return this.prisma.category.update({
             where: { id },

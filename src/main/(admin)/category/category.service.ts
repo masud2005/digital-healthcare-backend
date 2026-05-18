@@ -4,22 +4,22 @@ import {
     Injectable,
     NotFoundException,
 } from "@nestjs/common";
-import { CategoryStatus, categoryStatus } from "@constant/enums";
+import { slugify } from "@util/functions";
 import { CategoryRepository } from "./category.repository";
 import { CreateCategoryDto } from "./dto/create-category.dto";
 import { CategoryQueryDto } from "./dto/category-query.dto";
 import { UpdateCategoryDto } from "./dto/update-category.dto";
+import type { CategoryStatus } from "@constant/enums";
 
 const DEFAULT_PAGE = 1;
 const DEFAULT_LIMIT = 10;
-const MAX_LIMIT = 100;
-
 @Injectable()
 export class CategoryService {
     constructor(private readonly categoryRepository: CategoryRepository) {}
 
     async create(payload: CreateCategoryDto) {
         const data = this.normalizeCreatePayload(payload);
+        await this.ensureNameIsAvailable(data.name);
 
         try {
             return await this.categoryRepository.create(data);
@@ -30,15 +30,14 @@ export class CategoryService {
     }
 
     async findAll(query: CategoryQueryDto) {
-        const page = this.parsePositiveNumber(query.page, DEFAULT_PAGE, "page");
-        const limit = this.parsePositiveNumber(query.limit, DEFAULT_LIMIT, "limit", MAX_LIMIT);
-        const status = this.parseStatus(query.status);
+        const page = query.page ?? DEFAULT_PAGE;
+        const limit = query.limit ?? DEFAULT_LIMIT;
         const search = query.search?.trim();
 
         const { data, total } = await this.categoryRepository.findAll({
             page,
             limit,
-            status,
+            status: query.status,
             search,
         });
 
@@ -67,6 +66,10 @@ export class CategoryService {
         await this.findOne(id);
         const data = this.normalizeUpdatePayload(payload);
 
+        if (data.name) {
+            await this.ensureNameIsAvailable(data.name, id);
+        }
+
         try {
             return await this.categoryRepository.update(id, data);
         } catch (error) {
@@ -87,13 +90,10 @@ export class CategoryService {
     }
 
     private normalizeCreatePayload(payload: CreateCategoryDto) {
-        const name = this.parseName(payload.name);
-        const status = this.parseStatus(payload.status);
-
         return {
-            name,
+            name: this.normalizeName(payload.name),
             description: this.parseDescription(payload.description),
-            ...(status ? { status } : {}),
+            ...(payload.status ? { status: payload.status } : {}),
         };
     }
 
@@ -105,7 +105,7 @@ export class CategoryService {
         } = {};
 
         if (payload.name !== undefined) {
-            data.name = this.parseName(payload.name);
+            data.name = this.normalizeName(payload.name);
         }
 
         if (payload.description !== undefined) {
@@ -113,7 +113,7 @@ export class CategoryService {
         }
 
         if (payload.status !== undefined) {
-            data.status = this.parseStatus(payload.status);
+            data.status = payload.status;
         }
 
         if (Object.keys(data).length === 0) {
@@ -123,12 +123,9 @@ export class CategoryService {
         return data;
     }
 
-    private parseName(name: string | undefined) {
-        if (typeof name !== "string" || !name.trim()) {
-            throw new BadRequestException("Category name is required");
-        }
-
-        return name.trim();
+    private normalizeName(name: string) {
+        const trimmed = name.trim();
+        return trimmed.includes(" ") ? slugify(trimmed) : trimmed;
     }
 
     private parseDescription(description: string | null | undefined) {
@@ -140,46 +137,16 @@ export class CategoryService {
             return undefined;
         }
 
-        if (typeof description !== "string") {
-            throw new BadRequestException("Category description must be a string");
-        }
-
         const trimmed = description.trim();
         return trimmed.length > 0 ? trimmed : null;
     }
 
-    private parseStatus(status: CategoryStatus | undefined) {
-        if (status === undefined) {
-            return undefined;
+    private async ensureNameIsAvailable(name: string, excludeId?: string) {
+        const existingCategory = await this.categoryRepository.findByName(name);
+
+        if (existingCategory && existingCategory.id !== excludeId) {
+            throw new ConflictException("Category name already exists");
         }
-
-        if (!categoryStatus.includes(status)) {
-            throw new BadRequestException("Invalid category status");
-        }
-
-        return status;
-    }
-
-    private parsePositiveNumber(
-        value: string | undefined,
-        fallback: number,
-        field: string,
-        max?: number,
-    ) {
-        if (value === undefined) {
-            return fallback;
-        }
-
-        const parsed = Number(value);
-        if (!Number.isInteger(parsed) || parsed < 1) {
-            throw new BadRequestException(`${field} must be a positive integer`);
-        }
-
-        if (max && parsed > max) {
-            throw new BadRequestException(`${field} must be less than or equal to ${max}`);
-        }
-
-        return parsed;
     }
 
     private throwKnownPrismaError(error: unknown) {

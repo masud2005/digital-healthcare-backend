@@ -16,6 +16,10 @@ COPY prisma.config.ts ./
 # Copy source code
 COPY . .
 
+# Validate Prisma schema
+ENV DATABASE_URL="postgresql://dummy:dummy@localhost:5432/dummy"
+RUN npm run prisma:validate
+
 # Generate Prisma client
 RUN npm run prisma:generate
 
