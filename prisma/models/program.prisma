@@ -1,7 +1,0 @@
-model Program {
-  id        Int      @id @default(autoincrement())
-  name      String
-  projects  Project[]
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-}

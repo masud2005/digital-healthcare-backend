@@ -20,6 +20,7 @@ async function bootstrap() {
             persistAuthorization: true,
         },
     });
+    console.log("Server is running on port " + (process.env.PORT ?? 3031));
     await app.listen(process.env.PORT ?? 3031);
 }
 bootstrap();
