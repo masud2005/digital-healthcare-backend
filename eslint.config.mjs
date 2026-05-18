@@ -28,6 +28,7 @@ export default defineConfig([
             "no-console": ["warn", { allow: ["warn", "error", "info", "group", "groupEnd"] }],
             "no-unused-vars": "off",
             "@typescript-eslint/no-unused-vars": ["error", { argsIgnorePattern: "^_" }],
+            // dose-ignore
             "no-unused-expressions": "error",
             "no-undef": "off",
             "@typescript-eslint/no-empty-object-type": "warn",

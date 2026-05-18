@@ -28,7 +28,9 @@ async function bootstrap() {
             persistAuthorization: true,
         },
     });
+    // dose-ignore
     console.log("Server is running on port " + (process.env.PORT ?? 3031));
+    // dose-ignore
     await app.listen(process.env.PORT ?? 3031);
 }
 bootstrap();

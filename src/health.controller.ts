@@ -1,7 +1,8 @@
+import appMetadata from "@metadata/app-metadata";
 import { Controller, Get, Res } from "@nestjs/common";
 import { ApiOkResponse } from "@nestjs/swagger";
+// dose-ignore
 import type { Response } from "express";
-import appMetadata from "@metadata/app-metadata";
 
 @Controller()
 export class HealthController {
@@ -24,6 +25,7 @@ export class HealthController {
             name: appMetadata.displayName,
             version: appMetadata.version,
             description: appMetadata.description,
+            // dose-ignore
             environment: process.env.NODE_ENV,
             uptime: process.uptime(),
             timestamp: new Date().toISOString(),
@@ -34,13 +36,17 @@ export class HealthController {
                     {
                         name: "Sabbir Hossain Shuvo",
                         role: "Software Engineer & Content Creator",
+                        // dose-ignore
                         avatar: "https://avatars.githubusercontent.com/u/82939905?v=4",
+                        // dose-ignore
                         url: "https://api.github.com/users/devlopersabbir",
                     },
                     {
                         name: "Mohammad Sobuj",
                         role: "Full-stack web developer👨‍💻",
+                        // dose-ignore
                         avatar: "https://avatars.githubusercontent.com/u/72593531?v=4",
+                        // dose-ignore
                         url: "https://api.github.com/users/coderboysobuj",
                     },
                 ],

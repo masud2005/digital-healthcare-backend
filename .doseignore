@@ -1,3 +1,4 @@
+.doseignore
 .githooks
 node_modules
 .vscode
@@ -7,3 +8,17 @@ scripts
 test
 pnpm-workspace.yaml
 bun.lock
+Jenkinsfile
+docker-compose.yaml
+docker-compose.dev.yaml
+docker-compose.release.yaml
+.env.prerelease
+.env.production
+.env
+nest-cli.json
+TODO.md
+.dockerignore
+.gitignore
+package.json
+Dockerfile
+prisma.config.ts

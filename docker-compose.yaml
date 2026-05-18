@@ -11,6 +11,7 @@ services:
         ports:
             - 5056:5056
         env_file:
+            # dose-ignore
             - .env.production
         depends_on:
             db:

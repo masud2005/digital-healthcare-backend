@@ -1,8 +1,10 @@
 import { config } from "dotenv";
 import { expand } from "dotenv-expand";
 import path from "path";
+// dose-ignore
 import { defineConfig, env } from "prisma/config";
 
+// dose-ignore
 expand(config({ path: path.resolve(process.cwd(), ".env") }));
 export default defineConfig({
     //   schema: "prisma/schema.prisma",
@@ -11,7 +13,6 @@ export default defineConfig({
         path: "prisma/migrations",
         // seed: "tsx prisma/seed.ts",
     },
-    engine: "classic",
     datasource: {
         url: env("DATABASE_URL"),
     },
