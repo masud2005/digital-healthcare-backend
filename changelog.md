@@ -4,3 +4,4 @@
 - feat: Jenkins setup for continouse delivery
 - fix: prisma client issues fix
 - feat: category module created
+- feat: product module created with full functional
