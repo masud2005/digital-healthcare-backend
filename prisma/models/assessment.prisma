@@ -5,7 +5,7 @@ model Assessment {
     description String           @db.Text
     status      AssessmentStatus @default(DRAFT)
 
-    // Relationships
+    // Relations
     categoryId            String
     category              Category               @relation(fields: [categoryId], references: [id])
     questions             Question[]
