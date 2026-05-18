@@ -49,7 +49,7 @@ Avoid these in the same release as app deployment:
 ## Local/VPS Files Added
 
 - `docker-compose.release.yaml`: runs live app, prerelease app, live database, prerelease database, and Caddy.
-- `Caddyfile.release`: routes one domain to live and one domain to prerelease.
+- `Caddyfile`: routes one domain to live and one domain to prerelease.
 - `scripts/clone-db-for-prerelease.sh`: refreshes prerelease database from live.
 
 ## Environment Example
