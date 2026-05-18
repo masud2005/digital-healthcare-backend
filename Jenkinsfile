@@ -224,7 +224,7 @@ pipeline {
               docker compose -f '$COMPOSE_FILE' up -d --no-deps app_live caddy
               for i in \$(seq 1 30); do
                 if curl -fsS 'https://$LIVE_DOMAIN/api/health' >/dev/null; then
-                  echo 'Live is healthy'
+                  echo 'Live is healthy now'
                   exit 0
                 fi
                 echo \"Waiting for live health... \$i/30\"
