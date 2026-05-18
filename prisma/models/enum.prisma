@@ -1,37 +1,33 @@
-enum Role {
-    ADMIN
-    DOCTOR
-    PATIENT
-}
+// ENUMS_START
 
-enum UserStatus {
-    ACTIVE
-    DISABLED
-    BLOCKED
-    SUSPENDED
-    DELETED
-}
-
-enum CategoryStatus {
-    ACTIVE
-    DISABLED
+enum Alignment {
+  LEFT
+  CENTER
+  RIGHT
 }
 
 enum AssessmentStatus {
-    DRAFT
-    ACTIVE
-    DISABLED
+  DRAFT
+  ACTIVE
+  DISABLED
+}
+
+enum CategoryStatus {
+  ACTIVE
+  DISABLED
 }
 
 enum QuestionType {
-    INFORMATION_ONLY
-    SINGLE_CHOICE
-    MULTIPLE_CHOICE
-    INPUT
+  INFORMATION_ONLY
+  SINGLE_CHOICE
+  MULTIPLE_CHOICE
+  INPUT
 }
 
-enum Alignment {
-    LEFT
-    CENTER
-    RIGHT
+enum Role {
+  ADMIN
+  DOCTOR
+  PATIENT
 }
+
+// ENUMS_END
