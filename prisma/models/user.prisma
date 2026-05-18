@@ -1,17 +1,18 @@
 model User {
-    id     String @id @default(uuid())
-    name   String
-    email  String @unique
-    role   String @default("PATIENT")
-    status String @default("ACTIVE")
+  id     String @id @default(uuid())
+  name   String
+  email  String @unique
+  role   String @default("PATIENT")
+  status String @default("ACTIVE")
 
-    // Relationship
-    categoryId String?
-    category   Category? @relation(fields: [categoryId], references: [id])
+  // Relationship
+  categoryId            String?
+  category              Category?              @relation(fields: [categoryId], references: [id])
+  assessmentSubmissions AssessmentSubmission[]
 
-    createdAt DateTime @default(now())
-    updatedAt DateTime @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
-    @@index([name])
-    @@index([role, categoryId])
+  @@index([name])
+  @@index([role, categoryId])
 }
