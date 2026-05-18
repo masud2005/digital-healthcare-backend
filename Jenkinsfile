@@ -32,7 +32,7 @@ pipeline {
     DOCKER_CREDENTIALS_ID = 'dockerhub-creds'
     VPS_SSH_CREDENTIALS_ID = 'doc-vps-ssh'
     // VPS_HOST = credentials('doc-backend-vps-host')
-    VPS_HOST = '172.252.13.132'
+    VPS_HOST = '147.93.29.211'
     // VPS_USER = credentials('doc-backend-vps-user')
     VPS_USER = 'root'
     // LIVE_DOMAIN = credentials('doc-backend-live-domain')
