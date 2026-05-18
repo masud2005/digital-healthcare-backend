@@ -26,17 +26,13 @@ export class AppController {
             uptime: process.uptime(),
             timestamp: new Date().toISOString(),
             team: {
-                name: "Dev Ninja",
-                leader: "Niloy",
+                name: "Runtime Terrors (RT)",
+                leader: "Sabbir Hossain",
                 members: [
                     {
-                        name: "Milon",
+                        name: "Md. Masud Rana",
                         role: "Backend Developer",
-                    },
-                    {
-                        name: "Sujon",
-                        role: "Backend Developer",
-                    },
+                    }
                 ],
             },
         });

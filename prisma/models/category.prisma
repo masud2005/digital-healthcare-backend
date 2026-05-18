@@ -1,0 +1,17 @@
+model Category {
+    id          String         @id @default(uuid())
+    name        String         @unique
+    description String?        @db.Text
+    status      CategoryStatus @default(ACTIVE)
+
+    // Relationships
+    users    User[]
+    products Product[]
+    // assessments Assessment[]
+
+    createdAt DateTime @default(now())
+    updatedAt DateTime @updatedAt
+
+    @@index([status])
+    @@index([name])
+}
