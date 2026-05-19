@@ -15,3 +15,10 @@ stop-dev:
 
 stop-prod:
 	docker compose -f docker-compose.yaml --profile prod down --remove-orphans
+
+########
+storage-up:
+	docker compose -f docker-compose.storage.yaml up -d --remove-orphans
+
+storage-down:
+	docker compose -f docker-compose.storage.yaml down --remove-orphans

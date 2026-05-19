@@ -1,9 +1,26 @@
-import { Body, Controller, Delete, Get, HttpCode, Param, Patch, Post, Query } from "@nestjs/common";
+import { StorageService } from "@global/storage/storage.service";
 import {
+    Body,
+    Controller,
+    Delete,
+    Get,
+    HttpCode,
+    Param,
+    Patch,
+    Post,
+    Query,
+    UploadedFile,
+    UseInterceptors,
+} from "@nestjs/common";
+import { FileInterceptor } from "@nestjs/platform-express";
+import {
+    ApiBody,
+    ApiConsumes,
     ApiCreatedResponse,
     ApiNoContentResponse,
     ApiOkResponse,
     ApiOperation,
+    ApiProperty,
     ApiTags,
 } from "@nestjs/swagger";
 import { CreateProductDto } from "./dto/create-product.dto";
@@ -13,10 +30,33 @@ import { ProductListResponseDto, ProductResponseDto } from "./dto/product-respon
 import { UpdateProductDto } from "./dto/update-product.dto";
 import { ProductService } from "./product.service";
 
+class UploadFileDto {
+    @ApiProperty({
+        type: "string",
+        format: "binary",
+        description: "File to upload (image/document)",
+    })
+    file: any;
+}
+
 @ApiTags("Admin Products")
 @Controller("admin/products")
 export class ProductController {
-    constructor(private readonly productService: ProductService) {}
+    constructor(
+        private readonly productService: ProductService,
+        private readonly storageService: StorageService,
+    ) {}
+
+    @ApiBody({
+        description: "Upload file",
+        type: UploadFileDto,
+    })
+    @ApiConsumes("multipart/form-data")
+    @Post("upload")
+    @UseInterceptors(FileInterceptor("file"))
+    async upload(@UploadedFile() file: Express.Multer.File) {
+        return this.storageService.uploadFile(file);
+    }
 
     @Post()
     @ApiOperation({ summary: "Create a product" })
