@@ -1,19 +1,15 @@
 {$LIVE_DOMAIN} {
     reverse_proxy app_live:5056 {
-        health_checks {
-            path /api/health
-            interval 10s
-            timeout 5s
-        }
+        health_uri /api/health
+        health_interval 10s
+        health_timeout 5s
     }
 }
 
 {$PRE_DOMAIN} {
     reverse_proxy app_pre:5056 {
-        health_checks {
-            path /api/health
-            interval 10s
-            timeout 5s
-        }
+        health_uri /api/health
+        health_interval 10s
+        health_timeout 5s
     }
 }
