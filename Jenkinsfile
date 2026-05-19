@@ -204,22 +204,33 @@ pipeline {
           sh '''
             set -eu
             SSH_OPTIONS="-o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null"
-            ssh $SSH_OPTIONS "$VPS_USER@$VPS_HOST" "
+            ssh $SSH_OPTIONS "$VPS_USER@$VPS_HOST" '
               set -eu
-              cd '$SERVER_DIR'
-              echo 'Waiting for prerelease health check...'
-              for i in \$(seq 1 30); do
-                if curl -fsS 'https://$PRE_DOMAIN/api/health' >/dev/null; then
-                  echo 'Prerelease is healthy'
-                  exit 0
-                fi
-                echo \"Waiting for prerelease health... \$i/30\"
-                sleep 5
-              done
-              echo 'Prerelease failed health check'
-              docker compose -f '$COMPOSE_FILE' logs --tail=200 app_pre
-              exit 1
-            "
+
+            cd "'"$SERVER_DIR"'"
+
+            echo "Waiting for prerelease health check..."
+
+            i=1
+            max=30
+
+            # IMPORTANT: bash-safe loop (no seq, no subshell issues)
+            while [ $i -le $max ]; do
+              if curl -fsS "https://'"$PRE_DOMAIN"'/api/health" >/dev/null 2>&1; then
+                echo "Prerelease is healthy"
+                exit 0
+              fi
+
+              echo "Waiting for prerelease health... $i/$max"
+              i=$((i + 1))
+              sleep 5
+            done
+
+            echo "Prerelease failed health check"
+
+            docker compose -f "'"$COMPOSE_FILE"'" logs --tail=200 app_pre || true
+            exit 1
+            '
           '''
         }
       }
