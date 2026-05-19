@@ -113,3 +113,4 @@ prisma/generated
 deploy_key*
 backups/
 logs/
+minio-data

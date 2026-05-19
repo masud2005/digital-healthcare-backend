@@ -98,7 +98,7 @@ export class ProductService {
     private normalizeCreatePayload(payload: CreateProductDto) {
         return {
             name: this.normalizeName(payload.name),
-            image: payload.image.trim(),
+            images: payload.images.map((img) => img.trim()),
             price: payload.price.trim(),
             stockQuantity: payload.stockQuantity,
             description: this.parseDescription(payload.description),
@@ -109,7 +109,7 @@ export class ProductService {
     private normalizeUpdatePayload(payload: UpdateProductDto) {
         const data: {
             name?: string;
-            image?: string;
+            images?: string[];
             price?: string;
             stockQuantity?: number;
             description?: string | null;
@@ -120,8 +120,8 @@ export class ProductService {
             data.name = this.normalizeName(payload.name);
         }
 
-        if (payload.image !== undefined) {
-            data.image = payload.image.trim();
+        if (payload.images !== undefined) {
+            data.images = payload.images.map((img) => img.trim());
         }
 
         if (payload.price !== undefined) {

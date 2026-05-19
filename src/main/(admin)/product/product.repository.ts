@@ -4,7 +4,7 @@ import type { Prisma } from "@prisma/client";
 
 type ProductCreateData = {
     name: string;
-    image: string;
+    images: string[];
     price: string;
     stockQuantity?: number;
     description?: string | null;
@@ -13,7 +13,7 @@ type ProductCreateData = {
 
 type ProductUpdateData = {
     name?: string;
-    image?: string;
+    images?: string[];
     price?: string;
     stockQuantity?: number;
     description?: string | null;
