@@ -1,6 +1,7 @@
 import { ApiPropertyOptional } from "@nestjs/swagger";
 import { Transform, Type } from "class-transformer";
 import {
+    IsArray,
     IsDecimal,
     IsInt,
     IsNotEmpty,
@@ -18,11 +19,15 @@ export class UpdateProductDto {
     @IsNotEmpty()
     name?: string;
 
-    @ApiPropertyOptional({ example: "https://example.com/products/bp-monitor.png" })
+    @ApiPropertyOptional({
+        type: [String],
+        example: ["https://example.com/products/bp-monitor.png"],
+    })
     @IsOptional()
-    @IsString()
-    @IsNotEmpty()
-    image?: string;
+    @IsArray()
+    @IsString({ each: true })
+    @IsNotEmpty({ each: true })
+    images?: string[];
 
     @ApiPropertyOptional({ example: "49.99", description: "Decimal value" })
     @IsOptional()

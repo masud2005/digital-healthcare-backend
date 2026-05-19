@@ -7,7 +7,6 @@ import { defineConfig, env } from "prisma/config";
 // dose-ignore
 expand(config({ path: path.resolve(process.cwd(), ".env") }));
 export default defineConfig({
-    //   schema: "prisma/schema.prisma",
     schema: "prisma/models",
     migrations: {
         path: "prisma/migrations",

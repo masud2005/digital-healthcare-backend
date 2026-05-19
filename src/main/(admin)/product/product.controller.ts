@@ -1,5 +1,6 @@
 import { StorageService } from "@global/storage/storage.service";
 import {
+    BadRequestException,
     Body,
     Controller,
     Delete,
@@ -9,18 +10,16 @@ import {
     Patch,
     Post,
     Query,
-    UploadedFile,
+    UploadedFiles,
     UseInterceptors,
 } from "@nestjs/common";
-import { FileInterceptor } from "@nestjs/platform-express";
+import { FilesInterceptor } from "@nestjs/platform-express";
 import {
-    ApiBody,
     ApiConsumes,
     ApiCreatedResponse,
     ApiNoContentResponse,
     ApiOkResponse,
     ApiOperation,
-    ApiProperty,
     ApiTags,
 } from "@nestjs/swagger";
 import { CreateProductDto } from "./dto/create-product.dto";
@@ -30,15 +29,6 @@ import { ProductListResponseDto, ProductResponseDto } from "./dto/product-respon
 import { UpdateProductDto } from "./dto/update-product.dto";
 import { ProductService } from "./product.service";
 
-class UploadFileDto {
-    @ApiProperty({
-        type: "string",
-        format: "binary",
-        description: "File to upload (image/document)",
-    })
-    file: any;
-}
-
 @ApiTags("Admin Products")
 @Controller("admin/products")
 export class ProductController {
@@ -47,22 +37,25 @@ export class ProductController {
         private readonly storageService: StorageService,
     ) {}
 
-    @ApiBody({
-        description: "Upload file",
-        type: UploadFileDto,
-    })
-    @ApiConsumes("multipart/form-data")
-    @Post("upload")
-    @UseInterceptors(FileInterceptor("file"))
-    async upload(@UploadedFile() file: Express.Multer.File) {
-        return this.storageService.uploadFile(file);
-    }
-
     @Post()
     @ApiOperation({ summary: "Create a product" })
+    @ApiConsumes("multipart/form-data")
+    @UseInterceptors(FilesInterceptor("images"))
     @ApiCreatedResponse({ type: ProductResponseDto })
-    create(@Body() payload: CreateProductDto) {
-        return this.productService.create(payload);
+    async create(@Body() payload: CreateProductDto, @UploadedFiles() files: Express.Multer.File[]) {
+        if (!files || files.length === 0) {
+            throw new BadRequestException("At least one product image is required");
+        }
+
+        const uploaded = await Promise.all(
+            files.map((file) => this.storageService.uploadFile(file)),
+        );
+        const imageUrls = uploaded.map((img) => img.url);
+
+        return this.productService.create({
+            ...payload,
+            images: imageUrls,
+        });
     }
 
     @Get()

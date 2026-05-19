@@ -15,8 +15,8 @@ export class ProductResponseDto {
     @ApiProperty({ example: "Blood Pressure Monitor" })
     name: string;
 
-    @ApiProperty({ example: "https://example.com/products/bp-monitor.png" })
-    image: string;
+    @ApiProperty({ type: [String], example: ["https://example.com/products/bp-monitor.png"] })
+    images: string[];
 
     @ApiProperty({ example: "49.99", description: "Decimal value serialized as a string" })
     price: string;

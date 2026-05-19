@@ -17,10 +17,16 @@ export class CreateProductDto {
     @IsNotEmpty()
     name: string;
 
-    @ApiProperty({ example: "https://example.com/products/bp-monitor.png" })
-    @IsString()
-    @IsNotEmpty()
-    image: string;
+    @ApiProperty({
+        type: "array",
+        items: {
+            type: "string",
+            format: "binary",
+        },
+        description: "Product images to upload",
+    })
+    @IsOptional()
+    images: any;
 
     @ApiProperty({ example: "49.99", description: "Decimal value" })
     @Transform(({ value }) => (value === null || value === undefined ? value : String(value)))

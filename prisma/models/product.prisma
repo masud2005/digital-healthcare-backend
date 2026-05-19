@@ -1,7 +1,7 @@
 model Product {
   id            String  @id @default(uuid())
   name          String
-  image         String
+  images        String[]
   price         Decimal @db.Decimal(10, 2)
   stockQuantity Int     @default(0)
   description   String? @db.Text
