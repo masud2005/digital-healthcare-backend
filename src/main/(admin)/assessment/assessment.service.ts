@@ -4,7 +4,11 @@ import {
     Injectable,
     NotFoundException,
 } from "@nestjs/common";
-import { type AssessmentRecord, AssessmentRepository } from "./assessment.repository";
+import {
+    type AssessmentDetailRecord,
+    type AssessmentRecord,
+    AssessmentRepository,
+} from "./assessment.repository";
 import { AssessmentQueryDto } from "./dto/assessment-query.dto";
 import { CreateAssessmentDto } from "./dto/create-assessment.dto";
 import { UpdateAssessmentDto } from "./dto/update-assessment.dto";
@@ -60,7 +64,7 @@ export class AssessmentService {
             throw new NotFoundException("Assessment not found");
         }
 
-        return this.mapAssessment(assessment);
+        return this.mapAssessmentDetail(assessment);
     }
 
     async update(id: string, payload: UpdateAssessmentDto) {
@@ -184,6 +188,45 @@ export class AssessmentService {
             totalQuestions: _count.questions,
             totalAssessments: _count.questions,
         };
+    }
+
+    private mapAssessmentDetail(assessment: AssessmentDetailRecord) {
+        const { _count, questions, ...rest } = assessment;
+
+        return {
+            ...rest,
+            questions: this.buildQuestionTree(questions),
+            totalQuestions: _count.questions,
+            totalAssessments: _count.questions,
+        };
+    }
+
+    private buildQuestionTree(questions: AssessmentDetailRecord["questions"]) {
+        const questionsByParentOptionId = new Map<string, AssessmentDetailRecord["questions"]>();
+
+        for (const question of questions) {
+            if (!question.parentOptionId) {
+                continue;
+            }
+
+            const groupedQuestions = questionsByParentOptionId.get(question.parentOptionId) ?? [];
+            groupedQuestions.push(question);
+            questionsByParentOptionId.set(question.parentOptionId, groupedQuestions);
+        }
+
+        const buildNode = (question: AssessmentDetailRecord["questions"][number]) => ({
+            ...question,
+            options: question.options.map((option) => ({
+                ...option,
+                subQuestions: (questionsByParentOptionId.get(option.id) ?? []).map((childQuestion) =>
+                    buildNode(childQuestion),
+                ),
+            })),
+        });
+
+        return questions
+            .filter((question) => !question.parentOptionId)
+            .map((question) => buildNode(question));
     }
 
     private async ensureCategoryExists(categoryId: string) {

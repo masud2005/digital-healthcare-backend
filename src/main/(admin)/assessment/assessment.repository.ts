@@ -41,8 +41,45 @@ const assessmentInclude = {
     },
 } satisfies Prisma.AssessmentInclude;
 
+const assessmentDetailInclude = {
+    category: {
+        select: {
+            id: true,
+            name: true,
+        },
+    },
+    _count: {
+        select: {
+            questions: true,
+        },
+    },
+    questions: {
+        orderBy: { createdAt: "asc" },
+        include: {
+            options: {
+                select: {
+                    id: true,
+                    label: true,
+                    placeholder: true,
+                    inputType: true,
+                },
+            },
+            parentOption: {
+                select: {
+                    id: true,
+                    label: true,
+                },
+            },
+        },
+    },
+} satisfies Prisma.AssessmentInclude;
+
 export type AssessmentRecord = Prisma.AssessmentGetPayload<{
     include: typeof assessmentInclude;
+}>;
+
+export type AssessmentDetailRecord = Prisma.AssessmentGetPayload<{
+    include: typeof assessmentDetailInclude;
 }>;
 
 export type AssessmentStats = {
@@ -89,7 +126,7 @@ export class AssessmentRepository {
     findById(id: string) {
         return this.prisma.assessment.findUnique({
             where: { id },
-            include: assessmentInclude,
+            include: assessmentDetailInclude,
         });
     }
 

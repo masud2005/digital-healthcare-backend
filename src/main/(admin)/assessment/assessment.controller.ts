@@ -63,7 +63,7 @@ export class AssessmentController {
     }
 
     @Get()
-    @ApiOperation({ summary: "Get assessments" })
+    @ApiOperation({ summary: "Get all assessments" })
     @ApiOkResponse({ type: AssessmentListResponseDto })
     findAll(@Query() query: AssessmentQueryDto) {
         return this.assessmentService.findAll(query);
