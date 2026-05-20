@@ -5,7 +5,7 @@ export class CreateQuestionOptionDto {
     @ApiProperty({ example: "Yes" })
     @IsString()
     @IsNotEmpty()
-    label: string;
+    label!: string;
 
     @ApiPropertyOptional({ example: "Enter value" })
     @IsOptional()
@@ -19,5 +19,5 @@ export class CreateQuestionOptionDto {
 
     @ApiProperty({ example: "7f4145d8-087e-4d33-82bd-0f65d3fbdb4f" })
     @IsUUID()
-    questionId: string;
+    questionId!: string;
 }

@@ -22,6 +22,7 @@ import {
     ApiOperation,
     ApiTags,
 } from "@nestjs/swagger";
+import "multer";
 import { CreateProductDto } from "./dto/create-product.dto";
 import { ProductParamDto } from "./dto/product-param.dto";
 import { ProductQueryDto } from "./dto/product-query.dto";

@@ -2,7 +2,7 @@ import type { AssessmentStatus } from "@constant/enums";
 import { assessmentStatus } from "@constant/enums";
 import { ApiPropertyOptional } from "@nestjs/swagger";
 import { Type } from "class-transformer";
-import { IsEnum, IsInt, IsOptional, IsUUID, Max, Min } from "class-validator";
+import { IsEnum, IsInt, IsOptional, IsString, Max, Min } from "class-validator";
 
 export class AssessmentQueryDto {
     @ApiPropertyOptional({ enum: assessmentStatus, example: "DRAFT" })
@@ -10,10 +10,10 @@ export class AssessmentQueryDto {
     @IsEnum(assessmentStatus)
     status?: AssessmentStatus;
 
-    @ApiPropertyOptional({ example: "7f4145d8-087e-4d33-82bd-0f65d3fbdb4f" })
+    @ApiPropertyOptional({ example: "Cardiology" })
     @IsOptional()
-    @IsUUID()
-    categoryId?: string;
+    @IsString()
+    categoryName?: string;
 
     @ApiPropertyOptional({ example: 1, type: Number })
     @IsOptional()

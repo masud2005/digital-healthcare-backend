@@ -21,12 +21,14 @@ import {
     ApiOperation,
     ApiTags,
 } from "@nestjs/swagger";
+import "multer";
 import { AssessmentService } from "./assessment.service";
 import { AssessmentParamDto } from "./dto/assessment-param.dto";
 import { AssessmentQueryDto } from "./dto/assessment-query.dto";
 import {
     AssessmentListResponseDto,
     AssessmentResponseDto,
+    AssessmentStatsResponseDto,
 } from "./dto/assessment-response.dto";
 import { CreateAssessmentDto } from "./dto/create-assessment.dto";
 import { UpdateAssessmentDto } from "./dto/update-assessment.dto";
@@ -65,6 +67,13 @@ export class AssessmentController {
     @ApiOkResponse({ type: AssessmentListResponseDto })
     findAll(@Query() query: AssessmentQueryDto) {
         return this.assessmentService.findAll(query);
+    }
+
+    @Get("stats")
+    @ApiOperation({ summary: "Get assessment stats" })
+    @ApiOkResponse({ type: AssessmentStatsResponseDto })
+    findStats() {
+        return this.assessmentService.findStats();
     }
 
     @Get(":id")

@@ -7,6 +7,7 @@ type AssessmentCreateData = {
     thumbnail?: string | null;
     description: string;
     status?: AssessmentStatus;
+    publishedAt?: Date | null;
     categoryId: string;
 };
 
@@ -15,14 +16,42 @@ type AssessmentUpdateData = {
     thumbnail?: string | null;
     description?: string;
     status?: AssessmentStatus;
+    publishedAt?: Date | null;
     categoryId?: string;
 };
 
 type AssessmentFindAllParams = {
     status?: AssessmentStatus;
-    categoryId?: string;
+    categoryName?: string;
     page: number;
     limit: number;
+};
+
+const assessmentInclude = {
+    category: {
+        select: {
+            id: true,
+            name: true,
+        },
+    },
+    _count: {
+        select: {
+            questions: true,
+        },
+    },
+} satisfies Prisma.AssessmentInclude;
+
+export type AssessmentRecord = Prisma.AssessmentGetPayload<{
+    include: typeof assessmentInclude;
+}>;
+
+export type AssessmentStats = {
+    activeAssessments: number;
+    draftAssessments: number;
+    disabledAssessments: number;
+    assessmentTaken: number;
+    approvedAssessments: number;
+    declinedAssessments: number;
 };
 
 @Injectable()
@@ -32,15 +61,15 @@ export class AssessmentRepository {
     create(data: AssessmentCreateData) {
         return this.prisma.assessment.create({
             data,
-            include: this.assessmentInclude,
+            include: assessmentInclude,
         });
     }
 
     async findAll(params: AssessmentFindAllParams) {
-        const { page, limit, status, categoryId } = params;
+        const { page, limit, status, categoryName } = params;
         const where: Prisma.AssessmentWhereInput = {
             ...(status ? { status } : {}),
-            ...(categoryId ? { categoryId } : {}),
+            ...(categoryName ? { category: { name: categoryName } } : {}),
         };
 
         const [data, total] = await this.prisma.$transaction([
@@ -49,7 +78,7 @@ export class AssessmentRepository {
                 skip: (page - 1) * limit,
                 take: limit,
                 orderBy: { createdAt: "desc" },
-                include: this.assessmentInclude,
+                include: assessmentInclude,
             }),
             this.prisma.assessment.count({ where }),
         ]);
@@ -60,7 +89,7 @@ export class AssessmentRepository {
     findById(id: string) {
         return this.prisma.assessment.findUnique({
             where: { id },
-            include: this.assessmentInclude,
+            include: assessmentInclude,
         });
     }
 
@@ -68,7 +97,7 @@ export class AssessmentRepository {
         return this.prisma.assessment.update({
             where: { id },
             data,
-            include: this.assessmentInclude,
+            include: assessmentInclude,
         });
     }
 
@@ -85,12 +114,24 @@ export class AssessmentRepository {
         });
     }
 
-    private readonly assessmentInclude = {
-        category: {
-            select: {
-                id: true,
-                name: true,
-            },
-        },
-    } satisfies Prisma.AssessmentInclude;
+    async findStats(): Promise<AssessmentStats> {
+        const [activeAssessments, draftAssessments, disabledAssessments, assessmentTaken, approvedAssessments, declinedAssessments] =
+            await this.prisma.$transaction([
+                this.prisma.assessment.count({ where: { status: "ACTIVE" } }),
+                this.prisma.assessment.count({ where: { status: "DRAFT" } }),
+                this.prisma.assessment.count({ where: { status: "DISABLED" } }),
+                this.prisma.assessmentSubmission.count(),
+                this.prisma.assessmentSubmission.count({ where: { status: "ACCEPTED" } }),
+                this.prisma.assessmentSubmission.count({ where: { status: "REJECTED" } }),
+            ]);
+
+        return {
+            activeAssessments,
+            draftAssessments,
+            disabledAssessments,
+            assessmentTaken,
+            approvedAssessments,
+            declinedAssessments,
+        };
+    }
 }

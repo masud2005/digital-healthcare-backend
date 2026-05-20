@@ -32,6 +32,15 @@ export class AssessmentResponseDto {
     @ApiPropertyOptional({ type: AssessmentCategoryResponseDto })
     category?: AssessmentCategoryResponseDto;
 
+    @ApiPropertyOptional({ example: "2026-05-18T04:00:00.000Z", nullable: true })
+    publishedAt: Date | null;
+
+    @ApiProperty({ example: 12 })
+    totalQuestions: number;
+
+    @ApiProperty({ example: 12 })
+    totalAssessments: number;
+
     @ApiProperty({ example: "2026-05-18T04:00:00.000Z" })
     createdAt: Date;
 
@@ -59,4 +68,24 @@ export class AssessmentListResponseDto {
 
     @ApiProperty({ type: AssessmentListMetaDto })
     meta: AssessmentListMetaDto;
+}
+
+export class AssessmentStatsResponseDto {
+    @ApiProperty({ example: 4 })
+    activeAssessments: number;
+
+    @ApiProperty({ example: 2 })
+    draftAssessments: number;
+
+    @ApiProperty({ example: 1 })
+    disabledAssessments: number;
+
+    @ApiProperty({ example: 1250 })
+    assessmentTaken: number;
+
+    @ApiProperty({ example: 950 })
+    approvedAssessments: number;
+
+    @ApiProperty({ example: 300 })
+    declinedAssessments: number;
 }

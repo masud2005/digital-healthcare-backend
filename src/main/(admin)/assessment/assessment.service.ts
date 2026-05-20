@@ -4,7 +4,7 @@ import {
     Injectable,
     NotFoundException,
 } from "@nestjs/common";
-import { AssessmentRepository } from "./assessment.repository";
+import { type AssessmentRecord, AssessmentRepository } from "./assessment.repository";
 import { AssessmentQueryDto } from "./dto/assessment-query.dto";
 import { CreateAssessmentDto } from "./dto/create-assessment.dto";
 import { UpdateAssessmentDto } from "./dto/update-assessment.dto";
@@ -21,7 +21,9 @@ export class AssessmentService {
         await this.ensureCategoryExists(data.categoryId);
 
         try {
-            return await this.assessmentRepository.create(data);
+            const assessment = await this.assessmentRepository.create(data);
+
+            return this.mapAssessment(assessment);
         } catch (error) {
             this.throwKnownPrismaError(error);
             throw error;
@@ -31,16 +33,17 @@ export class AssessmentService {
     async findAll(query: AssessmentQueryDto) {
         const page = query.page ?? DEFAULT_PAGE;
         const limit = query.limit ?? DEFAULT_LIMIT;
+        const categoryName = this.normalizeQueryText(query.categoryName);
 
         const { data, total } = await this.assessmentRepository.findAll({
             page,
             limit,
             status: query.status,
-            categoryId: query.categoryId,
+            categoryName,
         });
 
         return {
-            data,
+            data: data.map((assessment) => this.mapAssessment(assessment)),
             meta: {
                 page,
                 limit,
@@ -57,7 +60,7 @@ export class AssessmentService {
             throw new NotFoundException("Assessment not found");
         }
 
-        return assessment;
+        return this.mapAssessment(assessment);
     }
 
     async update(id: string, payload: UpdateAssessmentDto) {
@@ -69,7 +72,9 @@ export class AssessmentService {
         }
 
         try {
-            return await this.assessmentRepository.update(id, data);
+            const assessment = await this.assessmentRepository.update(id, data);
+
+            return this.mapAssessment(assessment);
         } catch (error) {
             this.throwKnownPrismaError(error);
             throw error;
@@ -88,11 +93,14 @@ export class AssessmentService {
     }
 
     private normalizeCreatePayload(payload: CreateAssessmentDto) {
+        const status = payload.status ?? "DRAFT";
+
         return {
             title: this.normalizeText(payload.title, "title"),
             thumbnail: this.parseThumbnail(payload.thumbnail),
             description: this.normalizeText(payload.description, "description"),
-            ...(payload.status ? { status: payload.status } : {}),
+            status,
+            publishedAt: status === "ACTIVE" ? new Date() : null,
             categoryId: payload.categoryId,
         };
     }
@@ -104,6 +112,7 @@ export class AssessmentService {
             description?: string;
             status?: UpdateAssessmentDto["status"];
             categoryId?: string;
+            publishedAt?: Date | null;
         } = {};
 
         if (payload.title !== undefined) {
@@ -120,6 +129,7 @@ export class AssessmentService {
 
         if (payload.status !== undefined) {
             data.status = payload.status;
+            data.publishedAt = payload.status === "ACTIVE" ? new Date() : null;
         }
 
         if (payload.categoryId !== undefined) {
@@ -131,6 +141,10 @@ export class AssessmentService {
         }
 
         return data;
+    }
+
+    async findStats() {
+        return this.assessmentRepository.findStats();
     }
 
     private normalizeText(value: string, fieldName: string) {
@@ -154,6 +168,22 @@ export class AssessmentService {
 
         const trimmed = thumbnail.trim();
         return trimmed.length > 0 ? trimmed : null;
+    }
+
+    private normalizeQueryText(value?: string) {
+        const trimmed = value?.trim();
+
+        return trimmed ? trimmed : undefined;
+    }
+
+    private mapAssessment(assessment: AssessmentRecord) {
+        const { _count, ...rest } = assessment;
+
+        return {
+            ...rest,
+            totalQuestions: _count.questions,
+            totalAssessments: _count.questions,
+        };
     }
 
     private async ensureCategoryExists(categoryId: string) {

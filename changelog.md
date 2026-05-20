@@ -13,3 +13,8 @@
 - fix: prerelase and postrelease verification setup for continouse delivery
 - fix: environment variable injection fixed
 - fix: Caddyfile issues fix
+
+
+
+# *Md. Masud Rana*
+- Modify get all assessment API
