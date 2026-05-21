@@ -121,7 +121,8 @@ export class ProductService {
         }
 
         if (payload.images !== undefined) {
-            data.images = payload.images.map((img) => img.trim());
+            const images = Array.isArray(payload.images) ? payload.images : [payload.images];
+            data.images = images.map((img) => String(img).trim()).filter(Boolean);
         }
 
         if (payload.price !== undefined) {

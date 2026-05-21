@@ -17,6 +17,11 @@ enum CategoryStatus {
   DISABLED
 }
 
+enum OtpPurpose {
+  LOGIN
+  REGISTER
+}
+
 enum QuestionType {
   INFORMATION_ONLY
   SINGLE_CHOICE

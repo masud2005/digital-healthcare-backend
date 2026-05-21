@@ -75,8 +75,21 @@ export class ProductController {
 
     @Patch(":id")
     @ApiOperation({ summary: "Update a product" })
+    @ApiConsumes("multipart/form-data")
+    @UseInterceptors(FilesInterceptor("images"))
     @ApiOkResponse({ type: ProductResponseDto })
-    update(@Param() params: ProductParamDto, @Body() payload: UpdateProductDto) {
+    async update(
+        @Param() params: ProductParamDto,
+        @Body() payload: UpdateProductDto,
+        @UploadedFiles() files: Express.Multer.File[],
+    ) {
+        if (files?.length) {
+            const uploaded = await Promise.all(
+                files.map((file) => this.storageService.uploadFile(file)),
+            );
+            payload.images = uploaded.map((img) => img.url);
+        }
+
         return this.productService.update(params.id, payload);
     }
 
