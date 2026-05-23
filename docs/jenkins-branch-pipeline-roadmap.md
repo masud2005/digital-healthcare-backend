@@ -137,8 +137,6 @@ Create these Jenkins credentials:
 
 - `dockerhub-creds`: Docker Hub username/password.
 - `doc-vps-ssh`: SSH private key for the VPS user.
-- `doc-backend-env-production`: secret file for `.env.production`.
-- `doc-backend-env-prerelease`: secret file for `.env.prerelease`.
 - `doc-backend-postgres-password`: secret text for PostgreSQL password if not stored in env files.
 
 Recommended Jenkins environment values:
@@ -445,7 +443,7 @@ Security:
 - PostgreSQL is not public.
 - App containers are not public.
 - MinIO is not public unless routed through Caddy with authentication.
-- `.env.production` and `.env.prerelease` are Jenkins secret files or server-only files.
+- `.env.production` and `.env.prerelease` are server-only files in `/root/projects/doc-backend`.
 
 Data:
 

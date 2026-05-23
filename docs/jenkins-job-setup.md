@@ -95,14 +95,12 @@ These IDs must exist in Jenkins because the `Jenkinsfile` references them:
 
 - `dockerhub-creds`
 - `doc-vps-ssh`
-- `doc-backend-env-production`
-- `doc-backend-env-prerelease`
 
-The env file credentials should contain the complete server env files:
+The server should keep these env files in the deployment directory:
 
 ```text
-.env.production
-.env.prerelease
+/root/projects/doc-backend/.env.production
+/root/projects/doc-backend/.env.prerelease
 ```
 
 Use this in `.env.production`:

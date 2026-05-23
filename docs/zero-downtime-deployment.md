@@ -142,8 +142,8 @@ Create these Jenkins credentials:
 - `doc-backend-vps-user`: secret text containing the VPS Linux username.
 - `doc-backend-live-domain`: secret text such as `api.example.com`.
 - `doc-backend-pre-domain`: secret text such as `pre-api.example.com`.
-- `doc-backend-env-production`: secret file containing `.env.production`.
-- `doc-backend-env-prerelease`: secret file containing `.env.prerelease`.
+
+Keep `.env.production` and `.env.prerelease` as server-only files in `/root/projects/doc-backend`.
 
 Install these Jenkins plugins:
 

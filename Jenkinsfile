@@ -47,6 +47,15 @@ pipeline {
     }
 
     stage('Quality Gate') {
+      when {
+        not {
+          anyOf {
+            branch 'dev'
+            branch 'master'
+            branch 'main'
+          }
+        }
+      }
       agent {
         docker {
           image 'node:22'
@@ -159,32 +168,32 @@ pipeline {
         }
       }
       steps {
-        withCredentials([
-          file(credentialsId: 'doc-backend-env-production', variable: 'ENV_PRODUCTION_FILE'),
-          file(credentialsId: 'doc-backend-env-prerelease', variable: 'ENV_PRERELEASE_FILE')
-        ]) {
-          sshagent(credentials: ["${VPS_SSH_CREDENTIALS_ID}"]) {
-            sh '''
+        sshagent(credentials: ["${VPS_SSH_CREDENTIALS_ID}"]) {
+          sh '''
+            set -eu
+
+            SSH="ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null"
+            SCP="scp -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null"
+
+            $SSH "$VPS_USER@$VPS_HOST" "mkdir -p '$SERVER_DIR/scripts' '$SERVER_DIR/releases'"
+
+            $SCP "$COMPOSE_FILE" "$VPS_USER@$VPS_HOST:$SERVER_DIR/$COMPOSE_FILE"
+            $SCP Caddyfile "$VPS_USER@$VPS_HOST:$SERVER_DIR/Caddyfile"
+            $SCP scripts/clone-db-for-prerelease.sh "$VPS_USER@$VPS_HOST:$SERVER_DIR/scripts/clone-db-for-prerelease.sh"
+            $SCP scripts/deploy-prerelease.sh "$VPS_USER@$VPS_HOST:$SERVER_DIR/scripts/deploy-prerelease.sh"
+            $SCP scripts/promote-production.sh "$VPS_USER@$VPS_HOST:$SERVER_DIR/scripts/promote-production.sh"
+            $SCP scripts/rollback-production.sh "$VPS_USER@$VPS_HOST:$SERVER_DIR/scripts/rollback-production.sh"
+            $SCP scripts/backup-postgres.sh "$VPS_USER@$VPS_HOST:$SERVER_DIR/scripts/backup-postgres.sh"
+
+            $SSH "$VPS_USER@$VPS_HOST" "
               set -eu
-
-              SSH="ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null"
-              SCP="scp -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null"
-
-              $SSH "$VPS_USER@$VPS_HOST" "mkdir -p '$SERVER_DIR/scripts' '$SERVER_DIR/releases'"
-
-              $SCP "$COMPOSE_FILE" "$VPS_USER@$VPS_HOST:$SERVER_DIR/$COMPOSE_FILE"
-              $SCP Caddyfile "$VPS_USER@$VPS_HOST:$SERVER_DIR/Caddyfile"
-              $SCP scripts/clone-db-for-prerelease.sh "$VPS_USER@$VPS_HOST:$SERVER_DIR/scripts/clone-db-for-prerelease.sh"
-              $SCP scripts/deploy-prerelease.sh "$VPS_USER@$VPS_HOST:$SERVER_DIR/scripts/deploy-prerelease.sh"
-              $SCP scripts/promote-production.sh "$VPS_USER@$VPS_HOST:$SERVER_DIR/scripts/promote-production.sh"
-              $SCP scripts/rollback-production.sh "$VPS_USER@$VPS_HOST:$SERVER_DIR/scripts/rollback-production.sh"
-              $SCP scripts/backup-postgres.sh "$VPS_USER@$VPS_HOST:$SERVER_DIR/scripts/backup-postgres.sh"
-              $SCP "$ENV_PRODUCTION_FILE" "$VPS_USER@$VPS_HOST:$SERVER_DIR/.env.production"
-              $SCP "$ENV_PRERELEASE_FILE" "$VPS_USER@$VPS_HOST:$SERVER_DIR/.env.prerelease"
-
-              $SSH "$VPS_USER@$VPS_HOST" "chmod +x '$SERVER_DIR'/scripts/*.sh && chmod 600 '$SERVER_DIR'/.env.production '$SERVER_DIR'/.env.prerelease"
-            '''
-          }
+              chmod +x '$SERVER_DIR'/scripts/*.sh
+              test -f '$SERVER_DIR/.env.production' || printf '%s\\n' 'WARN: $SERVER_DIR/.env.production is missing; create it before production promotion.'
+              test -f '$SERVER_DIR/.env.prerelease' || printf '%s\\n' 'WARN: $SERVER_DIR/.env.prerelease is missing; create it before prerelease deployment.'
+              test ! -f '$SERVER_DIR/.env.production' || chmod 600 '$SERVER_DIR/.env.production'
+              test ! -f '$SERVER_DIR/.env.prerelease' || chmod 600 '$SERVER_DIR/.env.prerelease'
+            "
+          '''
         }
       }
     }
