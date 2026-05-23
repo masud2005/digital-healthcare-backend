@@ -1,3 +1,7 @@
+jenkins.weightlossmdcherrycreek.com {
+	reverse_proxy 127.0.0.1:8080
+}
+
 prod.weightlossmdcherrycreek.com {
     reverse_proxy {$LIVE_UPSTREAM:app_live_blue:5056}
 }
@@ -5,3 +9,4 @@ prod.weightlossmdcherrycreek.com {
 pre.weightlossmdcherrycreek.com {
     reverse_proxy app_pre:5056
 }
+
