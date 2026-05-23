@@ -2,7 +2,7 @@
 
 This project should run two permanent environments:
 
-- **Live**: public production API, connected to the real production database.
+- **Live**: public production API, connected to the real production database, served by the active blue/green app container.
 - **Prerelease**: private tester API, connected to a cloned database with the same production data.
 
 Tester writes must never touch production. When prerelease is accepted, deploy the same tested image to live and point it at the production database. Do not copy prerelease database writes back to production unless there is a separate, deliberate data migration for that exact feature.
@@ -15,7 +15,7 @@ Tester writes must never touch production. When prerelease is accepted, deploy t
 4. Run database migrations against `db_pre`.
 5. Let humans test the prerelease URL.
 6. After approval, run production-safe migrations against `db_live`.
-7. Start a new `app_live` container with the exact same image that passed prerelease.
+7. Start the inactive production color, `app_live_blue` or `app_live_green`, with the exact same image that passed prerelease.
 8. Wait for `/api/health` to pass.
 9. Route traffic to the new live container.
 10. Keep the previous image tag for quick rollback.
@@ -48,7 +48,7 @@ Avoid these in the same release as app deployment:
 
 ## Local/VPS Files Added
 
-- `docker-compose.release.yaml`: runs live app, prerelease app, live database, prerelease database, and Caddy.
+- `docker-compose.release.yaml`: runs blue/green live apps, prerelease app, live database, prerelease database, MinIO, and Caddy.
 - `Caddyfile`: routes one domain to live and one domain to prerelease.
 - `scripts/clone-db-for-prerelease.sh`: refreshes prerelease database from live.
 
@@ -57,8 +57,8 @@ Avoid these in the same release as app deployment:
 Set these on the server before running the release compose file:
 
 ```sh
-export LIVE_DOMAIN=api.example.com
-export PRE_DOMAIN=pre-api.example.com
+export LIVE_DOMAIN=prod.weightlossmdcherrycreek.com
+export PRE_DOMAIN=pre.weightlossmdcherrycreek.com
 export APP_IMAGE=softvence/doc-backend:stable
 export PRE_IMAGE=softvence/doc-backend:candidate
 export POSTGRES_USER=doc
@@ -104,15 +104,14 @@ Promote the tested image to live:
 
 ```sh
 export APP_IMAGE="$PRE_IMAGE"
-docker compose -f docker-compose.release.yaml up -d --no-deps app_live
+sh scripts/promote-production.sh
 curl -f https://$LIVE_DOMAIN/api/health
 ```
 
 Rollback:
 
 ```sh
-export APP_IMAGE=softvence/doc-backend:previous-good-tag
-docker compose -f docker-compose.release.yaml up -d --no-deps app_live
+sh scripts/rollback-production.sh
 curl -f https://$LIVE_DOMAIN/api/health
 ```
 
@@ -130,7 +129,7 @@ For bigger scale later, move this same pattern to Kubernetes with separate `Depl
 
 ## Jenkins Setup
 
-The included `Jenkinsfile` builds one immutable Docker image, deploys it to prerelease, verifies health, waits for approval unless `PROMOTE_TO_LIVE=true`, then promotes the same image to live.
+The included `Jenkinsfile` builds one immutable Docker image for `dev` and `master`, deploys `master` to prerelease, marks the healthy prerelease image as green, and promotes that exact image to production from `main`.
 
 If a GitLab push triggers Jenkins but the log immediately says `Finished: SUCCESS` without showing Pipeline stages, Jenkins is not reading the repository `Jenkinsfile`. Configure the job as **Pipeline script from SCM** with script path `Jenkinsfile`. See `docs/jenkins-job-setup.md`.
 

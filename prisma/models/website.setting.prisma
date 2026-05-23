@@ -1,0 +1,63 @@
+model SiteSettings {
+    id              String  @id @default(cuid())
+    title           String
+    metaDescription String?
+
+    // Branding Assets (Stored as URLs or paths)
+    whiteLogoUrl     String?
+    blackLogoUrl     String?
+    faviconLightUrl  String?
+    faviconDarkUrl   String?
+    socialPreviewUrl String?
+
+    // Contact Info
+    phone      String?
+    email      String?
+    openHours  String? // e.g. "Mon - Fri: 9AM - 2PM"
+    closedDays String? // e.g. "Sat - Sun"
+
+    // Analytics
+    gaMeasurementId String?
+
+    // Relation to offices (One site, many offices)
+    offices OfficeLocation[]
+
+    createdAt   DateTime     @default(now())
+    updatedAt   DateTime     @updatedAt
+    socialLinks SocialLink[]
+}
+
+// 2. Office Locations (DRY: Handles any number of offices)
+model OfficeLocation {
+    id String @id @default(cuid())
+
+    // Link back to the main site
+    siteId String
+    site   SiteSettings @relation(fields: [siteId], references: [id], onDelete: Cascade)
+
+    // Location Details
+    name    String // e.g. "Colorado Springs", "Cherry Creek"
+    address String // e.g. "1625 Medical Center Point, Suite 120"
+    city    String?
+    state   String?
+    zipCode String?
+
+    isActive Boolean @default(true) // To toggle visibility without deleting
+
+    createdAt DateTime @default(now())
+    updatedAt DateTime @updatedAt
+
+    // Optional: If you need social links per location
+    facebookUrl  String?
+    instagramUrl String?
+    twitterUrl   String?
+    linkedinUrl  String?
+}
+
+model SocialLink {
+    id       String       @id @default(cuid())
+    siteId   String
+    site     SiteSettings @relation(fields: [siteId], references: [id])
+    platform String // "facebook", "twitter", etc.
+    url      String
+}

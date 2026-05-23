@@ -1,7 +1,12 @@
-doco-prod.duckdns.org {
-    reverse_proxy app_live:5056
+jenkins.weightlossmdcherrycreek.com {
+	reverse_proxy 127.0.0.1:8080
 }
 
-doco-pre.duckdns.org {
+prod.weightlossmdcherrycreek.com {
+    reverse_proxy {$LIVE_UPSTREAM:app_live_blue:5056}
+}
+
+pre.weightlossmdcherrycreek.com {
     reverse_proxy app_pre:5056
 }
+
