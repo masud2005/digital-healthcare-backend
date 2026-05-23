@@ -78,6 +78,27 @@ These IDs must exist in Jenkins because the `Jenkinsfile` references them:
 - `doc-backend-env-production`
 - `doc-backend-env-prerelease`
 
+The env file credentials should contain the complete server env files:
+
+```text
+.env.production
+.env.prerelease
+```
+
+Use this in `.env.production`:
+
+```env
+DATABASE_URL=postgresql://doc:<password>@db_live:5432/doc
+```
+
+Use this in `.env.prerelease`:
+
+```env
+DATABASE_URL=postgresql://doc:<password>@db_pre:5432/doc
+```
+
+Production must use `db_live`; prerelease must use `db_pre`.
+
 ## Important
 
 Do not configure this as a Freestyle job with only a GitLab trigger. A Freestyle job can be triggered successfully and still do nothing useful. The pipeline must load `Jenkinsfile` from SCM.

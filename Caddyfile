@@ -1,7 +1,7 @@
-doco-prod.duckdns.org {
-    reverse_proxy app_live:5056
+prod.weightlossmdcherrycreek.com {
+    reverse_proxy {$LIVE_UPSTREAM:app_live_blue:5056}
 }
 
-doco-pre.duckdns.org {
+pre.weightlossmdcherrycreek.com {
     reverse_proxy app_pre:5056
 }

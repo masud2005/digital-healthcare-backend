@@ -2,26 +2,52 @@ services:
     caddy:
         image: caddy:2-alpine
         container_name: doc-backend-caddy
+        environment:
+            - LIVE_UPSTREAM=${LIVE_UPSTREAM:-app_live_blue:5056}
         ports:
             - "80:80"
             - "443:443"
         volumes:
-            - ./Caddyfile:/etc/caddy/Caddyfile
+            - ./Caddyfile:/etc/caddy/Caddyfile:ro
             - caddy_data:/data
             - caddy_config:/config
         restart: unless-stopped
         networks:
             - doc_release
 
-    app_live:
-        image: ${APP_IMAGE:?set APP_IMAGE}
-        container_name: doc-backend-live
+    app_live_blue:
+        image: ${BLUE_IMAGE:-${APP_IMAGE:-softvence/doc-backend:latest}}
+        container_name: doc-backend-live-blue
         env_file:
             - path: .env.production
               required: false
         environment:
             - NODE_ENV=production
             - PORT=5056
+            - MINIO_ENDPOINT=http://minio:9000
+        depends_on:
+            db_live:
+                condition: service_healthy
+        healthcheck:
+            test: ["CMD-SHELL", "wget -qO- http://localhost:5056/api/health >/dev/null || exit 1"]
+            interval: 10s
+            timeout: 5s
+            retries: 12
+            start_period: 20s
+        restart: unless-stopped
+        networks:
+            - doc_release
+
+    app_live_green:
+        image: ${GREEN_IMAGE:-${APP_IMAGE:-softvence/doc-backend:latest}}
+        container_name: doc-backend-live-green
+        env_file:
+            - path: .env.production
+              required: false
+        environment:
+            - NODE_ENV=production
+            - PORT=5056
+            - MINIO_ENDPOINT=http://minio:9000
         depends_on:
             db_live:
                 condition: service_healthy
@@ -36,7 +62,7 @@ services:
             - doc_release
 
     app_pre:
-        image: ${PRE_IMAGE:-${APP_IMAGE:?set APP_IMAGE}}
+        image: ${PRE_IMAGE:-${APP_IMAGE:-softvence/doc-backend:latest}}
         container_name: doc-backend-pre
         env_file:
             - path: .env.prerelease
@@ -44,6 +70,7 @@ services:
         environment:
             - NODE_ENV=staging
             - PORT=5056
+            - MINIO_ENDPOINT=http://minio:9000
         depends_on:
             db_pre:
                 condition: service_healthy
@@ -94,15 +121,13 @@ services:
         restart: unless-stopped
         networks:
             - doc_release
+
     minio:
         image: minio/minio:latest
         container_name: minio-storage
-        ports:
-            - "9000:9000" # S3 API
-            - "9001:9001" # Web UI
         environment:
-            MINIO_ROOT_USER: admin
-            MINIO_ROOT_PASSWORD: admin123
+            MINIO_ROOT_USER: ${MINIO_ROOT_USER:-admin}
+            MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD:-admin123}
         volumes:
             - minio_data:/data
         command: server /data --console-address ":9001"
@@ -114,12 +139,14 @@ services:
             retries: 3
         networks:
             - doc_release
+
 volumes:
     caddy_data:
     caddy_config:
     doc_live_data:
     doc_pre_data:
     minio_data:
+
 networks:
     doc_release:
         driver: bridge

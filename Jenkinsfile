@@ -18,18 +18,15 @@ pipeline {
     VPS_HOST = '13.214.29.147'
     VPS_USER = 'admin'
 
-    LIVE_DOMAIN = 'doco-prod.duckdns.org'
-    PRE_DOMAIN  = 'doco-pre.duckdns.org'
+    LIVE_DOMAIN = 'prod.weightlossmdcherrycreek.com'
+    PRE_DOMAIN = 'pre.weightlossmdcherrycreek.com'
 
-    SERVER_DIR = "/home/admin/projects/doc-backend"
+    SERVER_DIR = '/home/admin/projects/doc-backend'
     COMPOSE_FILE = 'docker-compose.release.yaml'
+    RELEASE_DIR = './releases'
   }
 
   stages {
-
-    // =========================
-    // Checkout + Build metadata
-    // =========================
     stage('Checkout') {
       steps {
         checkout scm
@@ -48,15 +45,36 @@ pipeline {
       }
     }
 
-    // =========================
-    // Build Docker Image
-    // =========================
+    stage('Quality Gate') {
+      when {
+        anyOf {
+          branch 'dev'
+          branch 'master'
+          branch 'main'
+        }
+      }
+      steps {
+        sh '''
+          set -eu
+          npm install --force
+          npm run prisma:validate
+          npm run prisma:generate
+          npm run build
+        '''
+      }
+    }
+
     stage('Build Image') {
+      when {
+        anyOf {
+          branch 'dev'
+          branch 'master'
+        }
+      }
       steps {
         sh '''
           set -eu
 
-          echo "Building Docker image..."
           docker build \
             --pull \
             -t "$CANDIDATE_IMAGE" \
@@ -66,10 +84,13 @@ pipeline {
       }
     }
 
-    // =========================
-    // Push Image
-    // =========================
     stage('Push Image') {
+      when {
+        anyOf {
+          branch 'dev'
+          branch 'master'
+        }
+      }
       steps {
         withCredentials([
           usernamePassword(
@@ -81,12 +102,10 @@ pipeline {
           sh '''
             set -eu
 
-            echo "Logging into Docker..."
             printf '%s' "$DOCKER_PASSWORD" | docker login \
               -u "$DOCKER_USERNAME" \
               --password-stdin
 
-            echo "Pushing images..."
             docker push "$CANDIDATE_IMAGE"
             docker push "$LATEST_IMAGE"
 
@@ -96,14 +115,48 @@ pipeline {
       }
     }
 
-    // =========================
-    // Deploy PRE (master branch)
-    // =========================
+    stage('Sync Release Files') {
+      when {
+        anyOf {
+          branch 'master'
+          branch 'main'
+        }
+      }
+      steps {
+        withCredentials([
+          file(credentialsId: 'doc-backend-env-production', variable: 'ENV_PRODUCTION_FILE'),
+          file(credentialsId: 'doc-backend-env-prerelease', variable: 'ENV_PRERELEASE_FILE')
+        ]) {
+          sshagent(credentials: ["${VPS_SSH_CREDENTIALS_ID}"]) {
+            sh '''
+              set -eu
+
+              SSH="ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null"
+              SCP="scp -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null"
+
+              $SSH "$VPS_USER@$VPS_HOST" "mkdir -p '$SERVER_DIR/scripts' '$SERVER_DIR/releases'"
+
+              $SCP "$COMPOSE_FILE" "$VPS_USER@$VPS_HOST:$SERVER_DIR/$COMPOSE_FILE"
+              $SCP Caddyfile "$VPS_USER@$VPS_HOST:$SERVER_DIR/Caddyfile"
+              $SCP scripts/clone-db-for-prerelease.sh "$VPS_USER@$VPS_HOST:$SERVER_DIR/scripts/clone-db-for-prerelease.sh"
+              $SCP scripts/deploy-prerelease.sh "$VPS_USER@$VPS_HOST:$SERVER_DIR/scripts/deploy-prerelease.sh"
+              $SCP scripts/promote-production.sh "$VPS_USER@$VPS_HOST:$SERVER_DIR/scripts/promote-production.sh"
+              $SCP scripts/rollback-production.sh "$VPS_USER@$VPS_HOST:$SERVER_DIR/scripts/rollback-production.sh"
+              $SCP scripts/backup-postgres.sh "$VPS_USER@$VPS_HOST:$SERVER_DIR/scripts/backup-postgres.sh"
+              $SCP "$ENV_PRODUCTION_FILE" "$VPS_USER@$VPS_HOST:$SERVER_DIR/.env.production"
+              $SCP "$ENV_PRERELEASE_FILE" "$VPS_USER@$VPS_HOST:$SERVER_DIR/.env.prerelease"
+
+              $SSH "$VPS_USER@$VPS_HOST" "chmod +x '$SERVER_DIR'/scripts/*.sh && chmod 600 '$SERVER_DIR'/.env.production '$SERVER_DIR'/.env.prerelease"
+            '''
+          }
+        }
+      }
+    }
+
     stage('Deploy Pre-Release') {
       when {
         branch 'master'
       }
-
       steps {
         sshagent(credentials: ["${VPS_SSH_CREDENTIALS_ID}"]) {
           sh '''
@@ -111,77 +164,26 @@ pipeline {
 
             SSH="ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null"
 
-            $SSH $VPS_USER@$VPS_HOST "
+            $SSH "$VPS_USER@$VPS_HOST" "
               set -eu
               cd '$SERVER_DIR'
 
+              export COMPOSE_FILE='$COMPOSE_FILE'
               export PRE_IMAGE='$CANDIDATE_IMAGE'
-              export APP_IMAGE='$CANDIDATE_IMAGE'
               export PRE_DOMAIN='$PRE_DOMAIN'
+              export RELEASE_DIR='$RELEASE_DIR'
 
-              echo 'Starting prerelease stack...'
-
-              docker compose -f '$COMPOSE_FILE' up -d db_pre
-              docker compose -f '$COMPOSE_FILE' pull app_pre
-              docker compose -f '$COMPOSE_FILE' up -d --no-deps app_pre caddy
-
-              echo 'Done prerelease deploy'
-              docker compose -f '$COMPOSE_FILE' ps
+              sh scripts/deploy-prerelease.sh
             "
           '''
         }
       }
     }
 
-    // =========================
-    // Verify PRE
-    // =========================
-    stage('Verify Pre-Release') {
-      when {
-        branch 'master'
-      }
-
-      steps {
-        sshagent(credentials: ["${VPS_SSH_CREDENTIALS_ID}"]) {
-          sh '''
-            set -eu
-
-            SSH="ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null"
-
-            $SSH $VPS_USER@$VPS_HOST '
-              set -eu
-
-              i=1
-              max=30
-
-              while [ $i -le $max ]; do
-                if curl -fsS "https://'"$PRE_DOMAIN"'/api/health" >/dev/null 2>&1; then
-                  echo "PRE healthy"
-                  exit 0
-                fi
-
-                echo "Waiting PRE health $i/$max"
-                i=$((i + 1))
-                sleep 5
-              done
-
-              echo "PRE failed health check"
-              docker compose -f '"$COMPOSE_FILE"' logs --tail=200 app_pre
-              exit 1
-            '
-          '''
-        }
-      }
-    }
-
-    // =========================
-    // Deploy PRODUCTION (main branch)
-    // =========================
-    stage('Deploy Production') {
+    stage('Promote Production') {
       when {
         branch 'main'
       }
-
       steps {
         sshagent(credentials: ["${VPS_SSH_CREDENTIALS_ID}"]) {
           sh '''
@@ -189,62 +191,16 @@ pipeline {
 
             SSH="ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null"
 
-            $SSH $VPS_USER@$VPS_HOST "
+            $SSH "$VPS_USER@$VPS_HOST" "
               set -eu
               cd '$SERVER_DIR'
 
-              export APP_IMAGE='$CANDIDATE_IMAGE'
+              export COMPOSE_FILE='$COMPOSE_FILE'
               export LIVE_DOMAIN='$LIVE_DOMAIN'
+              export RELEASE_DIR='$RELEASE_DIR'
 
-              echo 'Deploying production...'
-
-              docker compose -f '$COMPOSE_FILE' up -d db_live
-              docker compose -f '$COMPOSE_FILE' pull app_live
-              docker compose -f '$COMPOSE_FILE' up -d --no-deps app_live caddy
-
-              echo 'Production deployed'
+              sh scripts/promote-production.sh
             "
-          '''
-        }
-      }
-    }
-
-    // =========================
-    // Verify PRODUCTION
-    // =========================
-    stage('Verify Production') {
-      when {
-        branch 'main'
-      }
-
-      steps {
-        sshagent(credentials: ["${VPS_SSH_CREDENTIALS_ID}"]) {
-          sh '''
-            set -eu
-
-            SSH="ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null"
-
-            $SSH $VPS_USER@$VPS_HOST '
-              set -eu
-
-              i=1
-              max=30
-
-              while [ $i -le $max ]; do
-                if curl -fsS "https://'"$LIVE_DOMAIN"'/api/health" >/dev/null 2>&1; then
-                  echo "LIVE healthy"
-                  exit 0
-                fi
-
-                echo "Waiting LIVE health $i/$max"
-                i=$((i + 1))
-                sleep 5
-              done
-
-              echo "LIVE failed health check"
-              docker compose -f '"$COMPOSE_FILE"' logs --tail=200 app_live
-              exit 1
-            '
           '''
         }
       }
@@ -257,13 +213,22 @@ pipeline {
     }
 
     success {
-      echo "Build success: ${env.CANDIDATE_IMAGE}"
-      echo "PRE: https://${PRE_DOMAIN}/api/health"
-      echo "LIVE: https://${LIVE_DOMAIN}/api/health"
+      script {
+        if (env.BRANCH_NAME == 'dev') {
+          echo "Docker image pushed: ${env.CANDIDATE_IMAGE}"
+        }
+        if (env.BRANCH_NAME == 'master') {
+          echo "Prerelease healthy: https://${PRE_DOMAIN}/api/health"
+          echo "Prerelease image marked green: ${env.CANDIDATE_IMAGE}"
+        }
+        if (env.BRANCH_NAME == 'main') {
+          echo "Production healthy: https://${LIVE_DOMAIN}/api/health"
+        }
+      }
     }
 
     failure {
-      echo "Pipeline failed. Previous stable containers remain running."
+      echo "Pipeline failed. Production should remain on the previous healthy color or rollback script will run when public health fails."
     }
   }
 }
