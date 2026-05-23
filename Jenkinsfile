@@ -51,9 +51,18 @@ pipeline {
           branch 'dev'
         }
       }
+      agent {
+        docker {
+          image 'node:22.14.0'
+          reuseNode true
+          args '-u root'
+        }
+      }
       steps {
         sh '''
           set -eu
+          node --version
+          npm --version
           npm install --force
           npm run prisma:validate
           npm run prisma:generate
