@@ -2,19 +2,19 @@ import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
 
 export class AuthUserResponseDto {
     @ApiProperty()
-    id: string;
+    id!: string;
 
     @ApiProperty()
-    name: string;
+    name!: string;
 
     @ApiProperty()
-    email: string;
+    email!: string;
 
     @ApiProperty()
-    role: string;
+    role!: string;
 
     @ApiProperty()
-    status: string;
+    status!: string;
 
     @ApiPropertyOptional()
     phoneNumber?: string | null;
@@ -37,27 +37,27 @@ export class AuthUserResponseDto {
 
 export class AuthResponseDto {
     @ApiProperty()
-    accessToken: string;
+    accessToken!: string;
 
     @ApiProperty({ example: "Bearer" })
-    tokenType: string;
+    tokenType!: string;
 
     @ApiProperty({ type: AuthUserResponseDto })
-    user: AuthUserResponseDto;
+    user!: AuthUserResponseDto;
 
     @ApiProperty({ example: false })
-    profileComplete: boolean;
+    profileComplete!: boolean;
 }
 
 export class AuthProfileResponseDto {
     @ApiProperty({ type: AuthUserResponseDto })
-    user: AuthUserResponseDto;
+    user!: AuthUserResponseDto;
 
     @ApiProperty({ example: false })
-    profileComplete: boolean;
+    profileComplete!: boolean;
 }
 
 export class AuthMessageResponseDto {
     @ApiProperty()
-    message: string;
+    message!: string;
 }
