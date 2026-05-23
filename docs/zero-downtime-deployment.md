@@ -137,11 +137,6 @@ If a GitLab push triggers Jenkins but the log immediately says `Finished: SUCCES
 Create these Jenkins credentials:
 
 - `dockerhub-creds`: username/password credential for Docker Hub.
-- `doc-vps-ssh`: SSH username with private key for the VPS.
-- `doc-backend-vps-host`: secret text containing the VPS hostname or IP.
-- `doc-backend-vps-user`: secret text containing the VPS Linux username.
-- `doc-backend-live-domain`: secret text such as `api.example.com`.
-- `doc-backend-pre-domain`: secret text such as `pre-api.example.com`.
 
 Keep `.env.production` and `.env.prerelease` as server-only files in `/root/projects/doc-backend`.
 

@@ -14,10 +14,6 @@ pipeline {
     PRERELEASE_SOURCE_IMAGE = 'softvence/doc-backend:dev'
 
     DOCKER_CREDENTIALS_ID = 'dockerhub-creds'
-    VPS_SSH_CREDENTIALS_ID = 'doc-vps-ssh'
-
-    VPS_HOST = '187.77.23.79'
-    VPS_USER = 'root'
 
     LIVE_DOMAIN = 'prod.weightlossmdcherrycreek.com'
     PRE_DOMAIN = 'pre.weightlossmdcherrycreek.com'
@@ -162,33 +158,26 @@ pipeline {
         }
       }
       steps {
-        sshagent(credentials: ["${VPS_SSH_CREDENTIALS_ID}"]) {
-          sh '''
-            set -eu
+        sh '''
+          set -eu
 
-            SSH="ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null"
-            SCP="scp -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null"
+          mkdir -p "$SERVER_DIR/scripts" "$SERVER_DIR/releases"
 
-            $SSH "$VPS_USER@$VPS_HOST" "mkdir -p '$SERVER_DIR/scripts' '$SERVER_DIR/releases'"
+          cp "$COMPOSE_FILE" "$SERVER_DIR/$COMPOSE_FILE"
+          cp Caddyfile "$SERVER_DIR/Caddyfile"
+          cp scripts/clone-db-for-prerelease.sh "$SERVER_DIR/scripts/clone-db-for-prerelease.sh"
+          cp scripts/deploy-prerelease.sh "$SERVER_DIR/scripts/deploy-prerelease.sh"
+          cp scripts/promote-production.sh "$SERVER_DIR/scripts/promote-production.sh"
+          cp scripts/rollback-production.sh "$SERVER_DIR/scripts/rollback-production.sh"
+          cp scripts/backup-postgres.sh "$SERVER_DIR/scripts/backup-postgres.sh"
 
-            $SCP "$COMPOSE_FILE" "$VPS_USER@$VPS_HOST:$SERVER_DIR/$COMPOSE_FILE"
-            $SCP Caddyfile "$VPS_USER@$VPS_HOST:$SERVER_DIR/Caddyfile"
-            $SCP scripts/clone-db-for-prerelease.sh "$VPS_USER@$VPS_HOST:$SERVER_DIR/scripts/clone-db-for-prerelease.sh"
-            $SCP scripts/deploy-prerelease.sh "$VPS_USER@$VPS_HOST:$SERVER_DIR/scripts/deploy-prerelease.sh"
-            $SCP scripts/promote-production.sh "$VPS_USER@$VPS_HOST:$SERVER_DIR/scripts/promote-production.sh"
-            $SCP scripts/rollback-production.sh "$VPS_USER@$VPS_HOST:$SERVER_DIR/scripts/rollback-production.sh"
-            $SCP scripts/backup-postgres.sh "$VPS_USER@$VPS_HOST:$SERVER_DIR/scripts/backup-postgres.sh"
+          chmod +x "$SERVER_DIR"/scripts/*.sh
 
-            $SSH "$VPS_USER@$VPS_HOST" "
-              set -eu
-              chmod +x '$SERVER_DIR'/scripts/*.sh
-              test -f '$SERVER_DIR/.env.production' || printf '%s\\n' 'WARN: $SERVER_DIR/.env.production is missing; create it before production promotion.'
-              test -f '$SERVER_DIR/.env.prerelease' || printf '%s\\n' 'WARN: $SERVER_DIR/.env.prerelease is missing; create it before prerelease deployment.'
-              test ! -f '$SERVER_DIR/.env.production' || chmod 600 '$SERVER_DIR/.env.production'
-              test ! -f '$SERVER_DIR/.env.prerelease' || chmod 600 '$SERVER_DIR/.env.prerelease'
-            "
-          '''
-        }
+          test -f "$SERVER_DIR/.env.production" || printf '%s\\n' "WARN: $SERVER_DIR/.env.production is missing; create it before production promotion."
+          test -f "$SERVER_DIR/.env.prerelease" || printf '%s\\n' "WARN: $SERVER_DIR/.env.prerelease is missing; create it before prerelease deployment."
+          test ! -f "$SERVER_DIR/.env.production" || chmod 600 "$SERVER_DIR/.env.production"
+          test ! -f "$SERVER_DIR/.env.prerelease" || chmod 600 "$SERVER_DIR/.env.prerelease"
+        '''
       }
     }
 
@@ -197,25 +186,17 @@ pipeline {
         branch 'master'
       }
       steps {
-        sshagent(credentials: ["${VPS_SSH_CREDENTIALS_ID}"]) {
-          sh '''
-            set -eu
+        sh '''
+          set -eu
+          cd "$SERVER_DIR"
 
-            SSH="ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null"
+          export COMPOSE_FILE="$COMPOSE_FILE"
+          export PRE_IMAGE="$CANDIDATE_IMAGE"
+          export PRE_DOMAIN="$PRE_DOMAIN"
+          export RELEASE_DIR="$RELEASE_DIR"
 
-            $SSH "$VPS_USER@$VPS_HOST" "
-              set -eu
-              cd '$SERVER_DIR'
-
-              export COMPOSE_FILE='$COMPOSE_FILE'
-              export PRE_IMAGE='$CANDIDATE_IMAGE'
-              export PRE_DOMAIN='$PRE_DOMAIN'
-              export RELEASE_DIR='$RELEASE_DIR'
-
-              sh scripts/deploy-prerelease.sh
-            "
-          '''
-        }
+          sh scripts/deploy-prerelease.sh
+        '''
       }
     }
 
@@ -224,24 +205,16 @@ pipeline {
         branch 'main'
       }
       steps {
-        sshagent(credentials: ["${VPS_SSH_CREDENTIALS_ID}"]) {
-          sh '''
-            set -eu
+        sh '''
+          set -eu
+          cd "$SERVER_DIR"
 
-            SSH="ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null"
+          export COMPOSE_FILE="$COMPOSE_FILE"
+          export LIVE_DOMAIN="$LIVE_DOMAIN"
+          export RELEASE_DIR="$RELEASE_DIR"
 
-            $SSH "$VPS_USER@$VPS_HOST" "
-              set -eu
-              cd '$SERVER_DIR'
-
-              export COMPOSE_FILE='$COMPOSE_FILE'
-              export LIVE_DOMAIN='$LIVE_DOMAIN'
-              export RELEASE_DIR='$RELEASE_DIR'
-
-              sh scripts/promote-production.sh
-            "
-          '''
-        }
+          sh scripts/promote-production.sh
+        '''
       }
     }
   }

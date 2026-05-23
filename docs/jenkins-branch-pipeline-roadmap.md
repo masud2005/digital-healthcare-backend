@@ -136,7 +136,6 @@ Caddy needs internet access for TLS, so the network cannot be fully internal unl
 Create these Jenkins credentials:
 
 - `dockerhub-creds`: Docker Hub username/password.
-- `doc-vps-ssh`: SSH private key for the VPS user.
 - `doc-backend-postgres-password`: secret text for PostgreSQL password if not stored in env files.
 
 Recommended Jenkins environment values:
@@ -144,8 +143,6 @@ Recommended Jenkins environment values:
 ```groovy
 APP_NAME = 'doc-backend'
 DOCKER_IMAGE = 'softvence/doc-backend'
-VPS_HOST = '<server-ip-or-hostname>'
-VPS_USER = 'admin'
 LIVE_DOMAIN = 'prod.weightlossmdcherrycreek.com'
 PRE_DOMAIN = 'pre.weightlossmdcherrycreek.com'
 SERVER_DIR = '/root/projects/doc-backend'

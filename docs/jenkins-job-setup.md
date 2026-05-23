@@ -67,7 +67,6 @@ The Jenkins agent also needs:
 - Node.js and npm
 - Docker CLI
 - Docker permission for the Jenkins user
-- SSH access to the VPS
 
 ## Single-Server Jenkins
 
@@ -87,14 +86,13 @@ jenkins.weightlossmdcherrycreek.com {
 
 Because release Caddy runs inside Docker, `127.0.0.1:8080` would point to the Caddy container itself. The release compose file maps `host.docker.internal` to the Docker host gateway so Caddy can reach Jenkins on the host loopback port.
 
-For Jenkins deployment SSH, remember that `127.0.0.1` from inside the Jenkins container is the Jenkins container, not the host. Use the server public IP, a private host IP reachable from the Jenkins container, or configure `host.docker.internal` for the Jenkins container too.
+For this single-server pipeline, Jenkins does not SSH into the VPS. It copies release files locally into `/root/projects/doc-backend` and runs the deploy scripts from that directory.
 
 ## Required Credentials
 
 These IDs must exist in Jenkins because the `Jenkinsfile` references them:
 
 - `dockerhub-creds`
-- `doc-vps-ssh`
 
 The server should keep these env files in the deployment directory:
 
