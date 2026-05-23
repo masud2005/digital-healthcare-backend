@@ -1,0 +1,38 @@
+model AuthOtpChallenge {
+    id           String     @id @default(uuid())
+    email        String
+    purpose      OtpPurpose
+    codeHash     String
+    expiresAt    DateTime
+    consumedAt   DateTime?
+    attemptCount Int        @default(0)
+
+    // Relations
+    userId String?
+    user   User?   @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+    createdAt DateTime @default(now())
+    updatedAt DateTime @updatedAt
+
+    @@index([email])
+    @@index([purpose])
+    @@index([userId])
+    @@index([expiresAt])
+}
+
+model AuthSession {
+    id        String    @id @default(uuid())
+    tokenHash String    @unique
+    expiresAt DateTime
+    revokedAt DateTime?
+
+    // Relations
+    userId String
+    user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+    createdAt DateTime @default(now())
+    updatedAt DateTime @updatedAt
+
+    @@index([userId])
+    @@index([expiresAt])
+}

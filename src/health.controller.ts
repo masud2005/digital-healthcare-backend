@@ -30,8 +30,8 @@ export class HealthController {
             uptime: process.uptime(),
             timestamp: new Date().toISOString(),
             team: {
-                name: "Dev Ninja",
-                leader: "Niloy",
+                name: "Runtime Terror (RT)",
+                leader: "Sabbir Hossain Shuvo",
                 members: [
                     {
                         name: "Sabbir Hossain Shuvo",
@@ -42,12 +42,12 @@ export class HealthController {
                         url: "https://api.github.com/users/devlopersabbir",
                     },
                     {
-                        name: "Mohammad Sobuj",
-                        role: "Full-stack web developer👨‍💻",
+                        name: "Md. Masud Rana",
+                        role: "Full-Stack Web Developer",
                         // dose-ignore
-                        avatar: "https://avatars.githubusercontent.com/u/72593531?v=4",
+                        avatar: "https://avatars.githubusercontent.com/u/174138809?v=4",
                         // dose-ignore
-                        url: "https://api.github.com/users/coderboysobuj",
+                        url: "https://api.github.com/users/masud2005",
                     },
                 ],
             },

@@ -1,11 +1,13 @@
 import { ValidationPipe } from "@nestjs/common";
 import { NestFactory } from "@nestjs/core";
 import { DocumentBuilder, SwaggerModule } from "@nestjs/swagger";
+import cookieParser from "cookie-parser";
 import "reflect-metadata";
 import { AppModule } from "./app.module";
 
 async function bootstrap() {
     const app = await NestFactory.create(AppModule);
+    app.use(cookieParser());
     app.useGlobalPipes(
         new ValidationPipe({
             transform: true,
@@ -22,7 +24,9 @@ async function bootstrap() {
         .addBearerAuth()
         .build();
 
-    const document = SwaggerModule.createDocument(app, config);
+    const document = SwaggerModule.createDocument(app, config, {
+        deepScanRoutes: true,
+    });
     SwaggerModule.setup("docs", app, document, {
         swaggerOptions: {
             persistAuthorization: true,

@@ -20,3 +20,6 @@ export type Alignment = (typeof alignment)[number];
 
 export const submissionStatus = ["PENDING", "ACCEPTED", "REJECTED"] as const;
 export type SubmissionStatus = (typeof submissionStatus)[number];
+
+export const otpPurpose = ["LOGIN", "REGISTER"] as const;
+export type OtpPurpose = (typeof otpPurpose)[number];
