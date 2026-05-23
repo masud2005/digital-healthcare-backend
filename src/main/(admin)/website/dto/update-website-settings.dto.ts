@@ -1,0 +1,184 @@
+import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
+import { Transform, Type } from "class-transformer";
+import { IsArray, IsBoolean, IsOptional, IsString, ValidateNested } from "class-validator";
+
+export class OfficeLocationDto {
+    @ApiPropertyOptional({ example: "clh1234567890123456789012" })
+    @IsOptional()
+    @IsString()
+    id?: string;
+
+    @ApiProperty({ example: "Colorado Springs" })
+    @IsString()
+    name: string;
+
+    @ApiProperty({ example: "1625 Medical Center Point, Suite 120" })
+    @IsString()
+    address: string;
+
+    @ApiPropertyOptional({ example: "Colorado Springs" })
+    @IsOptional()
+    @IsString()
+    city?: string;
+
+    @ApiPropertyOptional({ example: "CO" })
+    @IsOptional()
+    @IsString()
+    state?: string;
+
+    @ApiPropertyOptional({ example: "80907" })
+    @IsOptional()
+    @IsString()
+    zipCode?: string;
+
+    @ApiPropertyOptional({ example: true })
+    @IsOptional()
+    @IsBoolean()
+    isActive?: boolean;
+
+    @ApiPropertyOptional({ example: "https://facebook.com/office" })
+    @IsOptional()
+    @IsString()
+    facebookUrl?: string;
+
+    @ApiPropertyOptional({ example: "https://instagram.com/office" })
+    @IsOptional()
+    @IsString()
+    instagramUrl?: string;
+
+    @ApiPropertyOptional({ example: "https://twitter.com/office" })
+    @IsOptional()
+    @IsString()
+    twitterUrl?: string;
+
+    @ApiPropertyOptional({ example: "https://linkedin.com/office" })
+    @IsOptional()
+    @IsString()
+    linkedinUrl?: string;
+}
+
+export class SocialLinkDto {
+    @ApiPropertyOptional({ example: "clh9876543210987654321098" })
+    @IsOptional()
+    @IsString()
+    id?: string;
+
+    @ApiProperty({ example: "facebook" })
+    @IsString()
+    platform: string;
+
+    @ApiProperty({ example: "https://facebook.com/wlmmd" })
+    @IsString()
+    url: string;
+}
+
+export class UpdateWebsiteSettingsDto {
+    @ApiPropertyOptional({ example: "Weight Loss MD" })
+    @IsOptional()
+    @IsString()
+    title?: string;
+
+    @ApiPropertyOptional({ example: "Denver's leading weight loss clinic" })
+    @IsOptional()
+    @IsString()
+    metaDescription?: string;
+
+    @ApiPropertyOptional({
+        type: "string",
+        format: "binary",
+        description: "White logo image file to upload",
+    })
+    @IsOptional()
+    whiteLogo?: any;
+
+    @ApiPropertyOptional({
+        type: "string",
+        format: "binary",
+        description: "Black logo image file to upload",
+    })
+    @IsOptional()
+    blackLogo?: any;
+
+    @ApiPropertyOptional({
+        type: "string",
+        format: "binary",
+        description: "Favicon light image file to upload",
+    })
+    @IsOptional()
+    faviconLight?: any;
+
+    @ApiPropertyOptional({
+        type: "string",
+        format: "binary",
+        description: "Favicon dark image file to upload",
+    })
+    @IsOptional()
+    faviconDark?: any;
+
+    @ApiPropertyOptional({
+        type: "string",
+        format: "binary",
+        description: "Social preview image file to upload",
+    })
+    @IsOptional()
+    socialPreview?: any;
+
+    @ApiPropertyOptional({ example: "(720) 279-1104" })
+    @IsOptional()
+    @IsString()
+    phone?: string;
+
+    @ApiPropertyOptional({ example: "info@wlmmd.net" })
+    @IsOptional()
+    @IsString()
+    email?: string;
+
+    @ApiPropertyOptional({ example: "Mon - Fri: 9AM - 2PM" })
+    @IsOptional()
+    @IsString()
+    openHours?: string;
+
+    @ApiPropertyOptional({ example: "Sat - Sun" })
+    @IsOptional()
+    @IsString()
+    closedDays?: string;
+
+    @ApiPropertyOptional({ example: "UA-XXXXX-Y" })
+    @IsOptional()
+    @IsString()
+    gaMeasurementId?: string;
+
+    @ApiPropertyOptional({ type: [OfficeLocationDto] })
+    @IsOptional()
+    @Transform(({ value }) => {
+        if (typeof value === "string") {
+            try {
+                return JSON.parse(value);
+            } catch {
+                return value;
+            }
+        }
+        return value;
+    })
+    @IsArray()
+    @ValidateNested({ each: true })
+    @Type(() => OfficeLocationDto)
+    offices?: OfficeLocationDto[];
+
+    @ApiPropertyOptional({ type: [SocialLinkDto] })
+    @IsOptional()
+    @Transform(({ value }) => {
+        if (typeof value === "string") {
+            try {
+                return JSON.parse(value);
+            } catch {
+                return value;
+            }
+        }
+        return value;
+    })
+    @IsArray()
+    @ValidateNested({ each: true })
+    @Type(() => SocialLinkDto)
+    socialLinks?: SocialLinkDto[];
+}
