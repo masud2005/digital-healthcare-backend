@@ -53,7 +53,7 @@ pipeline {
       }
       agent {
         docker {
-          image 'node:22.14.0'
+          image 'node:22'
           reuseNode true
           args '-u root'
         }
