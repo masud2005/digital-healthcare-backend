@@ -18,7 +18,7 @@ pipeline {
     LIVE_DOMAIN = 'prod.weightlossmdcherrycreek.com'
     PRE_DOMAIN = 'pre.weightlossmdcherrycreek.com'
 
-    SERVER_DIR = '/root/projects/doc-backend'
+    SERVER_DIR = '/var/jenkins_home/projects/doc-backend'
     COMPOSE_FILE = 'docker-compose.release.yaml'
     RELEASE_DIR = './releases'
   }

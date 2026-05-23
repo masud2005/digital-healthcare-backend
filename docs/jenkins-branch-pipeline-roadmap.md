@@ -53,7 +53,7 @@ Do not expose:
 Recommended server directory:
 
 ```sh
-/root/projects/doc-backend
+/var/jenkins_home/projects/doc-backend
 ```
 
 Files required on the server:
@@ -145,7 +145,7 @@ APP_NAME = 'doc-backend'
 DOCKER_IMAGE = 'softvence/doc-backend'
 LIVE_DOMAIN = 'prod.weightlossmdcherrycreek.com'
 PRE_DOMAIN = 'pre.weightlossmdcherrycreek.com'
-SERVER_DIR = '/root/projects/doc-backend'
+SERVER_DIR = '/var/jenkins_home/projects/doc-backend'
 COMPOSE_FILE = 'docker-compose.release.yaml'
 ```
 
@@ -226,7 +226,7 @@ curl -fsS https://pre.weightlossmdcherrycreek.com/api/health
 11. If healthy, write the image tag to:
 
 ```text
-/root/projects/doc-backend/releases/prerelease-green-image.txt
+/var/jenkins_home/projects/doc-backend/releases/prerelease-green-image.txt
 ```
 
 12. If unhealthy, keep the previous prerelease container running and mark the Jenkins build failed.
@@ -264,7 +264,7 @@ Goal: when code merges to `main`, deploy the same image that passed prerelease.
 Do not rebuild a different production image on `main`. Read this file from the server:
 
 ```text
-/root/projects/doc-backend/releases/prerelease-green-image.txt
+/var/jenkins_home/projects/doc-backend/releases/prerelease-green-image.txt
 ```
 
 Use that exact image for production.
@@ -275,7 +275,7 @@ Production deployment stages:
 2. Read current active color:
 
 ```text
-/root/projects/doc-backend/releases/active-color.txt
+/var/jenkins_home/projects/doc-backend/releases/active-color.txt
 ```
 
 3. Choose inactive color:
@@ -286,7 +286,7 @@ Production deployment stages:
 4. Store current known-good image before deployment:
 
 ```text
-/root/projects/doc-backend/releases/previous-prod-image.txt
+/var/jenkins_home/projects/doc-backend/releases/previous-prod-image.txt
 ```
 
 5. Pull prerelease-green image.
@@ -321,8 +321,8 @@ curl -fsS https://prod.weightlossmdcherrycreek.com/api/health
 12. If public health is green, write:
 
 ```text
-/root/projects/doc-backend/releases/active-color.txt
-/root/projects/doc-backend/releases/current-prod-image.txt
+/var/jenkins_home/projects/doc-backend/releases/active-color.txt
+/var/jenkins_home/projects/doc-backend/releases/current-prod-image.txt
 ```
 
 13. Stop old color only after the new color is confirmed stable.
@@ -334,8 +334,8 @@ Rollback must use the last known good image, not a new build.
 Rollback inputs:
 
 ```text
-/root/projects/doc-backend/releases/previous-prod-image.txt
-/root/projects/doc-backend/releases/active-color.txt
+/var/jenkins_home/projects/doc-backend/releases/previous-prod-image.txt
+/var/jenkins_home/projects/doc-backend/releases/active-color.txt
 ```
 
 Rollback steps:
@@ -389,7 +389,7 @@ find "$BACKUP_DIR" -type f -name "${DB_NAME}_*.dump" -mtime +"$RETENTION_DAYS" -
 Server cron:
 
 ```cron
-0 2 * * * cd /root/projects/doc-backend && /bin/sh scripts/backup-postgres.sh >> /root//backups/postgres/backup.log 2>&1
+0 2 * * * cd /var/jenkins_home/projects/doc-backend && /bin/sh scripts/backup-postgres.sh >> /root//backups/postgres/backup.log 2>&1
 ```
 
 Also back up uploaded files or object storage. The existing `scripts/storage-backup.sh` covers MinIO volume backup, but it temporarily stops MinIO. For production, prefer S3-compatible bucket replication or a MinIO client mirror job if uploads must remain available during backup.
@@ -440,7 +440,7 @@ Security:
 - PostgreSQL is not public.
 - App containers are not public.
 - MinIO is not public unless routed through Caddy with authentication.
-- `.env.production` and `.env.prerelease` are server-only files in `/root/projects/doc-backend`.
+- `.env.production` and `.env.prerelease` are server-only files in `/var/jenkins_home/projects/doc-backend`.
 
 Data:
 

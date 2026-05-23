@@ -86,7 +86,7 @@ jenkins.weightlossmdcherrycreek.com {
 
 Because release Caddy runs inside Docker, `127.0.0.1:8080` would point to the Caddy container itself. The release compose file maps `host.docker.internal` to the Docker host gateway so Caddy can reach Jenkins on the host loopback port.
 
-For this single-server pipeline, Jenkins does not SSH into the VPS. It copies release files locally into `/root/projects/doc-backend` and runs the deploy scripts from that directory.
+For this single-server pipeline, Jenkins does not SSH into the VPS. It copies release files locally into `/var/jenkins_home/projects/doc-backend` and runs the deploy scripts from that directory.
 
 ## Required Credentials
 
@@ -97,8 +97,8 @@ These IDs must exist in Jenkins because the `Jenkinsfile` references them:
 The server should keep these env files in the deployment directory:
 
 ```text
-/root/projects/doc-backend/.env.production
-/root/projects/doc-backend/.env.prerelease
+/var/jenkins_home/projects/doc-backend/.env.production
+/var/jenkins_home/projects/doc-backend/.env.prerelease
 ```
 
 Use this in `.env.production`:

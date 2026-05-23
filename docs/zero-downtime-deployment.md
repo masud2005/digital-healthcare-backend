@@ -138,7 +138,7 @@ Create these Jenkins credentials:
 
 - `dockerhub-creds`: username/password credential for Docker Hub.
 
-Keep `.env.production` and `.env.prerelease` as server-only files in `/root/projects/doc-backend`.
+Keep `.env.production` and `.env.prerelease` as server-only files in `/var/jenkins_home/projects/doc-backend`.
 
 Install these Jenkins plugins:
 
