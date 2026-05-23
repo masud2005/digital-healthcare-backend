@@ -10,7 +10,7 @@ Target domains:
 Branch behavior:
 
 - `dev`: build, test, create Docker image, push to Docker Hub.
-- `master`: deploy prerelease from a Docker Hub image, clone production database into prerelease database, run health checks, keep production untouched.
+- `master`: promote the already-built Docker Hub `dev` image to an immutable `master-<build>-<sha>` tag, deploy prerelease, clone production database into prerelease database, run health checks, keep production untouched.
 - `main`: promote the latest prerelease-green image to production with zero-downtime blue/green deployment.
 
 The production database is the source of truth. Prerelease must use a clone of production data, but prerelease writes must never affect production.
@@ -189,45 +189,52 @@ This branch should not deploy to the VPS automatically unless you later add a se
 
 ## Phase 6: `master` Prerelease Pipeline
 
-Goal: when code merges to `master`, deploy a prerelease version at `pre.weightlossmdcherrycreek.com`.
+Goal: when code merges from `dev` to `master`, deploy a prerelease version at `pre.weightlossmdcherrycreek.com` without rebuilding the app image.
 
 Recommended behavior:
 
-1. Build and push image:
+1. Pull the image already produced by the `dev` branch:
+
+```text
+softvence/doc-backend:dev
+```
+
+2. Retag it as an immutable prerelease candidate:
 
 ```text
 softvence/doc-backend:master-<build-number>-<git-sha>
 ```
 
-2. SSH into the server.
-3. Pull the candidate image.
-4. Start `db_live` and `db_pre`.
-5. Clone production database into prerelease:
+3. Push the immutable `master-<build-number>-<git-sha>` tag and update the moving `master` tag.
+4. SSH into the server.
+5. Pull the candidate image.
+6. Start `db_live` and `db_pre`.
+7. Clone production database into prerelease:
 
 ```sh
 sh scripts/clone-db-for-prerelease.sh
 ```
 
-6. Run Prisma migrations against `db_pre` only:
+8. Run Prisma migrations against `db_pre` only:
 
 ```sh
 docker compose -f docker-compose.release.yaml run --rm app_pre npm run prisma:migrate
 ```
 
-7. Start `app_pre` with the candidate image.
-8. Check:
+9. Start `app_pre` with the candidate image.
+10. Check:
 
 ```sh
 curl -fsS https://pre.weightlossmdcherrycreek.com/api/health
 ```
 
-9. If healthy, write the image tag to:
+11. If healthy, write the image tag to:
 
 ```text
 /root/projects/doc-backend/releases/prerelease-green-image.txt
 ```
 
-10. If unhealthy, keep the previous prerelease container running and mark the Jenkins build failed.
+12. If unhealthy, keep the previous prerelease container running and mark the Jenkins build failed.
 
 Data safety rule:
 
@@ -402,9 +409,9 @@ Backup verification:
 
 Update the current `Jenkinsfile` so branch rules are explicit:
 
-- Build and push only for `dev`, `master`, and approved release branches.
+- Build and push only for `dev`.
 - `dev` stops after Docker Hub push.
-- `master` deploys prerelease and writes `prerelease-green-image.txt` after health passes.
+- `master` retags the current Docker Hub `dev` image, deploys prerelease, and writes `prerelease-green-image.txt` after health passes.
 - `main` reads `prerelease-green-image.txt` and promotes that exact image.
 - Production deployment uses blue/green services.
 - Rollback uses `previous-prod-image.txt` if health fails.
@@ -416,6 +423,7 @@ Checkout
 Quality Gate
 Build Image
 Push Image
+Promote Dev Image Tag  only master
 Deploy Prerelease       only master
 Verify Prerelease       only master
 Mark Prerelease Green   only master
@@ -462,8 +470,9 @@ dev merge
   -> Docker Hub push
 
 master merge
-  -> Jenkins builds image
-  -> Docker Hub push
+  -> Jenkins pulls Docker Hub dev image
+  -> retag as master-<build>-<sha>
+  -> Docker Hub push promoted tag
   -> clone prod DB to prerelease DB
   -> migrate prerelease DB
   -> deploy prerelease

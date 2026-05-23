@@ -11,6 +11,7 @@ pipeline {
   environment {
     APP_NAME = 'doc-backend'
     DOCKER_IMAGE = 'softvence/doc-backend'
+    PRERELEASE_SOURCE_IMAGE = 'softvence/doc-backend:dev'
 
     DOCKER_CREDENTIALS_ID = 'dockerhub-creds'
     VPS_SSH_CREDENTIALS_ID = 'doc-vps-ssh'
@@ -46,11 +47,6 @@ pipeline {
     }
 
     stage('Quality Gate') {
-      when {
-        anyOf {
-          branch 'dev'
-        }
-      }
       agent {
         docker {
           image 'node:22'
@@ -113,6 +109,38 @@ pipeline {
             printf '%s' "$DOCKER_PASSWORD" | docker login \
               -u "$DOCKER_USERNAME" \
               --password-stdin
+
+            docker push "$CANDIDATE_IMAGE"
+            docker push "$LATEST_IMAGE"
+
+            docker logout
+          '''
+        }
+      }
+    }
+
+    stage('Promote Dev Image Tag') {
+      when {
+        branch 'master'
+      }
+      steps {
+        withCredentials([
+          usernamePassword(
+            credentialsId: "${DOCKER_CREDENTIALS_ID}",
+            usernameVariable: 'DOCKER_USERNAME',
+            passwordVariable: 'DOCKER_PASSWORD'
+          )
+        ]) {
+          sh '''
+            set -eu
+
+            printf '%s' "$DOCKER_PASSWORD" | docker login \
+              -u "$DOCKER_USERNAME" \
+              --password-stdin
+
+            docker pull "$PRERELEASE_SOURCE_IMAGE"
+            docker tag "$PRERELEASE_SOURCE_IMAGE" "$CANDIDATE_IMAGE"
+            docker tag "$PRERELEASE_SOURCE_IMAGE" "$LATEST_IMAGE"
 
             docker push "$CANDIDATE_IMAGE"
             docker push "$LATEST_IMAGE"

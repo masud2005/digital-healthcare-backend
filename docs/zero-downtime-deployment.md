@@ -121,15 +121,16 @@ Move CI/CD to this sequence:
 
 1. On every pull request: lint, build, Prisma validate, tests.
 2. On merge to `dev`: build and push a candidate image.
-3. Deploy candidate image to prerelease, clone live DB to prerelease DB, migrate prerelease DB.
-4. On manual approval: run production migration, deploy the same candidate image to live.
-5. Verify `/api/health`.
+3. On merge from `dev` to `master`: retag the already-built `dev` image as an immutable `master-<build>-<sha>` prerelease image.
+4. Deploy candidate image to prerelease, clone live DB to prerelease DB, migrate prerelease DB.
+5. On manual approval: run production migration, deploy the same candidate image to live.
+6. Verify `/api/health`.
 
 For bigger scale later, move this same pattern to Kubernetes with separate `Deployment`s, `Service`s, readiness probes, migration Jobs, and blue/green or canary traffic routing.
 
 ## Jenkins Setup
 
-The included `Jenkinsfile` builds one immutable Docker image for `dev` and `master`, deploys `master` to prerelease, marks the healthy prerelease image as green, and promotes that exact image to production from `main`.
+The included `Jenkinsfile` builds Docker images only from `dev`. On `master`, it pulls the existing `dev` image, retags it as an immutable prerelease image, deploys prerelease, marks the healthy prerelease image as green, and promotes that exact image to production from `main`.
 
 If a GitLab push triggers Jenkins but the log immediately says `Finished: SUCCESS` without showing Pipeline stages, Jenkins is not reading the repository `Jenkinsfile`. Configure the job as **Pipeline script from SCM** with script path `Jenkinsfile`. See `docs/jenkins-job-setup.md`.
 
