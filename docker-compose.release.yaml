@@ -24,6 +24,7 @@ services:
         environment:
             - NODE_ENV=production
             - PORT=5056
+            - DATABASE_URL=postgresql://${POSTGRES_USER:-doc}:${POSTGRES_PASSWORD:-doc}@db_live:5432/${POSTGRES_DB:-doc}
             - MINIO_ENDPOINT=http://minio:9000
         depends_on:
             db_live:
@@ -47,6 +48,7 @@ services:
         environment:
             - NODE_ENV=production
             - PORT=5056
+            - DATABASE_URL=postgresql://${POSTGRES_USER:-doc}:${POSTGRES_PASSWORD:-doc}@db_live:5432/${POSTGRES_DB:-doc}
             - MINIO_ENDPOINT=http://minio:9000
         depends_on:
             db_live:
@@ -70,6 +72,7 @@ services:
         environment:
             - NODE_ENV=staging
             - PORT=5056
+            - DATABASE_URL=postgresql://${POSTGRES_USER:-doc}:${POSTGRES_PASSWORD:-doc}@db_pre:5432/${POSTGRES_DB:-doc}
             - MINIO_ENDPOINT=http://minio:9000
         depends_on:
             db_pre:
