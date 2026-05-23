@@ -69,6 +69,26 @@ The Jenkins agent also needs:
 - Docker permission for the Jenkins user
 - SSH access to the VPS
 
+## Single-Server Jenkins
+
+If Jenkins runs on the same VPS as the app and is bound to host loopback like this:
+
+```text
+127.0.0.1:8080->8080/tcp
+```
+
+keep Jenkins private and expose it through Caddy:
+
+```caddyfile
+jenkins.weightlossmdcherrycreek.com {
+    reverse_proxy host.docker.internal:8080
+}
+```
+
+Because release Caddy runs inside Docker, `127.0.0.1:8080` would point to the Caddy container itself. The release compose file maps `host.docker.internal` to the Docker host gateway so Caddy can reach Jenkins on the host loopback port.
+
+For Jenkins deployment SSH, remember that `127.0.0.1` from inside the Jenkins container is the Jenkins container, not the host. Use the server public IP, a private host IP reachable from the Jenkins container, or configure `host.docker.internal` for the Jenkins container too.
+
 ## Required Credentials
 
 These IDs must exist in Jenkins because the `Jenkinsfile` references them:

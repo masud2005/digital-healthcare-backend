@@ -15,13 +15,13 @@ pipeline {
     DOCKER_CREDENTIALS_ID = 'dockerhub-creds'
     VPS_SSH_CREDENTIALS_ID = 'doc-vps-ssh'
 
-    VPS_HOST = '13.214.29.147'
-    VPS_USER = 'admin'
+    VPS_HOST = '187.77.23.79'
+    VPS_USER = 'root'
 
     LIVE_DOMAIN = 'prod.weightlossmdcherrycreek.com'
     PRE_DOMAIN = 'pre.weightlossmdcherrycreek.com'
 
-    SERVER_DIR = '/home/admin/projects/doc-backend'
+    SERVER_DIR = '/root/projects/doc-backend'
     COMPOSE_FILE = 'docker-compose.release.yaml'
     RELEASE_DIR = './releases'
   }
@@ -49,8 +49,6 @@ pipeline {
       when {
         anyOf {
           branch 'dev'
-          branch 'master'
-          branch 'main'
         }
       }
       steps {
@@ -68,7 +66,6 @@ pipeline {
       when {
         anyOf {
           branch 'dev'
-          branch 'master'
         }
       }
       steps {
@@ -88,7 +85,6 @@ pipeline {
       when {
         anyOf {
           branch 'dev'
-          branch 'master'
         }
       }
       steps {

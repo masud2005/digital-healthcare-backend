@@ -53,7 +53,7 @@ Do not expose:
 Recommended server directory:
 
 ```sh
-/home/admin/projects/doc-backend
+/root/projects/doc-backend
 ```
 
 Files required on the server:
@@ -150,7 +150,7 @@ VPS_HOST = '<server-ip-or-hostname>'
 VPS_USER = 'admin'
 LIVE_DOMAIN = 'prod.weightlossmdcherrycreek.com'
 PRE_DOMAIN = 'pre.weightlossmdcherrycreek.com'
-SERVER_DIR = '/home/admin/projects/doc-backend'
+SERVER_DIR = '/root/projects/doc-backend'
 COMPOSE_FILE = 'docker-compose.release.yaml'
 ```
 
@@ -224,7 +224,7 @@ curl -fsS https://pre.weightlossmdcherrycreek.com/api/health
 9. If healthy, write the image tag to:
 
 ```text
-/home/admin/projects/doc-backend/releases/prerelease-green-image.txt
+/root/projects/doc-backend/releases/prerelease-green-image.txt
 ```
 
 10. If unhealthy, keep the previous prerelease container running and mark the Jenkins build failed.
@@ -262,7 +262,7 @@ Goal: when code merges to `main`, deploy the same image that passed prerelease.
 Do not rebuild a different production image on `main`. Read this file from the server:
 
 ```text
-/home/admin/projects/doc-backend/releases/prerelease-green-image.txt
+/root/projects/doc-backend/releases/prerelease-green-image.txt
 ```
 
 Use that exact image for production.
@@ -273,7 +273,7 @@ Production deployment stages:
 2. Read current active color:
 
 ```text
-/home/admin/projects/doc-backend/releases/active-color.txt
+/root/projects/doc-backend/releases/active-color.txt
 ```
 
 3. Choose inactive color:
@@ -284,7 +284,7 @@ Production deployment stages:
 4. Store current known-good image before deployment:
 
 ```text
-/home/admin/projects/doc-backend/releases/previous-prod-image.txt
+/root/projects/doc-backend/releases/previous-prod-image.txt
 ```
 
 5. Pull prerelease-green image.
@@ -319,8 +319,8 @@ curl -fsS https://prod.weightlossmdcherrycreek.com/api/health
 12. If public health is green, write:
 
 ```text
-/home/admin/projects/doc-backend/releases/active-color.txt
-/home/admin/projects/doc-backend/releases/current-prod-image.txt
+/root/projects/doc-backend/releases/active-color.txt
+/root/projects/doc-backend/releases/current-prod-image.txt
 ```
 
 13. Stop old color only after the new color is confirmed stable.
@@ -332,8 +332,8 @@ Rollback must use the last known good image, not a new build.
 Rollback inputs:
 
 ```text
-/home/admin/projects/doc-backend/releases/previous-prod-image.txt
-/home/admin/projects/doc-backend/releases/active-color.txt
+/root/projects/doc-backend/releases/previous-prod-image.txt
+/root/projects/doc-backend/releases/active-color.txt
 ```
 
 Rollback steps:
@@ -371,7 +371,7 @@ set -eu
 COMPOSE_FILE="${COMPOSE_FILE:-docker-compose.release.yaml}"
 DB_USER="${POSTGRES_USER:-doc}"
 DB_NAME="${POSTGRES_DB:-doc}"
-BACKUP_DIR="${BACKUP_DIR:-/home/admin/backups/postgres}"
+BACKUP_DIR="${BACKUP_DIR:-/root//backups/postgres}"
 RETENTION_DAYS="${RETENTION_DAYS:-14}"
 DATE="$(date +%F_%H-%M-%S)"
 
@@ -387,7 +387,7 @@ find "$BACKUP_DIR" -type f -name "${DB_NAME}_*.dump" -mtime +"$RETENTION_DAYS" -
 Server cron:
 
 ```cron
-0 2 * * * cd /home/admin/projects/doc-backend && /bin/sh scripts/backup-postgres.sh >> /home/admin/backups/postgres/backup.log 2>&1
+0 2 * * * cd /root/projects/doc-backend && /bin/sh scripts/backup-postgres.sh >> /root//backups/postgres/backup.log 2>&1
 ```
 
 Also back up uploaded files or object storage. The existing `scripts/storage-backup.sh` covers MinIO volume backup, but it temporarily stops MinIO. For production, prefer S3-compatible bucket replication or a MinIO client mirror job if uploads must remain available during backup.
