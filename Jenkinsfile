@@ -48,13 +48,7 @@ pipeline {
 
     stage('Quality Gate') {
       when {
-        not {
-          anyOf {
-            branch 'dev'
-            branch 'master'
-            branch 'main'
-          }
-        }
+        branch 'dev'
       }
       agent {
         docker {
@@ -273,7 +267,17 @@ pipeline {
     }
 
     failure {
-      echo "Pipeline failed. Production should remain on the previous healthy color or rollback script will run when public health fails."
+      script {
+        if (env.BRANCH_NAME == 'dev') {
+          echo "Dev pipeline failed before Docker image promotion. Check the Quality Gate, Build Image, or Push Image stage above."
+        } else if (env.BRANCH_NAME == 'master') {
+          echo "Master prerelease pipeline failed. Check Promote Dev Image Tag, Sync Release Files, or Deploy Pre-Release above."
+        } else if (env.BRANCH_NAME == 'main') {
+          echo "Production pipeline failed. Production should remain on the previous healthy color or rollback script will run when public health fails."
+        } else {
+          echo "Pipeline failed for branch: ${env.BRANCH_NAME}. Check the failed stage above."
+        }
+      }
     }
   }
 }
