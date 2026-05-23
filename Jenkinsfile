@@ -58,6 +58,9 @@ pipeline {
           args '-u root'
         }
       }
+      environment {
+        DATABASE_URL = 'postgresql://ci:ci@localhost:5432/ci'
+      }
       steps {
         sh '''
           set -eu
