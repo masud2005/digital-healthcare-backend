@@ -1,11 +1,11 @@
 import { GetObjectCommand, PutObjectCommand, S3Client } from "@aws-sdk/client-s3";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
-import { Inject, Injectable } from "@nestjs/common";
+import { Inject, Injectable, OnModuleInit } from "@nestjs/common";
 import "multer";
 import { v4 as uuid } from "uuid";
 
 @Injectable()
-export class StorageService {
+export class StorageService implements OnModuleInit {
     private readonly publicS3: S3Client;
 
     constructor(
@@ -14,13 +14,29 @@ export class StorageService {
     ) {
         this.publicS3 = new S3Client({
             region: "us-east-1",
-            endpoint: process.env.MINIO_PUBLIC_ENDPOINT || process.env.MINIO_ENDPOINT || "http://127.0.0.1:9000",
+            endpoint:
+                process.env.MINIO_PUBLIC_ENDPOINT ||
+                process.env.MINIO_ENDPOINT ||
+                "http://127.0.0.1:9000",
             forcePathStyle: true,
             credentials: {
                 accessKeyId: process.env.MINIO_USER || "admin",
                 secretAccessKey: process.env.MINIO_PASS || "admin123",
             },
         });
+    }
+    async onModuleInit() {
+        try {
+            await this.publicS3.send(
+                new GetObjectCommand({
+                    Bucket: this.bucket,
+                    Key: "",
+                }),
+            );
+            console.log("Storage initialized");
+        } catch (err) {
+            console.error("Storage not initialized", err);
+        }
     }
 
     private bucket = "testing";
