@@ -24,7 +24,7 @@ docker run --rm --network doc-backend_doc_release \
   -e MINIO_USER="$MINIO_USER" \
   -e MINIO_PASS="$MINIO_PASS" \
   -e MINIO_BUCKET="$MINIO_BUCKET" \
-  minio/mc:latest -eu -c '
+  minio/minio:latest -eu -c '
     mc alias set live http://minio_live:9000 "$MINIO_USER" "$MINIO_PASS"
     mc alias set pre http://minio_pre:9000 "$MINIO_USER" "$MINIO_PASS"
 
