@@ -137,8 +137,9 @@ If a GitLab push triggers Jenkins but the log immediately says `Finished: SUCCES
 Create these Jenkins credentials:
 
 - `dockerhub-creds`: username/password credential for Docker Hub.
+- `doc-vps-ssh`: SSH username/private key credential for `root@187.77.23.79`.
 
-Keep `.env.production` and `.env.prerelease` as server-only files in `/var/jenkins_home/projects/doc-backend`.
+Keep `.env.production` and `.env.prerelease` as server-only files in `/var/projects/doc-backend`.
 
 Install these Jenkins plugins:
 

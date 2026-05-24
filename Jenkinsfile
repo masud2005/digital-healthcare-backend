@@ -14,11 +14,14 @@ pipeline {
     PRERELEASE_SOURCE_IMAGE = 'softvence/doc-backend:dev'
 
     DOCKER_CREDENTIALS_ID = 'dockerhub-creds'
+    DEPLOY_SSH_CREDENTIALS_ID = 'doc-vps-ssh'
+    DEPLOY_HOST = '187.77.23.79'
+    DEPLOY_USER = 'root'
 
     LIVE_DOMAIN = 'prod.weightlossmdcherrycreek.com'
     PRE_DOMAIN = 'pre.weightlossmdcherrycreek.com'
 
-    SERVER_DIR = '/var/jenkins_home/projects/doc-backend'
+    SERVER_DIR = '/var/projects/doc-backend'
     COMPOSE_FILE = 'docker-compose.release.yaml'
     RELEASE_DIR = './releases'
   }
@@ -158,24 +161,39 @@ pipeline {
         }
       }
       steps {
-        sh '''
-          set -eu
+        withCredentials([
+          sshUserPrivateKey(
+            credentialsId: "${DEPLOY_SSH_CREDENTIALS_ID}",
+            keyFileVariable: 'DEPLOY_SSH_KEY',
+            usernameVariable: 'DEPLOY_SSH_USER'
+          )
+        ]) {
+          sh '''
+            set -eu
 
-          mkdir -p "$SERVER_DIR/scripts" "$SERVER_DIR/releases"
+            SSH_USER="${DEPLOY_SSH_USER:-$DEPLOY_USER}"
+            SSH="ssh -i "$DEPLOY_SSH_KEY" -o IdentitiesOnly=yes -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null"
+            SCP="scp -i "$DEPLOY_SSH_KEY" -o IdentitiesOnly=yes -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null"
 
-          cp "$COMPOSE_FILE" "$SERVER_DIR/$COMPOSE_FILE"
-          cp Caddyfile "$SERVER_DIR/Caddyfile"
-          cp scripts/clone-db-for-prerelease.sh "$SERVER_DIR/scripts/clone-db-for-prerelease.sh"
-          cp scripts/deploy-prerelease.sh "$SERVER_DIR/scripts/deploy-prerelease.sh"
-          cp scripts/promote-production.sh "$SERVER_DIR/scripts/promote-production.sh"
-          cp scripts/rollback-production.sh "$SERVER_DIR/scripts/rollback-production.sh"
-          cp scripts/backup-postgres.sh "$SERVER_DIR/scripts/backup-postgres.sh"
+            $SSH "$SSH_USER@$DEPLOY_HOST" "mkdir -p '$SERVER_DIR/scripts' '$SERVER_DIR/releases'"
 
-          chmod +x "$SERVER_DIR"/scripts/*.sh
+            $SCP "$COMPOSE_FILE" "$SSH_USER@$DEPLOY_HOST:$SERVER_DIR/$COMPOSE_FILE"
+            $SCP Caddyfile "$SSH_USER@$DEPLOY_HOST:$SERVER_DIR/Caddyfile"
+            $SCP scripts/clone-db-for-prerelease.sh "$SSH_USER@$DEPLOY_HOST:$SERVER_DIR/scripts/clone-db-for-prerelease.sh"
+            $SCP scripts/deploy-prerelease.sh "$SSH_USER@$DEPLOY_HOST:$SERVER_DIR/scripts/deploy-prerelease.sh"
+            $SCP scripts/promote-production.sh "$SSH_USER@$DEPLOY_HOST:$SERVER_DIR/scripts/promote-production.sh"
+            $SCP scripts/rollback-production.sh "$SSH_USER@$DEPLOY_HOST:$SERVER_DIR/scripts/rollback-production.sh"
+            $SCP scripts/backup-postgres.sh "$SSH_USER@$DEPLOY_HOST:$SERVER_DIR/scripts/backup-postgres.sh"
 
-          touch "$SERVER_DIR/.env.production" "$SERVER_DIR/.env.prerelease"
-          chmod 600 "$SERVER_DIR/.env.production" "$SERVER_DIR/.env.prerelease"
-        '''
+            $SSH "$SSH_USER@$DEPLOY_HOST" "
+              set -eu
+              chmod +x '$SERVER_DIR'/scripts/*.sh
+              touch '$SERVER_DIR/.env.production' '$SERVER_DIR/.env.prerelease'
+              chmod 600 '$SERVER_DIR/.env.production' '$SERVER_DIR/.env.prerelease'
+              docker version
+            "
+          '''
+        }
       }
     }
 
@@ -184,17 +202,30 @@ pipeline {
         branch 'master'
       }
       steps {
-        sh '''
-          set -eu
-          cd "$SERVER_DIR"
+        withCredentials([
+          sshUserPrivateKey(
+            credentialsId: "${DEPLOY_SSH_CREDENTIALS_ID}",
+            keyFileVariable: 'DEPLOY_SSH_KEY',
+            usernameVariable: 'DEPLOY_SSH_USER'
+          )
+        ]) {
+          sh '''
+            set -eu
 
-          export COMPOSE_FILE="$COMPOSE_FILE"
-          export PRE_IMAGE="$CANDIDATE_IMAGE"
-          export PRE_DOMAIN="$PRE_DOMAIN"
-          export RELEASE_DIR="$RELEASE_DIR"
+            SSH_USER="${DEPLOY_SSH_USER:-$DEPLOY_USER}"
+            SSH="ssh -i "$DEPLOY_SSH_KEY" -o IdentitiesOnly=yes -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null"
 
-          sh scripts/deploy-prerelease.sh
-        '''
+            $SSH "$SSH_USER@$DEPLOY_HOST" "
+              set -eu
+              cd '$SERVER_DIR'
+              export COMPOSE_FILE='$COMPOSE_FILE'
+              export PRE_IMAGE='$CANDIDATE_IMAGE'
+              export PRE_DOMAIN='$PRE_DOMAIN'
+              export RELEASE_DIR='$RELEASE_DIR'
+              sh scripts/deploy-prerelease.sh
+            "
+          '''
+        }
       }
     }
 
@@ -203,16 +234,29 @@ pipeline {
         branch 'main'
       }
       steps {
-        sh '''
-          set -eu
-          cd "$SERVER_DIR"
+        withCredentials([
+          sshUserPrivateKey(
+            credentialsId: "${DEPLOY_SSH_CREDENTIALS_ID}",
+            keyFileVariable: 'DEPLOY_SSH_KEY',
+            usernameVariable: 'DEPLOY_SSH_USER'
+          )
+        ]) {
+          sh '''
+            set -eu
 
-          export COMPOSE_FILE="$COMPOSE_FILE"
-          export LIVE_DOMAIN="$LIVE_DOMAIN"
-          export RELEASE_DIR="$RELEASE_DIR"
+            SSH_USER="${DEPLOY_SSH_USER:-$DEPLOY_USER}"
+            SSH="ssh -i "$DEPLOY_SSH_KEY" -o IdentitiesOnly=yes -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null"
 
-          sh scripts/promote-production.sh
-        '''
+            $SSH "$SSH_USER@$DEPLOY_HOST" "
+              set -eu
+              cd '$SERVER_DIR'
+              export COMPOSE_FILE='$COMPOSE_FILE'
+              export LIVE_DOMAIN='$LIVE_DOMAIN'
+              export RELEASE_DIR='$RELEASE_DIR'
+              sh scripts/promote-production.sh
+            "
+          '''
+        }
       }
     }
   }
