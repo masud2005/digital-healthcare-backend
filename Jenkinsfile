@@ -173,10 +173,8 @@ pipeline {
 
           chmod +x "$SERVER_DIR"/scripts/*.sh
 
-          test -f "$SERVER_DIR/.env.production" || printf '%s\\n' "WARN: $SERVER_DIR/.env.production is missing; create it before production promotion."
-          test -f "$SERVER_DIR/.env.prerelease" || printf '%s\\n' "WARN: $SERVER_DIR/.env.prerelease is missing; create it before prerelease deployment."
-          test ! -f "$SERVER_DIR/.env.production" || chmod 600 "$SERVER_DIR/.env.production"
-          test ! -f "$SERVER_DIR/.env.prerelease" || chmod 600 "$SERVER_DIR/.env.prerelease"
+          touch "$SERVER_DIR/.env.production" "$SERVER_DIR/.env.prerelease"
+          chmod 600 "$SERVER_DIR/.env.production" "$SERVER_DIR/.env.prerelease"
         '''
       }
     }
