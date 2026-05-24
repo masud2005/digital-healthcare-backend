@@ -25,8 +25,8 @@ docker run --rm --network doc-backend_doc_release \
   -e MINIO_PASS="$MINIO_PASS" \
   -e MINIO_BUCKET="$MINIO_BUCKET" \
   minio/minio:latest -eu -c '
-    mc alias set live http://minio_live:9000 "$MINIO_USER" "$MINIO_PASS"
-    mc alias set pre http://minio_pre:9000 "$MINIO_USER" "$MINIO_PASS"
+    mc alias set live http://minio-storage-live:9000 "$MINIO_USER" "$MINIO_PASS"
+    mc alias set pre http://minio-storage-pre:9000 "$MINIO_USER" "$MINIO_PASS"
 
     mc mb --ignore-existing "live/$MINIO_BUCKET"
     mc mb --ignore-existing "pre/$MINIO_BUCKET"
