@@ -143,9 +143,6 @@ services:
     minio_live:
         image: minio/minio:latest
         container_name: minio-storage-live
-        ports:
-            - "9002:9000" # S3 API
-            - "9003:9001" # Web UI
         environment:
             MINIO_ROOT_USER: ${MINIO_ROOT_USER:-admin}
             MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD:-admin123}
@@ -164,9 +161,6 @@ services:
     minio_pre:
         image: minio/minio:latest
         container_name: minio-storage-pre
-        ports:
-            - "9004:9000" # S3 API
-            - "9005:9001" # Web UI
         environment:
             MINIO_ROOT_USER: ${MINIO_ROOT_USER:-admin}
             MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD:-admin123}

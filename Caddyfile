@@ -7,17 +7,17 @@ pre.weightlossmdcherrycreek.com {
 }
 
 storage.weightlossmdcherrycreek.com {
-    reverse_proxy minio-storage-live:9002
+    reverse_proxy minio-storage-live:9000
 }
 
 pre-storage.weightlossmdcherrycreek.com {
-    reverse_proxy localhost:9004
+    reverse_proxy minio-storage-pre:9000
 }
 
 storage-console.weightlossmdcherrycreek.com {
-    reverse_proxy minio-storage-live:9003
+    reverse_proxy minio-storage-live:9001
 }
 
 pre-storage-console.weightlossmdcherrycreek.com {
-    reverse_proxy localhost:9005
+    reverse_proxy minio-storage-pre:9001
 }
