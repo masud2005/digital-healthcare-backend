@@ -28,7 +28,7 @@ export class QuestionController {
 
             return this.questionService.create({
                 ...payload,
-                media: uploaded.url,
+                media: uploaded.key,
             });
         }
 
@@ -64,7 +64,7 @@ export class QuestionController {
 
             return this.questionService.update(params.id, {
                 ...payload,
-                media: uploaded.url,
+                media: uploaded.key,
             });
         }
 

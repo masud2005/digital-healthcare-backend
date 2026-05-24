@@ -4,6 +4,7 @@ import {
     Injectable,
     NotFoundException,
 } from "@nestjs/common";
+import { StorageService } from "@global/storage/storage.service";
 import {
     type AssessmentDetailRecord,
     type AssessmentRecord,
@@ -18,7 +19,10 @@ const DEFAULT_LIMIT = 10;
 
 @Injectable()
 export class AssessmentService {
-    constructor(private readonly assessmentRepository: AssessmentRepository) {}
+    constructor(
+        private readonly assessmentRepository: AssessmentRepository,
+        private readonly storageService: StorageService,
+    ) {}
 
     async create(payload: CreateAssessmentDto) {
         const data = this.normalizeCreatePayload(payload);
@@ -47,7 +51,7 @@ export class AssessmentService {
         });
 
         return {
-            data: data.map((assessment) => this.mapAssessment(assessment)),
+            data: await Promise.all(data.map((assessment) => this.mapAssessment(assessment))),
             meta: {
                 page,
                 limit,
@@ -180,21 +184,23 @@ export class AssessmentService {
         return trimmed ? trimmed : undefined;
     }
 
-    private mapAssessment(assessment: AssessmentRecord) {
+    private async mapAssessment(assessment: AssessmentRecord) {
         const { _count, ...rest } = assessment;
 
         return {
             ...rest,
+            thumbnail: await this.storageService.resolveKey(rest.thumbnail),
             totalQuestions: _count.questions,
             totalAssessments: _count.questions,
         };
     }
 
-    private mapAssessmentDetail(assessment: AssessmentDetailRecord) {
+    private async mapAssessmentDetail(assessment: AssessmentDetailRecord) {
         const { _count, questions, ...rest } = assessment;
 
         return {
             ...rest,
+            thumbnail: await this.storageService.resolveKey(rest.thumbnail),
             questions: this.buildQuestionTree(questions),
             totalQuestions: _count.questions,
             totalAssessments: _count.questions,

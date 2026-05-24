@@ -55,7 +55,7 @@ export class AssessmentController {
 
             return this.assessmentService.create({
                 ...payload,
-                thumbnail: uploaded.url,
+                thumbnail: uploaded.key,
             });
         }
 
@@ -98,7 +98,7 @@ export class AssessmentController {
 
             return this.assessmentService.update(params.id, {
                 ...payload,
-                thumbnail: uploaded.url,
+                thumbnail: uploaded.key,
             });
         }
 

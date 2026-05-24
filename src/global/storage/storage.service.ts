@@ -7,6 +7,7 @@ import { v4 as uuid } from "uuid";
 @Injectable()
 export class StorageService implements OnModuleInit {
     private readonly publicS3: S3Client;
+    private bucket = "testing";
 
     constructor(
         @Inject("MINIO_CLIENT")
@@ -43,16 +44,13 @@ export class StorageService implements OnModuleInit {
         }
     }
 
-    private bucket = "testing";
-
     /**
-     * 🚀 Upload file to MinIO
+     * 🚀 Upload file to MinIO — returns only the storage key.
+     * Never store signed URLs in the database; always re-generate them on read.
      */
-    async uploadFile(file: Express.Multer.File) {
-        // 1. Generate safe S3 key
+    async uploadFile(file: Express.Multer.File): Promise<{ key: string }> {
         const fileKey = this.generateFileKey(file.originalname);
 
-        // 2. Upload to MinIO
         await this.s3.send(
             new PutObjectCommand({
                 Bucket: this.bucket,
@@ -62,36 +60,45 @@ export class StorageService implements OnModuleInit {
             }),
         );
 
-        // 3. IMPORTANT FIX: await signed URL
-        const url = await this.getSignedUrl(fileKey);
-
-        return {
-            key: fileKey,
-            url, // ✅ now always string
-        };
+        return { key: fileKey };
     }
 
     /**
-     * 🔐 Generate signed URL (secure temporary access)
+     * 🔐 Generate a fresh signed URL for a single stored key.
+     * Default expiry: 5 days.
      */
-    async getSignedUrl(key: string): Promise<string> {
+    async getSignedUrl(key: string, expiresIn: number = 60 * 60 * 24 * 5): Promise<string> {
         const command = new GetObjectCommand({
             Bucket: this.bucket,
             Key: key,
         });
 
-        return await getSignedUrl(this.publicS3, command, {
-            expiresIn: 60 * 60 * 24 * 5, // 5 days
-        });
+        return getSignedUrl(this.publicS3, command, { expiresIn });
+    }
+
+    /**
+     * 🔐 Resolve an array of keys → signed URLs in parallel.
+     * Useful for product images and any other multi-file fields.
+     */
+    async resolveKeys(keys: string[], expiresIn?: number): Promise<string[]> {
+        return Promise.all(keys.map((key) => this.getSignedUrl(key, expiresIn)));
+    }
+
+    /**
+     * 🔐 Resolve a nullable key → signed URL or null.
+     * Useful for optional single-file fields like thumbnails.
+     */
+    async resolveKey(key: string | null | undefined, expiresIn?: number): Promise<string | null> {
+        if (!key) return null;
+        return this.getSignedUrl(key, expiresIn);
     }
 
     private generateFileKey(originalName: string): string {
         const date = new Date().toISOString().split("T")[0];
 
-        // sanitize filename (VERY IMPORTANT for S3/MinIO)
         const safeName = originalName
-            .replace(/\s+/g, "-") // spaces → dash
-            .replace(/[^a-zA-Z0-9.\-_]/g, "") // remove unsafe chars
+            .replace(/\s+/g, "-")
+            .replace(/[^a-zA-Z0-9.\-_]/g, "")
             .toLowerCase();
 
         return `${date}/${uuid()}-${safeName}`;
