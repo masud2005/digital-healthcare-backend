@@ -15,6 +15,7 @@ export LIVE_UPSTREAM="$(cat "$RELEASE_DIR/live-upstream.txt" 2>/dev/null || prin
 
 docker compose -f "$COMPOSE_FILE" up -d db_live db_pre
 sh scripts/clone-db-for-prerelease.sh
+sh scripts/clone-storage-for-prerelease.sh
 
 export PRE_IMAGE
 docker compose -f "$COMPOSE_FILE" pull app_pre

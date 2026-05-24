@@ -25,9 +25,14 @@ services:
             - NODE_ENV=production
             - PORT=5056
             - DATABASE_URL=postgresql://${POSTGRES_USER:-doc}:${POSTGRES_PASSWORD:-doc}@db_live:5432/${POSTGRES_DB:-doc}
-            - MINIO_ENDPOINT=http://minio:9000
+            - MINIO_ENDPOINT=http://minio_live:9000
+            - MINIO_PUBLIC_ENDPOINT=https://storage.weightlossmdcherrycreek.com
+            - MINIO_USER=${MINIO_ROOT_USER:-admin}
+            - MINIO_PASS=${MINIO_ROOT_PASSWORD:-admin123}
         depends_on:
             db_live:
+                condition: service_healthy
+            minio_live:
                 condition: service_healthy
         healthcheck:
             test: ["CMD-SHELL", "wget -qO- http://localhost:5056/api/health >/dev/null || exit 1"]
@@ -49,9 +54,14 @@ services:
             - NODE_ENV=production
             - PORT=5056
             - DATABASE_URL=postgresql://${POSTGRES_USER:-doc}:${POSTGRES_PASSWORD:-doc}@db_live:5432/${POSTGRES_DB:-doc}
-            - MINIO_ENDPOINT=http://minio:9000
+            - MINIO_ENDPOINT=http://minio_live:9000
+            - MINIO_PUBLIC_ENDPOINT=https://storage.weightlossmdcherrycreek.com
+            - MINIO_USER=${MINIO_ROOT_USER:-admin}
+            - MINIO_PASS=${MINIO_ROOT_PASSWORD:-admin123}
         depends_on:
             db_live:
+                condition: service_healthy
+            minio_live:
                 condition: service_healthy
         healthcheck:
             test: ["CMD-SHELL", "wget -qO- http://localhost:5056/api/health >/dev/null || exit 1"]
@@ -73,9 +83,14 @@ services:
             - NODE_ENV=staging
             - PORT=5056
             - DATABASE_URL=postgresql://${POSTGRES_USER:-doc}:${POSTGRES_PASSWORD:-doc}@db_pre:5432/${POSTGRES_DB:-doc}
-            - MINIO_ENDPOINT=http://minio:9000
+            - MINIO_ENDPOINT=http://minio_pre:9000
+            - MINIO_PUBLIC_ENDPOINT=https://pre-storage.weightlossmdcherrycreek.com
+            - MINIO_USER=${MINIO_ROOT_USER:-admin}
+            - MINIO_PASS=${MINIO_ROOT_PASSWORD:-admin123}
         depends_on:
             db_pre:
+                condition: service_healthy
+            minio_pre:
                 condition: service_healthy
         healthcheck:
             test: ["CMD-SHELL", "wget -qO- http://localhost:5056/api/health >/dev/null || exit 1"]
@@ -125,14 +140,32 @@ services:
         networks:
             - doc_release
 
-    minio:
+    minio_live:
         image: minio/minio:latest
-        container_name: minio-storage
+        container_name: minio-storage-live
         environment:
             MINIO_ROOT_USER: ${MINIO_ROOT_USER:-admin}
             MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD:-admin123}
         volumes:
             - minio_data:/data
+        command: server /data --console-address ":9001"
+        restart: unless-stopped
+        healthcheck:
+            test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"]
+            interval: 30s
+            timeout: 10s
+            retries: 3
+        networks:
+            - doc_release
+
+    minio_pre:
+        image: minio/minio:latest
+        container_name: minio-storage-pre
+        environment:
+            MINIO_ROOT_USER: ${MINIO_ROOT_USER:-admin}
+            MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD:-admin123}
+        volumes:
+            - minio_pre_data:/data
         command: server /data --console-address ":9001"
         restart: unless-stopped
         healthcheck:
@@ -149,6 +182,7 @@ volumes:
     doc_live_data:
     doc_pre_data:
     minio_data:
+    minio_pre_data:
 
 networks:
     doc_release:

@@ -180,6 +180,7 @@ pipeline {
             $SCP "$COMPOSE_FILE" "$SSH_USER@$DEPLOY_HOST:$SERVER_DIR/$COMPOSE_FILE"
             $SCP Caddyfile "$SSH_USER@$DEPLOY_HOST:$SERVER_DIR/Caddyfile"
             $SCP scripts/clone-db-for-prerelease.sh "$SSH_USER@$DEPLOY_HOST:$SERVER_DIR/scripts/clone-db-for-prerelease.sh"
+            $SCP scripts/clone-storage-for-prerelease.sh "$SSH_USER@$DEPLOY_HOST:$SERVER_DIR/scripts/clone-storage-for-prerelease.sh"
             $SCP scripts/deploy-prerelease.sh "$SSH_USER@$DEPLOY_HOST:$SERVER_DIR/scripts/deploy-prerelease.sh"
             $SCP scripts/promote-production.sh "$SSH_USER@$DEPLOY_HOST:$SERVER_DIR/scripts/promote-production.sh"
             $SCP scripts/rollback-production.sh "$SSH_USER@$DEPLOY_HOST:$SERVER_DIR/scripts/rollback-production.sh"

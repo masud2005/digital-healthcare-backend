@@ -21,10 +21,11 @@ Already present:
 
 - `Dockerfile` builds the NestJS app and validates/generates Prisma.
 - `Jenkinsfile` builds and pushes Docker images.
-- `docker-compose.release.yaml` has `app_live_blue`, `app_live_green`, `app_pre`, `db_live`, `db_pre`, `minio`, and `caddy`.
+- `docker-compose.release.yaml` has `app_live_blue`, `app_live_green`, `app_pre`, `db_live`, `db_pre`, `minio_live`, `minio_pre`, and `caddy`.
 - `Caddyfile` routes domains to internal app containers.
 - `src/health.controller.ts` exposes `GET /api/health`.
 - `scripts/clone-db-for-prerelease.sh` refreshes `db_pre` from `db_live`.
+- `scripts/clone-storage-for-prerelease.sh` mirrors the live MinIO bucket into prerelease MinIO storage.
 - `scripts/storage-backup.sh` backs up MinIO storage volume.
 
 Server setup still required before production:
@@ -112,6 +113,11 @@ Keep separate databases:
 
 - `db_live`: real production database using the real production volume.
 - `db_pre`: cloned prerelease database using an isolated prerelease volume.
+
+Keep separate storage:
+
+- `minio_live`: real production object storage using the production MinIO volume.
+- `minio_pre`: cloned prerelease object storage using an isolated prerelease MinIO volume.
 
 Keep separate apps:
 
@@ -206,39 +212,47 @@ softvence/doc-backend:master-<build-number>-<git-sha>
 3. Push the immutable `master-<build-number>-<git-sha>` tag and update the moving `master` tag.
 4. SSH into the server.
 5. Pull the candidate image.
-6. Start `db_live` and `db_pre`.
+6. Start `db_live`, `db_pre`, `minio_live`, and `minio_pre`.
 7. Clone production database into prerelease:
 
 ```sh
 sh scripts/clone-db-for-prerelease.sh
 ```
 
-8. Run Prisma migrations against `db_pre` only:
+8. Clone production storage bucket into prerelease:
+
+```sh
+sh scripts/clone-storage-for-prerelease.sh
+```
+
+9. Run Prisma migrations against `db_pre` only:
 
 ```sh
 docker compose -f docker-compose.release.yaml run --rm app_pre npm run prisma:migrate
 ```
 
-9. Start `app_pre` with the candidate image.
-10. Check:
+10. Start `app_pre` with the candidate image.
+11. Check:
 
 ```sh
 curl -fsS https://pre.weightlossmdcherrycreek.com/api/health
 ```
 
-11. If healthy, write the image tag to:
+12. If healthy, write the image tag to:
 
 ```text
 /var/projects/doc-backend/releases/prerelease-green-image.txt
 ```
 
-12. If unhealthy, keep the previous prerelease container running and mark the Jenkins build failed.
+13. If unhealthy, keep the previous prerelease container running and mark the Jenkins build failed.
 
 Data safety rule:
 
 - `clone-db-for-prerelease.sh` must only read from `db_live`.
 - It can drop and recreate only `db_pre`.
 - It must never drop, migrate, or write into `db_live`.
+- `clone-storage-for-prerelease.sh` must mirror from `minio_live` to `minio_pre`.
+- Prerelease app writes must go to `minio_pre`, never `minio_live`.
 
 ## Phase 7: Human Verification
 
@@ -449,6 +463,8 @@ Data:
 
 - Production database volume exists and is mounted only by `db_live`.
 - Prerelease database volume is separate.
+- Production MinIO volume exists and is mounted only by `minio_live`.
+- Prerelease MinIO volume is separate.
 - Prerelease clone was tested.
 - Daily production database backup is scheduled.
 - Restore test was completed.
@@ -472,6 +488,7 @@ master merge
   -> retag as master-<build>-<sha>
   -> Docker Hub push promoted tag
   -> clone prod DB to prerelease DB
+  -> clone prod bucket to prerelease bucket
   -> migrate prerelease DB
   -> deploy prerelease
   -> health check

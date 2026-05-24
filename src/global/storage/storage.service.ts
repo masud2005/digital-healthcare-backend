@@ -6,10 +6,22 @@ import { v4 as uuid } from "uuid";
 
 @Injectable()
 export class StorageService {
+    private readonly publicS3: S3Client;
+
     constructor(
         @Inject("MINIO_CLIENT")
         private readonly s3: S3Client,
-    ) {}
+    ) {
+        this.publicS3 = new S3Client({
+            region: "us-east-1",
+            endpoint: process.env.MINIO_PUBLIC_ENDPOINT || process.env.MINIO_ENDPOINT || "http://127.0.0.1:9000",
+            forcePathStyle: true,
+            credentials: {
+                accessKeyId: process.env.MINIO_USER || "admin",
+                secretAccessKey: process.env.MINIO_PASS || "admin123",
+            },
+        });
+    }
 
     private bucket = "testing";
 
@@ -48,7 +60,7 @@ export class StorageService {
             Key: key,
         });
 
-        return await getSignedUrl(this.s3, command, {
+        return await getSignedUrl(this.publicS3, command, {
             expiresIn: 60 * 60, // 1 hour
         });
     }
