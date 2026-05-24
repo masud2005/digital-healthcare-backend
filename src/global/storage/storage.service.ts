@@ -27,15 +27,19 @@ export class StorageService implements OnModuleInit {
     }
     async onModuleInit() {
         try {
-            await this.publicS3.send(
+            await this.s3.send(
                 new GetObjectCommand({
                     Bucket: this.bucket,
-                    Key: "",
+                    Key: "init-check",
                 }),
             );
             console.log("Storage initialized");
-        } catch (err) {
-            console.error("Storage not initialized", err);
+        } catch (err: any) {
+            if (err.name === "NoSuchKey") {
+                console.log("Storage initialized (connected to MinIO)");
+            } else {
+                console.error("Storage not initialized", err);
+            }
         }
     }
 
