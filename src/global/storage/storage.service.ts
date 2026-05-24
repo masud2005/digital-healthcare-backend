@@ -81,7 +81,7 @@ export class StorageService implements OnModuleInit {
         });
 
         return await getSignedUrl(this.publicS3, command, {
-            expiresIn: 60 * 60, // 1 hour
+            expiresIn: 60 * 60 * 24 * 365, // 1 year
         });
     }
 
