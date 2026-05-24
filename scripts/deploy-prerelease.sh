@@ -21,20 +21,47 @@ docker compose -f "$COMPOSE_FILE" pull app_pre
 docker compose -f "$COMPOSE_FILE" run --rm app_pre npm run prisma:migrate
 docker compose -f "$COMPOSE_FILE" up -d --no-deps app_pre caddy
 
+sleep 5
+
+echo "Checking prerelease container health internally..."
 i=1
-max=30
+max=5
 while [ "$i" -le "$max" ]; do
-  if curl -fsS "https://$PRE_DOMAIN/api/health" >/dev/null 2>&1; then
+  if docker compose -f "$COMPOSE_FILE" exec -T app_pre wget -qO- http://localhost:5056/api/health >/dev/null 2>&1; then
+    echo "Prerelease container is healthy"
+    break
+  fi
+
+  if [ "$i" -eq "$max" ]; then
+    echo "Prerelease container failed internal health check"
+    docker compose -f "$COMPOSE_FILE" ps
+    docker compose -f "$COMPOSE_FILE" logs --tail=200 app_pre
+    exit 1
+  fi
+
+  echo "Waiting prerelease internal health $i/$max"
+  i=$((i + 1))
+  sleep 5
+done
+
+echo "Checking prerelease public health..."
+i=1
+max=5
+while [ "$i" -le "$max" ]; do
+  if curl --connect-timeout 5 --max-time 10 -fsS "https://$PRE_DOMAIN/api/health" >/dev/null 2>&1; then
     printf '%s\n' "$PRE_IMAGE" > "$RELEASE_DIR/prerelease-green-image.txt"
     echo "Prerelease is healthy: $PRE_IMAGE"
     exit 0
   fi
 
-  echo "Waiting prerelease health $i/$max"
+  if [ "$i" -eq "$max" ]; then
+    echo "Prerelease public health failed. Container is healthy, so check DNS/Caddy routing for $PRE_DOMAIN."
+    docker compose -f "$COMPOSE_FILE" ps
+    docker compose -f "$COMPOSE_FILE" logs --tail=200 caddy
+    exit 1
+  fi
+
+  echo "Waiting prerelease public health $i/$max"
   i=$((i + 1))
   sleep 5
 done
-
-echo "Prerelease failed health check"
-docker compose -f "$COMPOSE_FILE" logs --tail=200 app_pre
-exit 1
