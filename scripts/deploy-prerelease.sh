@@ -22,7 +22,8 @@ sh scripts/clone-storage-for-prerelease.sh
 export PRE_IMAGE
 docker compose -f "$COMPOSE_FILE" pull app_pre
 docker compose -f "$COMPOSE_FILE" run --rm app_pre npm run prisma:migrate
-docker compose -f "$COMPOSE_FILE" up -d --no-deps app_pre caddy
+docker compose -f "$COMPOSE_FILE" up -d --no-deps app_pre
+docker compose -f "$COMPOSE_FILE" up -d --no-deps --force-recreate caddy
 docker compose -f "$COMPOSE_FILE" exec -T caddy caddy validate --config /etc/caddy/Caddyfile
 
 sleep 5
@@ -61,6 +62,7 @@ while [ "$i" -le "$max" ]; do
   if [ "$i" -eq "$max" ]; then
     echo "Prerelease storage route failed. Check DNS, Caddy TLS, and MinIO console routing for $PRE_STORAGE_DOMAIN and $PRE_STORAGE_CONSOLE_DOMAIN."
     docker compose -f "$COMPOSE_FILE" ps
+    docker compose -f "$COMPOSE_FILE" exec -T caddy caddy adapt --config /etc/caddy/Caddyfile
     docker compose -f "$COMPOSE_FILE" logs --tail=200 caddy
     docker compose -f "$COMPOSE_FILE" logs --tail=200 minio_pre
     exit 1
