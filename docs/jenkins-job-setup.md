@@ -67,22 +67,40 @@ The Jenkins agent also needs:
 - Node.js and npm
 - Docker CLI
 - Docker permission for the Jenkins user
-- SSH access to the VPS
+
+## Single-Server Jenkins
+
+If Jenkins runs on the same VPS as the app and is bound to host loopback like this:
+
+```text
+127.0.0.1:8080->8080/tcp
+```
+
+keep Jenkins private and expose it through Caddy:
+
+```caddyfile
+jenkins.weightlossmdcherrycreek.com {
+    reverse_proxy host.docker.internal:8080
+}
+```
+
+Because release Caddy runs inside Docker, `127.0.0.1:8080` would point to the Caddy container itself. The release compose file maps `host.docker.internal` to the Docker host gateway so Caddy can reach Jenkins on the host loopback port.
+
+For this single-server pipeline, Jenkins still deploys over SSH to the VPS host. This is intentional because Jenkins runs in a container; using SSH makes Docker commands run against the host Docker engine, so containers appear in the host `docker ps`.
+
+Create a Jenkins credential named `doc-vps-ssh` using **SSH Username with private key**. The username should be `root` for the current Jenkinsfile.
 
 ## Required Credentials
 
 These IDs must exist in Jenkins because the `Jenkinsfile` references them:
 
 - `dockerhub-creds`
-- `doc-vps-ssh`
-- `doc-backend-env-production`
-- `doc-backend-env-prerelease`
 
-The env file credentials should contain the complete server env files:
+The server should keep these env files in the deployment directory:
 
 ```text
-.env.production
-.env.prerelease
+/var/projects/doc-backend/.env.production
+/var/projects/doc-backend/.env.prerelease
 ```
 
 Use this in `.env.production`:

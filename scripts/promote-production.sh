@@ -3,6 +3,8 @@ set -eu
 
 COMPOSE_FILE="${COMPOSE_FILE:-docker-compose.release.yaml}"
 LIVE_DOMAIN="${LIVE_DOMAIN:-prod.weightlossmdcherrycreek.com}"
+LIVE_STORAGE_DOMAIN="${LIVE_STORAGE_DOMAIN:-storage.weightlossmdcherrycreek.com}"
+LIVE_STORAGE_CONSOLE_DOMAIN="${LIVE_STORAGE_CONSOLE_DOMAIN:-storage-console.weightlossmdcherrycreek.com}"
 RELEASE_DIR="${RELEASE_DIR:-./releases}"
 
 mkdir -p "$RELEASE_DIR"
@@ -67,6 +69,29 @@ export LIVE_UPSTREAM="$NEXT_UPSTREAM"
 printf '%s\n' "$LIVE_UPSTREAM" > "$RELEASE_DIR/live-upstream.txt"
 
 docker compose -f "$COMPOSE_FILE" up -d --no-deps --force-recreate caddy
+docker compose -f "$COMPOSE_FILE" exec -T caddy caddy validate --config /etc/caddy/Caddyfile
+
+i=1
+max=30
+while [ "$i" -le "$max" ]; do
+  if curl --connect-timeout 5 --max-time 10 -fsS "https://$LIVE_STORAGE_DOMAIN/minio/health/live" >/dev/null 2>&1 \
+    && curl --connect-timeout 5 --max-time 10 -fsSI "https://$LIVE_STORAGE_CONSOLE_DOMAIN/" >/dev/null 2>&1; then
+    echo "Production storage routes are healthy"
+    break
+  fi
+
+  if [ "$i" -eq "$max" ]; then
+    echo "Production storage route failed after switching to $NEXT_COLOR"
+    docker compose -f "$COMPOSE_FILE" logs --tail=200 caddy
+    docker compose -f "$COMPOSE_FILE" logs --tail=200 minio_live
+    sh scripts/rollback-production.sh
+    exit 1
+  fi
+
+  echo "Waiting production storage routes $i/$max"
+  i=$((i + 1))
+  sleep 5
+done
 
 i=1
 max=30

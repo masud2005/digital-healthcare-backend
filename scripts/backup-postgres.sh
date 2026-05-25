@@ -4,7 +4,7 @@ set -eu
 COMPOSE_FILE="${COMPOSE_FILE:-docker-compose.release.yaml}"
 DB_USER="${POSTGRES_USER:-doc}"
 DB_NAME="${POSTGRES_DB:-doc}"
-BACKUP_DIR="${BACKUP_DIR:-/home/admin/backups/postgres}"
+BACKUP_DIR="${BACKUP_DIR:-/root/backups/postgres}"
 RETENTION_DAYS="${RETENTION_DAYS:-14}"
 DATE="$(date +%F_%H-%M-%S)"
 

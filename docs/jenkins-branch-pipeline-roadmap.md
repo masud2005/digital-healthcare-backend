@@ -10,7 +10,7 @@ Target domains:
 Branch behavior:
 
 - `dev`: build, test, create Docker image, push to Docker Hub.
-- `master`: deploy prerelease from a Docker Hub image, clone production database into prerelease database, run health checks, keep production untouched.
+- `master`: promote the already-built Docker Hub `dev` image to an immutable `master-<build>-<sha>` tag, deploy prerelease, clone production database into prerelease database, run health checks, keep production untouched.
 - `main`: promote the latest prerelease-green image to production with zero-downtime blue/green deployment.
 
 The production database is the source of truth. Prerelease must use a clone of production data, but prerelease writes must never affect production.
@@ -21,10 +21,11 @@ Already present:
 
 - `Dockerfile` builds the NestJS app and validates/generates Prisma.
 - `Jenkinsfile` builds and pushes Docker images.
-- `docker-compose.release.yaml` has `app_live_blue`, `app_live_green`, `app_pre`, `db_live`, `db_pre`, `minio`, and `caddy`.
+- `docker-compose.release.yaml` has `app_live_blue`, `app_live_green`, `app_pre`, `db_live`, `db_pre`, `minio_live`, `minio_pre`, and `caddy`.
 - `Caddyfile` routes domains to internal app containers.
 - `src/health.controller.ts` exposes `GET /api/health`.
 - `scripts/clone-db-for-prerelease.sh` refreshes `db_pre` from `db_live`.
+- `scripts/clone-storage-for-prerelease.sh` mirrors the live MinIO bucket into prerelease MinIO storage.
 - `scripts/storage-backup.sh` backs up MinIO storage volume.
 
 Server setup still required before production:
@@ -53,7 +54,7 @@ Do not expose:
 Recommended server directory:
 
 ```sh
-/home/admin/projects/doc-backend
+/var/projects/doc-backend
 ```
 
 Files required on the server:
@@ -113,6 +114,11 @@ Keep separate databases:
 - `db_live`: real production database using the real production volume.
 - `db_pre`: cloned prerelease database using an isolated prerelease volume.
 
+Keep separate storage:
+
+- `minio_live`: real production object storage using the production MinIO volume.
+- `minio_pre`: cloned prerelease object storage using an isolated prerelease MinIO volume.
+
 Keep separate apps:
 
 - `app_pre`: prerelease app using `.env.prerelease`.
@@ -136,9 +142,7 @@ Caddy needs internet access for TLS, so the network cannot be fully internal unl
 Create these Jenkins credentials:
 
 - `dockerhub-creds`: Docker Hub username/password.
-- `doc-vps-ssh`: SSH private key for the VPS user.
-- `doc-backend-env-production`: secret file for `.env.production`.
-- `doc-backend-env-prerelease`: secret file for `.env.prerelease`.
+- `doc-vps-ssh`: SSH username/private key credential for `root@187.77.23.79`.
 - `doc-backend-postgres-password`: secret text for PostgreSQL password if not stored in env files.
 
 Recommended Jenkins environment values:
@@ -146,11 +150,11 @@ Recommended Jenkins environment values:
 ```groovy
 APP_NAME = 'doc-backend'
 DOCKER_IMAGE = 'softvence/doc-backend'
-VPS_HOST = '<server-ip-or-hostname>'
-VPS_USER = 'admin'
+DEPLOY_HOST = '187.77.23.79'
+DEPLOY_USER = 'root'
 LIVE_DOMAIN = 'prod.weightlossmdcherrycreek.com'
 PRE_DOMAIN = 'pre.weightlossmdcherrycreek.com'
-SERVER_DIR = '/home/admin/projects/doc-backend'
+SERVER_DIR = '/var/projects/doc-backend'
 COMPOSE_FILE = 'docker-compose.release.yaml'
 ```
 
@@ -189,51 +193,66 @@ This branch should not deploy to the VPS automatically unless you later add a se
 
 ## Phase 6: `master` Prerelease Pipeline
 
-Goal: when code merges to `master`, deploy a prerelease version at `pre.weightlossmdcherrycreek.com`.
+Goal: when code merges from `dev` to `master`, deploy a prerelease version at `pre.weightlossmdcherrycreek.com` without rebuilding the app image.
 
 Recommended behavior:
 
-1. Build and push image:
+1. Pull the image already produced by the `dev` branch:
+
+```text
+softvence/doc-backend:dev
+```
+
+2. Retag it as an immutable prerelease candidate:
 
 ```text
 softvence/doc-backend:master-<build-number>-<git-sha>
 ```
 
-2. SSH into the server.
-3. Pull the candidate image.
-4. Start `db_live` and `db_pre`.
-5. Clone production database into prerelease:
+3. Push the immutable `master-<build-number>-<git-sha>` tag and update the moving `master` tag.
+4. SSH into the server.
+5. Pull the candidate image.
+6. Start `db_live`, `db_pre`, `minio_live`, and `minio_pre`.
+7. Clone production database into prerelease:
 
 ```sh
 sh scripts/clone-db-for-prerelease.sh
 ```
 
-6. Run Prisma migrations against `db_pre` only:
+8. Clone production storage bucket into prerelease:
+
+```sh
+sh scripts/clone-storage-for-prerelease.sh
+```
+
+9. Run Prisma migrations against `db_pre` only:
 
 ```sh
 docker compose -f docker-compose.release.yaml run --rm app_pre npm run prisma:migrate
 ```
 
-7. Start `app_pre` with the candidate image.
-8. Check:
+10. Start `app_pre` with the candidate image.
+11. Check:
 
 ```sh
 curl -fsS https://pre.weightlossmdcherrycreek.com/api/health
 ```
 
-9. If healthy, write the image tag to:
+12. If healthy, write the image tag to:
 
 ```text
-/home/admin/projects/doc-backend/releases/prerelease-green-image.txt
+/var/projects/doc-backend/releases/prerelease-green-image.txt
 ```
 
-10. If unhealthy, keep the previous prerelease container running and mark the Jenkins build failed.
+13. If unhealthy, keep the previous prerelease container running and mark the Jenkins build failed.
 
 Data safety rule:
 
 - `clone-db-for-prerelease.sh` must only read from `db_live`.
 - It can drop and recreate only `db_pre`.
 - It must never drop, migrate, or write into `db_live`.
+- `clone-storage-for-prerelease.sh` must mirror from `minio_live` to `minio_pre`.
+- Prerelease app writes must go to `minio_pre`, never `minio_live`.
 
 ## Phase 7: Human Verification
 
@@ -262,7 +281,7 @@ Goal: when code merges to `main`, deploy the same image that passed prerelease.
 Do not rebuild a different production image on `main`. Read this file from the server:
 
 ```text
-/home/admin/projects/doc-backend/releases/prerelease-green-image.txt
+/var/projects/doc-backend/releases/prerelease-green-image.txt
 ```
 
 Use that exact image for production.
@@ -273,7 +292,7 @@ Production deployment stages:
 2. Read current active color:
 
 ```text
-/home/admin/projects/doc-backend/releases/active-color.txt
+/var/projects/doc-backend/releases/active-color.txt
 ```
 
 3. Choose inactive color:
@@ -284,7 +303,7 @@ Production deployment stages:
 4. Store current known-good image before deployment:
 
 ```text
-/home/admin/projects/doc-backend/releases/previous-prod-image.txt
+/var/projects/doc-backend/releases/previous-prod-image.txt
 ```
 
 5. Pull prerelease-green image.
@@ -319,8 +338,8 @@ curl -fsS https://prod.weightlossmdcherrycreek.com/api/health
 12. If public health is green, write:
 
 ```text
-/home/admin/projects/doc-backend/releases/active-color.txt
-/home/admin/projects/doc-backend/releases/current-prod-image.txt
+/var/projects/doc-backend/releases/active-color.txt
+/var/projects/doc-backend/releases/current-prod-image.txt
 ```
 
 13. Stop old color only after the new color is confirmed stable.
@@ -332,8 +351,8 @@ Rollback must use the last known good image, not a new build.
 Rollback inputs:
 
 ```text
-/home/admin/projects/doc-backend/releases/previous-prod-image.txt
-/home/admin/projects/doc-backend/releases/active-color.txt
+/var/projects/doc-backend/releases/previous-prod-image.txt
+/var/projects/doc-backend/releases/active-color.txt
 ```
 
 Rollback steps:
@@ -371,7 +390,7 @@ set -eu
 COMPOSE_FILE="${COMPOSE_FILE:-docker-compose.release.yaml}"
 DB_USER="${POSTGRES_USER:-doc}"
 DB_NAME="${POSTGRES_DB:-doc}"
-BACKUP_DIR="${BACKUP_DIR:-/home/admin/backups/postgres}"
+BACKUP_DIR="${BACKUP_DIR:-/root//backups/postgres}"
 RETENTION_DAYS="${RETENTION_DAYS:-14}"
 DATE="$(date +%F_%H-%M-%S)"
 
@@ -387,7 +406,7 @@ find "$BACKUP_DIR" -type f -name "${DB_NAME}_*.dump" -mtime +"$RETENTION_DAYS" -
 Server cron:
 
 ```cron
-0 2 * * * cd /home/admin/projects/doc-backend && /bin/sh scripts/backup-postgres.sh >> /home/admin/backups/postgres/backup.log 2>&1
+0 2 * * * cd /var/projects/doc-backend && /bin/sh scripts/backup-postgres.sh >> /root//backups/postgres/backup.log 2>&1
 ```
 
 Also back up uploaded files or object storage. The existing `scripts/storage-backup.sh` covers MinIO volume backup, but it temporarily stops MinIO. For production, prefer S3-compatible bucket replication or a MinIO client mirror job if uploads must remain available during backup.
@@ -402,9 +421,9 @@ Backup verification:
 
 Update the current `Jenkinsfile` so branch rules are explicit:
 
-- Build and push only for `dev`, `master`, and approved release branches.
+- Build and push only for `dev`.
 - `dev` stops after Docker Hub push.
-- `master` deploys prerelease and writes `prerelease-green-image.txt` after health passes.
+- `master` retags the current Docker Hub `dev` image, deploys prerelease, and writes `prerelease-green-image.txt` after health passes.
 - `main` reads `prerelease-green-image.txt` and promotes that exact image.
 - Production deployment uses blue/green services.
 - Rollback uses `previous-prod-image.txt` if health fails.
@@ -416,6 +435,7 @@ Checkout
 Quality Gate
 Build Image
 Push Image
+Promote Dev Image Tag  only master
 Deploy Prerelease       only master
 Verify Prerelease       only master
 Mark Prerelease Green   only master
@@ -437,12 +457,14 @@ Security:
 - PostgreSQL is not public.
 - App containers are not public.
 - MinIO is not public unless routed through Caddy with authentication.
-- `.env.production` and `.env.prerelease` are Jenkins secret files or server-only files.
+- `.env.production` and `.env.prerelease` are server-only files in `/var/projects/doc-backend`.
 
 Data:
 
 - Production database volume exists and is mounted only by `db_live`.
 - Prerelease database volume is separate.
+- Production MinIO volume exists and is mounted only by `minio_live`.
+- Prerelease MinIO volume is separate.
 - Prerelease clone was tested.
 - Daily production database backup is scheduled.
 - Restore test was completed.
@@ -462,9 +484,11 @@ dev merge
   -> Docker Hub push
 
 master merge
-  -> Jenkins builds image
-  -> Docker Hub push
+  -> Jenkins pulls Docker Hub dev image
+  -> retag as master-<build>-<sha>
+  -> Docker Hub push promoted tag
   -> clone prod DB to prerelease DB
+  -> clone prod bucket to prerelease bucket
   -> migrate prerelease DB
   -> deploy prerelease
   -> health check

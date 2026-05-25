@@ -1,7 +1,7 @@
 build-dev:
 	docker compose -f docker-compose.dev.yaml --profile dev build
 
-start-dev:
+dev:
 	docker compose -f docker-compose.dev.yaml --profile dev up -d
 
 build-prod:
