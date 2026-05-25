@@ -21,24 +21,29 @@ export class AuthService {
 
     async requestRegisterOtp(payload: RequestRegisterOtpDto) {
         const email = this.normalizeEmail(payload.email);
+        const password = payload.password.trim();
+        const confirmPassword = payload.confirmPassword.trim();
+
+        if (password !== confirmPassword) {
+            throw new BadRequestException("Password and confirm password do not match");
+        }
+
         const existingUser = await this.authRepository.findUserByEmail(email);
 
         if (existingUser?.status === "ACTIVE") {
             throw new ConflictException("Account already exists");
         }
 
-        const passwordHash = this.hashPassword(payload.password);
+        const passwordHash = this.hashPassword(password);
+        const displayName = this.deriveDisplayName(email);
         const user = existingUser
             ? await this.authRepository.updatePendingUser(existingUser.id, {
-                  name: payload.name.trim(),
                   passwordHash,
-                  phoneNumber: this.normalizeOptional(payload.phoneNumber),
               })
             : await this.authRepository.createPendingUser({
-                  name: payload.name.trim(),
+                  name: displayName,
                   email,
                   passwordHash,
-                  phoneNumber: this.normalizeOptional(payload.phoneNumber),
               });
 
         const otp = this.generateOtp();
@@ -60,6 +65,20 @@ export class AuthService {
         return {
             message: "Registration OTP sent successfully",
         };
+    }
+
+    private deriveDisplayName(email: string) {
+        const localPart = email.split("@")[0]?.trim();
+
+        if (!localPart) {
+            return "User";
+        }
+
+        return localPart
+            .replace(/[._-]+/g, " ")
+            .replace(/\s+/g, " ")
+            .trim()
+            .replace(/\b\w/g, (char) => char.toUpperCase());
     }
 
     async requestLoginOtp(payload: RequestLoginOtpDto) {
