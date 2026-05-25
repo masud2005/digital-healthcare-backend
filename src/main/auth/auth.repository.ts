@@ -39,20 +39,19 @@ export class AuthRepository {
         });
     }
 
-    createPendingUser(data: { name: string; email: string; passwordHash: string; phoneNumber?: string | null }) {
+    createPendingUser(data: { name: string; email: string; passwordHash: string }) {
         return this.prisma.user.create({
             data: {
                 name: data.name,
                 email: data.email,
                 passwordHash: data.passwordHash,
                 status: "PENDING",
-                phoneNumber: data.phoneNumber ?? null,
             },
             select: userSelect,
         });
     }
 
-    updatePendingUser(userId: string, data: { name?: string; passwordHash?: string; phoneNumber?: string | null }) {
+    updatePendingUser(userId: string, data: { passwordHash?: string }) {
         return this.prisma.user.update({
             where: { id: userId },
             data,

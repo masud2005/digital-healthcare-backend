@@ -1,6 +1,6 @@
 export class UserPayloadDto {
     email: string;
     password?: string;
-    name?: string;
+    confirmPassword?: string;
     otp?: string;
 }
