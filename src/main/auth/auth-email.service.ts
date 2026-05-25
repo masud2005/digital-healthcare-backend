@@ -1,5 +1,6 @@
 import { Injectable, Logger } from "@nestjs/common";
 import nodemailer from "nodemailer";
+import { buildOtpEmail } from "./email/auth-email-template";
 
 @Injectable()
 export class AuthEmailService {
@@ -27,8 +28,7 @@ export class AuthEmailService {
     }
 
     async sendOtpEmail(email: string, name: string, code: string, purpose: "LOGIN" | "REGISTER") {
-        const subject = purpose === "LOGIN" ? "Your login verification code" : "Verify your new account";
-        const body = `Hello ${name},\n\nYour verification code is: ${code}\n\nThis code will expire in 10 minutes.\n\nIf you did not request this, ignore this email.`;
+        const { subject, text, html } = buildOtpEmail({ name, code, purpose });
 
         if (!this.transporter) {
             this.logger.warn(`SMTP is not configured. OTP for ${email}: ${code}`);
@@ -39,7 +39,8 @@ export class AuthEmailService {
             from: process.env.MAIL_FROM ?? process.env.SMTP_USER,
             to: email,
             subject,
-            text: body,
+            text,
+            html,
         });
     }
 }

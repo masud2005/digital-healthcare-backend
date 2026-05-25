@@ -5,12 +5,11 @@ import { AuthEmailService } from "./auth-email.service";
 import { AuthController } from "./auth.controller";
 import { AuthRepository } from "./auth.repository";
 import { AuthService } from "./auth.service";
-import { BearerSessionGuard } from "./bearer-session.guard";
 
 @Module({
     imports: [PrismaModule],
     controllers: [AuthController],
-    providers: [AuthService, AuthRepository, AuthEmailService, BearerSessionGuard, AuthCleanupService],
-    exports: [BearerSessionGuard, AuthService],
+    providers: [AuthService, AuthRepository, AuthEmailService, AuthCleanupService],
+    exports: [AuthService],
 })
 export class AuthModule {}

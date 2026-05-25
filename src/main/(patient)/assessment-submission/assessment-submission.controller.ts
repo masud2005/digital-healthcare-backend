@@ -25,18 +25,18 @@ export class AssessmentSubmissionController {
             properties: {
                 userPayload: {
                     type: 'string',
-                    description: 'JSON stringified UserPayloadDto. STEP 1: { email, password, name? } to request OTP. STEP 2: { email, otp } to verify & submit assessment',
+                    description: 'JSON stringified UserPayloadDto. STEP 1: { email, password, confirmPassword } to request OTP. STEP 2: { email, otp } to verify & submit assessment',
                     example: JSON.stringify({
                         email: 'masud.rana@example.com',
                         password: 'securePassword123',
-                        name: 'Md Masud Rana',
+                        confirmPassword: 'securePassword123',
                     }),
                     examples: {
                         step1: {
                             value: JSON.stringify({
                                 email: 'masud.rana@example.com',
                                 password: 'securePassword123',
-                                name: 'Md Masud Rana',
+                                confirmPassword: 'securePassword123',
                             }),
                             description: 'Step 1: Request OTP (will auto-detect registration vs login)',
                         },
@@ -69,7 +69,7 @@ export class AssessmentSubmissionController {
     })
     @ApiOperation({ 
         summary: "Assessment submission with inline auth",
-        description: "STEP 1: Send { email, password, name? } to request OTP\nSTEP 2: Send { email, otp } + assessmentPayload + files to verify & submit"
+        description: "STEP 1: Send { email, password, confirmPassword } for new users or { email, password } for existing users to request OTP\nSTEP 2: Send { email, otp } + assessmentPayload + files to verify & submit"
     })
     async create(
         @Body('userPayload') userPayload: string,
@@ -79,7 +79,7 @@ export class AssessmentSubmissionController {
         const parsedUserPayload: UserPayloadDto = 
             typeof userPayload === 'string' ? JSON.parse(userPayload) : (userPayload as any);
 
-        // STEP 1: OTP Request (email + password, optional name)
+        // STEP 1: OTP Request (email + password + confirmPassword for new users)
         if (!parsedUserPayload.otp) {
             return this.requestOtp(parsedUserPayload);
         }
@@ -89,7 +89,7 @@ export class AssessmentSubmissionController {
     }
 
     private async requestOtp(userPayload: UserPayloadDto) {
-        const { email, password, name } = userPayload;
+        const { email, password, confirmPassword } = userPayload;
 
         if (!email || !password) {
             throw new BadRequestException('STEP 1: email and password are required');
@@ -103,10 +103,10 @@ export class AssessmentSubmissionController {
             await this.authService.requestLoginOtp({ email, password });
         } else {
             // User doesn't exist → Registration flow
-            if (!name) {
-                throw new BadRequestException('STEP 1 (registration): name is required for new users');
+            if (!confirmPassword) {
+                throw new BadRequestException('STEP 1 (registration): confirmPassword is required for new users');
             }
-            await this.authService.requestRegisterOtp({ name, email, password });
+            await this.authService.requestRegisterOtp({ email, password, confirmPassword });
         }
 
         return { message: 'OTP sent to email. Proceed to STEP 2 with { email, otp }' };
@@ -155,7 +155,6 @@ export class AssessmentSubmissionController {
 
         return {
             accessToken: authResponse.accessToken,
-            tokenType: authResponse.tokenType,
             user: authResponse.user,
             submission,
         };

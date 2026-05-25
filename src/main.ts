@@ -15,12 +15,15 @@ async function bootstrap() {
             forbidNonWhitelisted: true,
         }),
     );
-    // ✅ Swagger config with Bearer Auth
 
+    //global prefix for api
+    app.setGlobalPrefix('/api/v1');
+
+    // ✅ Swagger config with Bearer Auth
     const config = new DocumentBuilder()
-        // .setTitle(appMetadata.displayName)
-        // .setDescription(appMetadata.description)
-        // .setVersion(appMetadata.version)
+        .setTitle("Doc API")
+        .setDescription("API documentation for the Doc System")
+        .setVersion("1.0")
         .addBearerAuth()
         .build();
 

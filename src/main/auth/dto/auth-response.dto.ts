@@ -39,9 +39,6 @@ export class AuthResponseDto {
     @ApiProperty()
     accessToken!: string;
 
-    @ApiProperty({ example: "Bearer" })
-    tokenType!: string;
-
     @ApiProperty({ type: AuthUserResponseDto })
     user!: AuthUserResponseDto;
 
