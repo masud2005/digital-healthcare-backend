@@ -51,11 +51,11 @@ export class ProductController {
         const uploaded = await Promise.all(
             files.map((file) => this.storageService.uploadFile(file)),
         );
-        const imageUrls = uploaded.map((img) => img.url);
+        const imageKeys = uploaded.map((img) => img.key);
 
         return this.productService.create({
             ...payload,
-            images: imageUrls,
+            images: imageKeys,
         });
     }
 
@@ -87,7 +87,7 @@ export class ProductController {
             const uploaded = await Promise.all(
                 files.map((file) => this.storageService.uploadFile(file)),
             );
-            payload.images = uploaded.map((img) => img.url);
+            payload.images = uploaded.map((img) => img.key);
         }
 
         return this.productService.update(params.id, payload);

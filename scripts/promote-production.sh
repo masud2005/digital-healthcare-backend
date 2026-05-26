@@ -5,6 +5,7 @@ COMPOSE_FILE="${COMPOSE_FILE:-docker-compose.release.yaml}"
 LIVE_DOMAIN="${LIVE_DOMAIN:-prod.weightlossmdcherrycreek.com}"
 LIVE_STORAGE_DOMAIN="${LIVE_STORAGE_DOMAIN:-storage.weightlossmdcherrycreek.com}"
 LIVE_STORAGE_CONSOLE_DOMAIN="${LIVE_STORAGE_CONSOLE_DOMAIN:-storage-console.weightlossmdcherrycreek.com}"
+export HEALTH_PATH="${HEALTH_PATH:-/api/v1/api/health}"
 RELEASE_DIR="${RELEASE_DIR:-./releases}"
 
 mkdir -p "$RELEASE_DIR"
@@ -44,7 +45,7 @@ docker compose -f "$COMPOSE_FILE" up -d --no-deps "$NEXT_SERVICE"
 i=1
 max=30
 while [ "$i" -le "$max" ]; do
-  if docker compose -f "$COMPOSE_FILE" exec -T "$NEXT_SERVICE" wget -qO- http://localhost:5056/api/health >/dev/null 2>&1; then
+  if docker compose -f "$COMPOSE_FILE" exec -T "$NEXT_SERVICE" wget -qO- "http://localhost:5056$HEALTH_PATH" >/dev/null 2>&1; then
     echo "Production $NEXT_COLOR container is healthy"
     break
   fi
@@ -96,7 +97,7 @@ done
 i=1
 max=30
 while [ "$i" -le "$max" ]; do
-  if curl -fsS "https://$LIVE_DOMAIN/api/health" >/dev/null 2>&1; then
+  if curl -fsS "https://$LIVE_DOMAIN$HEALTH_PATH" >/dev/null 2>&1; then
     printf '%s\n' "$NEXT_COLOR" > "$RELEASE_DIR/active-color.txt"
     printf '%s\n' "$PROMOTE_IMAGE" > "$RELEASE_DIR/current-prod-image.txt"
     echo "Production is healthy on $NEXT_COLOR: $PROMOTE_IMAGE"

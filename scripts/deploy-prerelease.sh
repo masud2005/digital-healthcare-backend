@@ -6,6 +6,7 @@ PRE_IMAGE="${PRE_IMAGE:?set PRE_IMAGE}"
 PRE_DOMAIN="${PRE_DOMAIN:-pre.weightlossmdcherrycreek.com}"
 PRE_STORAGE_DOMAIN="${PRE_STORAGE_DOMAIN:-pre-storage.weightlossmdcherrycreek.com}"
 PRE_STORAGE_CONSOLE_DOMAIN="${PRE_STORAGE_CONSOLE_DOMAIN:-pre-storage-console.weightlossmdcherrycreek.com}"
+export HEALTH_PATH="${HEALTH_PATH:-/api/v1/api/health}"
 RELEASE_DIR="${RELEASE_DIR:-./releases}"
 
 mkdir -p "$RELEASE_DIR"
@@ -32,7 +33,7 @@ echo "Checking prerelease container health internally..."
 i=1
 max=5
 while [ "$i" -le "$max" ]; do
-  if docker compose -f "$COMPOSE_FILE" exec -T app_pre wget -qO- http://localhost:5056/api/health >/dev/null 2>&1; then
+  if docker compose -f "$COMPOSE_FILE" exec -T app_pre wget -qO- "http://localhost:5056$HEALTH_PATH" >/dev/null 2>&1; then
     echo "Prerelease container is healthy"
     break
   fi
@@ -77,7 +78,7 @@ echo "Checking prerelease public health..."
 i=1
 max=5
 while [ "$i" -le "$max" ]; do
-  if curl --connect-timeout 5 --max-time 10 -fsS "https://$PRE_DOMAIN/api/health" >/dev/null 2>&1; then
+  if curl --connect-timeout 5 --max-time 10 -fsS "https://$PRE_DOMAIN$HEALTH_PATH" >/dev/null 2>&1; then
     printf '%s\n' "$PRE_IMAGE" > "$RELEASE_DIR/prerelease-green-image.txt"
     echo "Prerelease is healthy: $PRE_IMAGE"
     exit 0
