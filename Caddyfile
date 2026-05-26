@@ -34,3 +34,7 @@ pre-storage-console.weightlossmdcherrycreek.com {
 		import minio_proxy_headers
 	}
 }
+
+client.weightlossmdcherrycreek.com {
+	reverse_proxy localhost:3000
+}
