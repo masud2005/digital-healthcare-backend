@@ -8,7 +8,13 @@ import { AppModule } from "./app.module";
 async function bootstrap() {
     const app = await NestFactory.create(AppModule);
     app.enableCors({
-        origin: true,
+        origin: [
+            "http://localhost:3000",
+            "http://localhost:3001",
+            "http://localhost:5173",
+            "http://localhost:5174",
+            "http://localhost:5175",
+        ],
         methods: "GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS",
         credentials: true,
     });
@@ -22,7 +28,7 @@ async function bootstrap() {
     );
 
     //global prefix for api
-    app.setGlobalPrefix('/api/v1');
+    app.setGlobalPrefix("/api/v1");
 
     // ✅ Swagger config with Bearer Auth
     const config = new DocumentBuilder()
