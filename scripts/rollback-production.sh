@@ -3,6 +3,7 @@ set -eu
 
 COMPOSE_FILE="${COMPOSE_FILE:-docker-compose.release.yaml}"
 LIVE_DOMAIN="${LIVE_DOMAIN:-prod.weightlossmdcherrycreek.com}"
+export HEALTH_PATH="${HEALTH_PATH:-/api/v1/api/health}"
 RELEASE_DIR="${RELEASE_DIR:-./releases}"
 
 if [ ! -s "$RELEASE_DIR/previous-prod-image.txt" ]; then
@@ -38,7 +39,7 @@ docker compose -f "$COMPOSE_FILE" up -d --no-deps "$NEXT_SERVICE"
 i=1
 max=30
 while [ "$i" -le "$max" ]; do
-  if docker compose -f "$COMPOSE_FILE" exec -T "$NEXT_SERVICE" wget -qO- http://localhost:5056/api/health >/dev/null 2>&1; then
+  if docker compose -f "$COMPOSE_FILE" exec -T "$NEXT_SERVICE" wget -qO- "http://localhost:5056$HEALTH_PATH" >/dev/null 2>&1; then
     echo "Rollback container is healthy"
     break
   fi
@@ -61,7 +62,7 @@ docker compose -f "$COMPOSE_FILE" up -d --no-deps --force-recreate caddy
 i=1
 max=30
 while [ "$i" -le "$max" ]; do
-  if curl -fsS "https://$LIVE_DOMAIN/api/health" >/dev/null 2>&1; then
+  if curl -fsS "https://$LIVE_DOMAIN$HEALTH_PATH" >/dev/null 2>&1; then
     printf '%s\n' "$NEXT_COLOR" > "$RELEASE_DIR/active-color.txt"
     printf '%s\n' "$ROLLBACK_IMAGE" > "$RELEASE_DIR/current-prod-image.txt"
     echo "Rollback completed: $ROLLBACK_IMAGE"
