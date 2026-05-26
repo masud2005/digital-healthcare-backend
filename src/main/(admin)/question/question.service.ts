@@ -1,4 +1,5 @@
 import { BadRequestException, ConflictException, Injectable, NotFoundException } from "@nestjs/common";
+import { StorageService } from "@global/storage/storage.service";
 import { CreateQuestionDto } from "./dto/create-question.dto";
 import { QuestionQueryDto } from "./dto/question-query.dto";
 import { UpdateQuestionDto } from "./dto/update-question.dto";
@@ -9,14 +10,18 @@ const DEFAULT_LIMIT = 10;
 
 @Injectable()
 export class QuestionService {
-    constructor(private readonly questionRepository: QuestionRepository) {}
+    constructor(
+        private readonly questionRepository: QuestionRepository,
+        private readonly storageService: StorageService,
+    ) {}
 
     async create(payload: CreateQuestionDto) {
         const data = this.normalizeCreatePayload(payload);
         await this.ensureAssessmentExists(data.assessmentId);
 
         try {
-            return await this.questionRepository.create(data);
+            const question = await this.questionRepository.create(data);
+            return this.resolveQuestionMedia(question);
         } catch (error) {
             this.throwKnownPrismaError(error);
             throw error;
@@ -34,7 +39,7 @@ export class QuestionService {
         });
 
         return {
-            data,
+            data: await Promise.all(data.map((q) => this.resolveQuestionMedia(q))),
             meta: {
                 page,
                 limit,
@@ -51,7 +56,7 @@ export class QuestionService {
             throw new NotFoundException("Question not found");
         }
 
-        return question;
+        return this.resolveQuestionMedia(question);
     }
 
     async update(id: string, payload: UpdateQuestionDto) {
@@ -63,7 +68,8 @@ export class QuestionService {
         }
 
         try {
-            return await this.questionRepository.update(id, data);
+            const question = await this.questionRepository.update(id, data);
+            return this.resolveQuestionMedia(question);
         } catch (error) {
             this.throwKnownPrismaError(error);
             throw error;
@@ -79,6 +85,16 @@ export class QuestionService {
             this.throwKnownPrismaError(error);
             throw error;
         }
+    }
+
+    /**
+     * Replace stored media key with a fresh signed URL.
+     */
+    private async resolveQuestionMedia<T extends { media?: string | null }>(question: T) {
+        return {
+            ...question,
+            media: await this.storageService.resolveKey(question.media),
+        };
     }
 
     private normalizeCreatePayload(payload: CreateQuestionDto) {

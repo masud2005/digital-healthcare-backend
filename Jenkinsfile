@@ -20,6 +20,7 @@ pipeline {
 
     LIVE_DOMAIN = 'prod.weightlossmdcherrycreek.com'
     PRE_DOMAIN = 'pre.weightlossmdcherrycreek.com'
+    HEALTH_PATH = '/api/v1/api/health'
 
     SERVER_DIR = '/var/projects/doc-backend'
     COMPOSE_FILE = 'docker-compose.release.yaml'
@@ -273,11 +274,11 @@ pipeline {
           echo "Docker image pushed: ${env.CANDIDATE_IMAGE}"
         }
         if (env.BRANCH_NAME == 'master') {
-          echo "Prerelease healthy: https://${PRE_DOMAIN}/api/health"
+          echo "Prerelease healthy: https://${PRE_DOMAIN}${HEALTH_PATH}"
           echo "Prerelease image marked green: ${env.CANDIDATE_IMAGE}"
         }
         if (env.BRANCH_NAME == 'main') {
-          echo "Production healthy: https://${LIVE_DOMAIN}/api/health"
+          echo "Production healthy: https://${LIVE_DOMAIN}${HEALTH_PATH}"
         }
       }
     }

@@ -144,7 +144,7 @@ export class AssessmentSubmissionController {
 
                     if (file) {
                         const uploaded = await this.storageService.uploadFile(file);
-                        answer.textResponse = uploaded.url;
+                        answer.textResponse = uploaded.key;
                     }
                 }
             }

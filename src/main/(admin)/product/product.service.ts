@@ -4,6 +4,7 @@ import {
     Injectable,
     NotFoundException,
 } from "@nestjs/common";
+import { StorageService } from "@global/storage/storage.service";
 import { slugify } from "@util/functions";
 import { CreateProductDto } from "./dto/create-product.dto";
 import { ProductQueryDto } from "./dto/product-query.dto";
@@ -15,7 +16,10 @@ const DEFAULT_LIMIT = 10;
 
 @Injectable()
 export class ProductService {
-    constructor(private readonly productRepository: ProductRepository) {}
+    constructor(
+        private readonly productRepository: ProductRepository,
+        private readonly storageService: StorageService,
+    ) {}
 
     async create(payload: CreateProductDto) {
         const data = this.normalizeCreatePayload(payload);
@@ -23,7 +27,8 @@ export class ProductService {
         await this.ensureCategoryExists(data.categoryId);
 
         try {
-            return await this.productRepository.create(data);
+            const product = await this.productRepository.create(data);
+            return this.resolveProductImages(product);
         } catch (error) {
             this.throwKnownPrismaError(error);
             throw error;
@@ -44,7 +49,7 @@ export class ProductService {
         });
 
         return {
-            data,
+            data: await Promise.all(data.map((p) => this.resolveProductImages(p))),
             meta: {
                 page,
                 limit,
@@ -61,7 +66,7 @@ export class ProductService {
             throw new NotFoundException("Product not found");
         }
 
-        return product;
+        return this.resolveProductImages(product);
     }
 
     async update(id: string, payload: UpdateProductDto) {
@@ -77,7 +82,8 @@ export class ProductService {
         }
 
         try {
-            return await this.productRepository.update(id, data);
+            const product = await this.productRepository.update(id, data);
+            return this.resolveProductImages(product);
         } catch (error) {
             this.throwKnownPrismaError(error);
             throw error;
@@ -93,6 +99,17 @@ export class ProductService {
             this.throwKnownPrismaError(error);
             throw error;
         }
+    }
+
+    /**
+     * Replace stored image keys with fresh signed URLs.
+     * The database always holds raw keys; clients always receive live URLs.
+     */
+    private async resolveProductImages<T extends { images: string[] }>(product: T) {
+        return {
+            ...product,
+            images: await this.storageService.resolveKeys(product.images),
+        };
     }
 
     private normalizeCreatePayload(payload: CreateProductDto) {
