@@ -35,11 +35,17 @@ services:
             minio_live:
                 condition: service_healthy
         healthcheck:
-            test: ["CMD-SHELL", "wget -qO- http://localhost:5056${HEALTH_PATH:-/api/v1/api/health} >/dev/null || exit 1"]
+            test:
+                [
+                    "CMD-SHELL",
+                    "wget -qO- http://localhost:5056${HEALTH_PATH:-/api/v1/api/health} >/dev/null || exit 1",
+                ]
             interval: 10s
             timeout: 5s
             retries: 12
             start_period: 20s
+        command: >
+            sh -c "npm run prisma:seed"
         restart: unless-stopped
         networks:
             - doc_release
@@ -64,11 +70,17 @@ services:
             minio_live:
                 condition: service_healthy
         healthcheck:
-            test: ["CMD-SHELL", "wget -qO- http://localhost:5056${HEALTH_PATH:-/api/v1/api/health} >/dev/null || exit 1"]
+            test:
+                [
+                    "CMD-SHELL",
+                    "wget -qO- http://localhost:5056${HEALTH_PATH:-/api/v1/api/health} >/dev/null || exit 1",
+                ]
             interval: 10s
             timeout: 5s
             retries: 12
             start_period: 20s
+        command: >
+            sh -c "npm run prisma:seed"
         restart: unless-stopped
         networks:
             - doc_release
@@ -93,11 +105,17 @@ services:
             minio_pre:
                 condition: service_healthy
         healthcheck:
-            test: ["CMD-SHELL", "wget -qO- http://localhost:5056${HEALTH_PATH:-/api/v1/api/health} >/dev/null || exit 1"]
+            test:
+                [
+                    "CMD-SHELL",
+                    "wget -qO- http://localhost:5056${HEALTH_PATH:-/api/v1/api/health} >/dev/null || exit 1",
+                ]
             interval: 10s
             timeout: 5s
             retries: 12
             start_period: 20s
+        command: >
+            sh -c "npm run prisma:seed"
         restart: unless-stopped
         networks:
             - doc_release
