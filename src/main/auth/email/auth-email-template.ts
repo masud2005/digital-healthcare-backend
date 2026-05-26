@@ -7,7 +7,7 @@ type BuildOtpEmailInput = {
 };
 
 const BRAND_NAME = "WeightLossMD";
-const SUPPORT_EMAIL = process.env.MAIL_FROM ?? process.env.SMTP_USER ?? "support@weightlossmd.com";
+const SUPPORT_EMAIL = process.env.SUPPORT_EMAIL || "support@weightlossmd.com";
 
 function escapeHtml(value: string) {
 	return value
@@ -66,12 +66,11 @@ export function buildOtpEmail({ name, code, purpose }: BuildOtpEmailInput) {
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>${copy.subject}</title>
   </head>
-  <body style="margin:0;padding:0;background:#0c1412;font-family:Arial,Helvetica,sans-serif;color:#f5f7f2;">
+  <body style="margin:0;padding:0;font-family:Arial,Helvetica,sans-serif;color:#12211d;background:#ffffff;">
     <div style="display:none;max-height:0;overflow:hidden;opacity:0;color:transparent;">
       ${copy.subject}
     </div>
-    <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="background:
-      linear-gradient(180deg,#0c1412 0%,#11211d 45%,#0f1715 100%);padding:40px 16px;">
+    <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="background:#ffffff;padding:40px 16px;">
       <tr>
         <td align="center">
           <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="max-width:640px;background:rgba(11,24,21,0.92);border:1px solid rgba(154,184,169,0.16);border-radius:28px;overflow:hidden;box-shadow:0 22px 60px rgba(0,0,0,0.38);">
@@ -87,14 +86,14 @@ export function buildOtpEmail({ name, code, purpose }: BuildOtpEmailInput) {
                 <div style="font-size:14px;line-height:1.6;color:#c7d1cb;margin-bottom:14px;">Hi ${safeName},</div>
                 <div style="background:linear-gradient(180deg,rgba(243,248,245,0.08) 0%,rgba(17,33,29,0.95) 100%);border:1px solid rgba(255,255,255,0.08);border-radius:22px;padding:26px 18px;text-align:center;">
                   <div style="font-size:12px;letter-spacing:0.18em;text-transform:uppercase;color:#9fc5ba;margin-bottom:12px;">One-time verification code</div>
-                  <div style="display:inline-block;padding:18px 30px;border-radius:18px;background:linear-gradient(135deg,#d6a74d 0%,#f0c874 45%,#aa7d27 100%);color:#0f1715;font-size:34px;line-height:1;font-weight:800;letter-spacing:0.18em;font-family:'Courier New',Courier,monospace;box-shadow:0 14px 30px rgba(208,166,77,0.28);">${safeCode}</div>
+                  <div style="display:inline-block;padding:18px 30px;border-radius:18px;background:linear-gradient(135deg,#5a7088 0%,#7f94a7 100%);color:#ffffff;font-size:34px;line-height:1;font-weight:800;letter-spacing:0.18em;font-family:'Courier New',Courier,monospace;box-shadow:0 14px 30px rgba(90,112,136,0.26);">${safeCode}</div>
                   <div style="margin-top:16px;font-size:13px;line-height:1.7;color:#bbcbc4;">Enter this code to ${copy.actionLabel.toLowerCase()}. It expires in <strong style="color:#ffffff;">10 minutes</strong>.</div>
                 </div>
               </td>
             </tr>
             <tr>
               <td style="padding:18px 32px 4px;">
-                <div style="display:flex;flex-wrap:wrap;gap:12px;">
+                <div style="display:flex;flex-wrap:wrap;gap:18px;">
                   <div style="flex:1;min-width:190px;background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.06);border-radius:18px;padding:16px 18px;">
                     <div style="font-size:12px;letter-spacing:0.14em;text-transform:uppercase;color:#9fc5ba;margin-bottom:8px;">Secure access</div>
                     <div style="font-size:13px;line-height:1.7;color:#dfe8e3;">This code helps us confirm it’s really you and protects your account from unauthorized access.</div>
