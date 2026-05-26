@@ -36,5 +36,5 @@ pre-storage-console.weightlossmdcherrycreek.com {
 }
 
 client.weightlossmdcherrycreek.com {
-	reverse_proxy localhost:3000
+	reverse_proxy 127.0.0.1:3000
 }
