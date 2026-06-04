@@ -40,5 +40,7 @@ client.weightlossmdcherrycreek.com {
 }
 
 dashboard.weightlossmdcherrycreek.com {
-	reverse_proxy doc-dashboard:5173
+    root * /var/projects/doc-dashboard
+    file_server
+    try_files {path} /index.html
 }
