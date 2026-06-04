@@ -40,7 +40,7 @@ client.weightlossmdcherrycreek.com {
 }
 
 dashboard.weightlossmdcherrycreek.com {
-    root * /var/projects/doc-dashboard
-    file_server
-    try_files {path} /index.html
+	root * /var/projects/doc-dashboard
+	try_files {path} /index.html
+	file_server
 }
