@@ -1,29 +1,90 @@
 model User {
-  id              String    @id @default(uuid())
-  name            String
-  email           String    @unique
-  role            String    @default("PATIENT")
-  status          String    @default("ACTIVE")
-  passwordHash    String?
+  id              String     @id @default(uuid())
+  name            String?
+  email           String     @unique
+  phone           String?    @unique
+  password        String?
+  status          UserStatus @default(PENDING_VERIFICATION)
   emailVerifiedAt DateTime?
-  phoneNumber     String?
-  addressLine1    String?
-  addressLine2    String?
-  city            String?
-  state           String?
-  zip             String?
+  phoneVerifiedAt DateTime?
+  mfaEnabled      Boolean    @default(true)
   lastLoginAt     DateTime?
 
-  // Relationship
   categoryId            String?
   category              Category?              @relation(fields: [categoryId], references: [id])
   assessmentSubmissions AssessmentSubmission[]
+  authDevices           AuthDevice[]
+  authFlowAttempts      AuthFlowAttempt[]
   authOtpChallenges     AuthOtpChallenge[]
   authSessions          AuthSession[]
+  authSecurityEvents    AuthSecurityEvent[]
+  userRoles             UserRole[]
+
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  deletedAt DateTime?
+
+  @@index([status])
+  @@index([categoryId])
+}
+
+model Role {
+  id          String    @id @default(uuid())
+  name        String    @unique
+  displayName String?
+  description String?
+  isSystem    Boolean   @default(false)
+  isActive    Boolean   @default(true)
+  userRoles   UserRole[]
+  permissions RolePermission[]
+
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  deletedAt DateTime?
+
+  @@index([name])
+  @@index([isActive])
+}
+
+model UserRole {
+  id         String    @id @default(uuid())
+  userId     String
+  roleId     String
+  assignedBy String?
+  assignedAt DateTime  @default(now())
+  expiresAt  DateTime?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  role Role @relation(fields: [roleId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, roleId])
+  @@index([userId])
+  @@index([roleId])
+  @@index([expiresAt])
+}
+
+model Permission {
+  id          String           @id @default(uuid())
+  key         String           @unique
+  name        String
+  description String?
+  roles       RolePermission[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  @@index([name])
-  @@index([role, categoryId])
+  @@index([key])
+}
+
+model RolePermission {
+  id           String @id @default(uuid())
+  roleId       String
+  permissionId String
+
+  role       Role       @relation(fields: [roleId], references: [id], onDelete: Cascade)
+  permission Permission @relation(fields: [permissionId], references: [id], onDelete: Cascade)
+
+  @@unique([roleId, permissionId])
+  @@index([roleId])
+  @@index([permissionId])
 }

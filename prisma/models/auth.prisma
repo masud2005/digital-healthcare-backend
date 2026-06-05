@@ -1,38 +1,158 @@
+model AuthFlowAttempt {
+  id                String            @id @default(uuid())
+  purpose           OtpPurpose
+  status            AuthAttemptStatus @default(STARTED)
+  otpChannel        OtpChannel?
+  email             String?
+  phone             String?
+  passwordHash      String?
+  ipAddress         String?
+  userAgent         String?
+  acceptLanguage    String?
+  deviceFingerprint String?
+  deviceName        String?
+  country           String?
+  city              String?
+  failureReason     String?
+  verifiedAt        DateTime?
+  expiresAt         DateTime
+  metadata          Json?
+
+  // Relations
+  userId         String?
+  user           User?               @relation(fields: [userId], references: [id], onDelete: SetNull)
+  otpChallenges  AuthOtpChallenge[]
+  session        AuthSession?
+  securityEvents AuthSecurityEvent[]
+
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  deletedAt DateTime?
+
+  @@index([email])
+  @@index([phone])
+  @@index([purpose, status])
+  @@index([userId])
+  @@index([deviceFingerprint])
+  @@index([ipAddress])
+  @@index([expiresAt])
+}
+
 model AuthOtpChallenge {
-    id           String     @id @default(uuid())
-    email        String
-    purpose      OtpPurpose
-    codeHash     String
-    expiresAt    DateTime
-    consumedAt   DateTime?
-    attemptCount Int        @default(0)
+  id           String     @id @default(uuid())
+  purpose      OtpPurpose
+  channel      OtpChannel
+  status       OtpStatus  @default(PENDING)
+  recipient    String
+  codeHash     String
+  expiresAt    DateTime
+  consumedAt   DateTime?
+  sentAt       DateTime   @default(now())
+  lastSentAt   DateTime   @default(now())
+  resendCount  Int        @default(0)
+  attemptCount Int        @default(0)
+  maxAttempts  Int        @default(5)
+  ipAddress    String?
+  userAgent    String?
 
-    // Relations
-    userId String?
-    user   User?   @relation(fields: [userId], references: [id], onDelete: SetNull)
+  // Relations
+  userId        String?
+  user          User?            @relation(fields: [userId], references: [id], onDelete: SetNull)
+  flowAttemptId String?
+  flowAttempt   AuthFlowAttempt? @relation(fields: [flowAttemptId], references: [id], onDelete: Cascade)
 
-    createdAt DateTime @default(now())
-    updatedAt DateTime @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
-    @@index([email])
-    @@index([purpose])
-    @@index([userId])
-    @@index([expiresAt])
+  @@index([recipient])
+  @@index([purpose, channel, status])
+  @@index([userId])
+  @@index([flowAttemptId])
+  @@index([expiresAt])
+}
+
+model AuthDevice {
+  id              String    @id @default(uuid())
+  fingerprintHash String
+  name            String?
+  userAgent       String?
+  platform        String?
+  ipFirstSeen     String?
+  ipLastSeen      String?
+  country         String?
+  city            String?
+  trustedAt       DateTime?
+  lastSeenAt      DateTime  @default(now())
+  revokedAt       DateTime?
+  metadata        Json?
+
+  // Relations
+  userId   String
+  user     User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  sessions AuthSession[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([userId, fingerprintHash])
+  @@index([userId])
+  @@index([fingerprintHash])
+  @@index([lastSeenAt])
 }
 
 model AuthSession {
-    id        String    @id @default(uuid())
-    tokenHash String    @unique
-    expiresAt DateTime
-    revokedAt DateTime?
+  id                String    @id @default(uuid())
+  tokenHash         String    @unique
+  refreshTokenHash  String?   @unique
+  ipAddress         String?
+  userAgent         String?
+  deviceFingerprint String?
+  lastUsedAt        DateTime?
+  expiresAt         DateTime
+  revokedAt         DateTime?
+  revokeReason      String?
 
-    // Relations
-    userId String
-    user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  // Relations
+  userId         String
+  user           User                @relation(fields: [userId], references: [id], onDelete: Cascade)
+  deviceId       String?
+  device         AuthDevice?         @relation(fields: [deviceId], references: [id], onDelete: SetNull)
+  flowAttemptId  String?             @unique
+  flowAttempt    AuthFlowAttempt?    @relation(fields: [flowAttemptId], references: [id], onDelete: SetNull)
+  securityEvents AuthSecurityEvent[]
 
-    createdAt DateTime @default(now())
-    updatedAt DateTime @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
-    @@index([userId])
-    @@index([expiresAt])
+  @@index([userId])
+  @@index([deviceId])
+  @@index([expiresAt])
+  @@index([revokedAt])
+}
+
+model AuthSecurityEvent {
+  id                String                @id @default(uuid())
+  type              AuthSecurityEventType
+  ipAddress         String?
+  userAgent         String?
+  deviceFingerprint String?
+  metadata          Json?
+
+  // Relations
+  userId        String?
+  user          User?            @relation(fields: [userId], references: [id], onDelete: SetNull)
+  flowAttemptId String?
+  flowAttempt   AuthFlowAttempt? @relation(fields: [flowAttemptId], references: [id], onDelete: SetNull)
+  sessionId     String?
+  session       AuthSession?     @relation(fields: [sessionId], references: [id], onDelete: SetNull)
+
+  createdAt DateTime @default(now())
+
+  @@index([type])
+  @@index([userId])
+  @@index([flowAttemptId])
+  @@index([sessionId])
+  @@index([ipAddress])
+  @@index([deviceFingerprint])
+  @@index([createdAt])
 }

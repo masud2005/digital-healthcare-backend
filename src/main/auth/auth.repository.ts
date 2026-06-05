@@ -1,22 +1,33 @@
 import { PrismaService } from "@global/prisma/prisma.service";
 import { Injectable } from "@nestjs/common";
-import { OtpPurpose } from "@prisma/client";
+import { Prisma } from "@prisma/client";
+import type { AuthAttemptStatus, AuthSecurityEventType, OtpChannel, OtpPurpose, OtpStatus } from "@prisma/client";
+
+const roleSelect = {
+    role: {
+        select: {
+            id: true,
+            name: true,
+            displayName: true,
+        },
+    },
+} as const;
 
 const userSelect = {
     id: true,
     name: true,
     email: true,
-    role: true,
+    phone: true,
+    password: true,
     status: true,
-    passwordHash: true,
-    phoneNumber: true,
-    addressLine1: true,
-    addressLine2: true,
-    city: true,
-    state: true,
-    zip: true,
     emailVerifiedAt: true,
+    phoneVerifiedAt: true,
+    mfaEnabled: true,
     lastLoginAt: true,
+    createdAt: true,
+    userRoles: {
+        select: roleSelect,
+    },
 } as const;
 
 export type AuthUserRecord = Awaited<ReturnType<AuthRepository["findUserByEmail"]>>;
@@ -32,6 +43,13 @@ export class AuthRepository {
         });
     }
 
+    findUserByPhone(phone: string) {
+        return this.prisma.user.findUnique({
+            where: { phone },
+            select: userSelect,
+        });
+    }
+
     findUserById(userId: string) {
         return this.prisma.user.findUnique({
             where: { id: userId },
@@ -39,44 +57,69 @@ export class AuthRepository {
         });
     }
 
-    createPendingUser(data: { name: string; email: string; passwordHash: string }) {
-        return this.prisma.user.create({
-            data: {
-                name: data.name,
-                email: data.email,
-                passwordHash: data.passwordHash,
-                status: "PENDING",
+    async createOrUpdatePendingUser(data: { userId?: string; name?: string | null; email: string; phone: string; password: string }) {
+        const user = data.userId
+            ? await this.prisma.user.update({
+                  where: { id: data.userId },
+                  data: {
+                      name: data.name,
+                      email: data.email,
+                      phone: data.phone,
+                      password: data.password,
+                      status: "PENDING_VERIFICATION",
+                  },
+                  select: userSelect,
+              })
+            : await this.prisma.user.create({
+                  data: {
+                      name: data.name,
+                      email: data.email,
+                      phone: data.phone,
+                      password: data.password,
+                      status: "PENDING_VERIFICATION",
+                  },
+                  select: userSelect,
+              });
+
+        await this.assignRole(user.id, "PATIENT", true);
+        return this.findUserById(user.id);
+    }
+
+    async assignRole(userId: string, roleName: string, isSystem = false) {
+        const role = await this.prisma.role.upsert({
+            where: { name: roleName },
+            update: { isActive: true },
+            create: {
+                name: roleName,
+                displayName: this.toDisplayName(roleName),
+                isSystem,
             },
-            select: userSelect,
+            select: { id: true },
+        });
+
+        await this.prisma.userRole.upsert({
+            where: {
+                userId_roleId: {
+                    userId,
+                    roleId: role.id,
+                },
+            },
+            update: {},
+            create: {
+                userId,
+                roleId: role.id,
+            },
         });
     }
 
-    updatePendingUser(userId: string, data: { passwordHash?: string }) {
-        return this.prisma.user.update({
-            where: { id: userId },
-            data,
-            select: userSelect,
-        });
-    }
-
-    activateUser(userId: string) {
+    activateUser(userId: string, verifiedChannel: OtpChannel) {
         return this.prisma.user.update({
             where: { id: userId },
             data: {
                 status: "ACTIVE",
-                emailVerifiedAt: new Date(),
+                emailVerifiedAt: verifiedChannel === "EMAIL" ? new Date() : undefined,
+                phoneVerifiedAt: verifiedChannel === "PHONE" ? new Date() : undefined,
             },
-            select: userSelect,
-        });
-    }
-
-    updateProfile(
-        userId: string,
-        data: { phoneNumber?: string | null; addressLine1?: string | null; addressLine2?: string | null; city?: string | null; state?: string | null; zip?: string | null },
-    ) {
-        return this.prisma.user.update({
-            where: { id: userId },
-            data,
             select: userSelect,
         });
     }
@@ -89,99 +132,54 @@ export class AuthRepository {
         });
     }
 
-    createOtpChallenge(data: { email: string; purpose: OtpPurpose; codeHash: string; userId?: string | null; expiresAt: Date }) {
-        return this.prisma.authOtpChallenge.create({
-            data,
+    updatePassword(userId: string, password: string) {
+        return this.prisma.user.update({
+            where: { id: userId },
+            data: { password },
+            select: userSelect,
         });
     }
 
-    findLatestOtpChallenge(email: string, purpose: OtpPurpose) {
-        return this.prisma.authOtpChallenge.findFirst({
+    createFlowAttempt(data: {
+        purpose: OtpPurpose;
+        status?: AuthAttemptStatus;
+        otpChannel?: OtpChannel | null;
+        email?: string | null;
+        phone?: string | null;
+        userId?: string | null;
+        ipAddress?: string | null;
+        userAgent?: string | null;
+        acceptLanguage?: string | null;
+        deviceFingerprint?: string | null;
+        deviceName?: string | null;
+        expiresAt: Date;
+        metadata?: Prisma.InputJsonValue;
+    }) {
+        return this.prisma.authFlowAttempt.create({
+            data: {
+                purpose: data.purpose,
+                status: data.status ?? "STARTED",
+                otpChannel: data.otpChannel,
+                email: data.email,
+                phone: data.phone,
+                userId: data.userId,
+                ipAddress: data.ipAddress,
+                userAgent: data.userAgent,
+                acceptLanguage: data.acceptLanguage,
+                deviceFingerprint: data.deviceFingerprint,
+                deviceName: data.deviceName,
+                expiresAt: data.expiresAt,
+                metadata: data.metadata,
+            },
+        });
+    }
+
+    findFlowAttempt(id: string, purpose?: OtpPurpose) {
+        return this.prisma.authFlowAttempt.findFirst({
             where: {
-                email,
+                id,
                 purpose,
-                consumedAt: null,
-                expiresAt: {
-                    gt: new Date(),
-                },
-            },
-            orderBy: { createdAt: "desc" },
-        });
-    }
-
-    findLatestOtpChallengeForEmail(email: string) {
-        return this.prisma.authOtpChallenge.findFirst({
-            where: {
-                email,
-                consumedAt: null,
-                expiresAt: {
-                    gt: new Date(),
-                },
-            },
-            orderBy: { createdAt: "desc" },
-        });
-    }
-
-    consumeOtpChallenge(challengeId: string) {
-        return this.prisma.authOtpChallenge.update({
-            where: { id: challengeId },
-            data: {
-                consumedAt: new Date(),
-            },
-        });
-    }
-
-    incrementOtpAttempts(challengeId: string) {
-        return this.prisma.authOtpChallenge.update({
-            where: { id: challengeId },
-            data: {
-                attemptCount: { increment: 1 },
-            },
-        });
-    }
-
-    /**
-     * Remove previous challenges for the same email and purpose.
-     * This keeps only the latest challenge per (email,purpose) and avoids table growth.
-     */
-    deleteChallengesForEmailPurpose(email: string, purpose: OtpPurpose) {
-        return this.prisma.authOtpChallenge.deleteMany({
-            where: { email, purpose },
-        });
-    }
-
-    /**
-     * Prune OTP challenges that are expired or already consumed before the cutoff date.
-     */
-    deleteOldOtpChallenges(cutoff: Date) {
-        return this.prisma.authOtpChallenge.deleteMany({
-            where: {
-                OR: [
-                    { expiresAt: { lt: cutoff } },
-                    { consumedAt: { lt: cutoff } },
-                ],
-            },
-        });
-    }
-
-    createSession(userId: string, tokenHash: string, expiresAt: Date) {
-        return this.prisma.authSession.create({
-            data: {
-                userId,
-                tokenHash,
-                expiresAt,
-            },
-        });
-    }
-
-    findSessionByTokenHash(tokenHash: string) {
-        return this.prisma.authSession.findFirst({
-            where: {
-                tokenHash,
-                revokedAt: null,
-                expiresAt: {
-                    gt: new Date(),
-                },
+                deletedAt: null,
             },
             include: {
                 user: {
@@ -191,10 +189,235 @@ export class AuthRepository {
         });
     }
 
-    revokeSession(tokenHash: string) {
-        return this.prisma.authSession.updateMany({
-            where: { tokenHash, revokedAt: null },
-            data: { revokedAt: new Date() },
+    updateFlowAttemptStatus(id: string, data: { status: AuthAttemptStatus; failureReason?: string | null; verifiedAt?: Date | null }) {
+        return this.prisma.authFlowAttempt.update({
+            where: { id },
+            data,
         });
+    }
+
+    createOtpChallenge(data: {
+        flowAttemptId: string;
+        userId?: string | null;
+        purpose: OtpPurpose;
+        channel: OtpChannel;
+        recipient: string;
+        codeHash: string;
+        expiresAt: Date;
+        ipAddress?: string | null;
+        userAgent?: string | null;
+    }) {
+        return this.prisma.authOtpChallenge.create({
+            data,
+        });
+    }
+
+    findOtpChallengeById(challengeId: string) {
+        return this.prisma.authOtpChallenge.findUnique({
+            where: { id: challengeId },
+            include: {
+                flowAttempt: {
+                    include: {
+                        user: {
+                            select: userSelect,
+                        },
+                    },
+                },
+                user: {
+                    select: userSelect,
+                },
+            },
+        });
+    }
+
+    findLatestOtpChallengeByUserPurpose(userId: string, purpose: OtpPurpose) {
+        return this.prisma.authOtpChallenge.findFirst({
+            where: {
+                userId,
+                purpose,
+            },
+            include: {
+                flowAttempt: {
+                    include: {
+                        user: {
+                            select: userSelect,
+                        },
+                    },
+                },
+                user: {
+                    select: userSelect,
+                },
+            },
+            orderBy: { createdAt: "desc" },
+        });
+    }
+
+    findLatestOtpChallengeForAttempt(flowAttemptId: string) {
+        return this.prisma.authOtpChallenge.findFirst({
+            where: {
+                flowAttemptId,
+                consumedAt: null,
+            },
+            orderBy: { createdAt: "desc" },
+        });
+    }
+
+    consumeOtpChallenge(challengeId: string) {
+        return this.prisma.authOtpChallenge.update({
+            where: { id: challengeId },
+            data: {
+                status: "VERIFIED",
+                consumedAt: new Date(),
+            },
+        });
+    }
+
+    updateOtpChallengeStatus(challengeId: string, status: OtpStatus) {
+        return this.prisma.authOtpChallenge.update({
+            where: { id: challengeId },
+            data: { status },
+        });
+    }
+
+    incrementOtpAttempts(challengeId: string) {
+        return this.prisma.authOtpChallenge.update({
+            where: { id: challengeId },
+            data: {
+                attemptCount: { increment: 1 },
+                status: "FAILED",
+            },
+        });
+    }
+
+    incrementOtpResend(challengeId: string) {
+        return this.prisma.authOtpChallenge.update({
+            where: { id: challengeId },
+            data: {
+                resendCount: { increment: 1 },
+                lastSentAt: new Date(),
+            },
+        });
+    }
+
+    upsertDevice(data: {
+        userId: string;
+        fingerprintHash: string;
+        name?: string | null;
+        userAgent?: string | null;
+        platform?: string | null;
+        ipAddress?: string | null;
+        country?: string | null;
+        city?: string | null;
+        metadata?: Prisma.InputJsonValue;
+    }) {
+        return this.prisma.authDevice.upsert({
+            where: {
+                userId_fingerprintHash: {
+                    userId: data.userId,
+                    fingerprintHash: data.fingerprintHash,
+                },
+            },
+            update: {
+                name: data.name,
+                userAgent: data.userAgent,
+                platform: data.platform,
+                ipLastSeen: data.ipAddress,
+                country: data.country,
+                city: data.city,
+                lastSeenAt: new Date(),
+                metadata: data.metadata,
+            },
+            create: {
+                userId: data.userId,
+                fingerprintHash: data.fingerprintHash,
+                name: data.name,
+                userAgent: data.userAgent,
+                platform: data.platform,
+                ipFirstSeen: data.ipAddress,
+                ipLastSeen: data.ipAddress,
+                country: data.country,
+                city: data.city,
+                metadata: data.metadata,
+            },
+        });
+    }
+
+    createSession(data: {
+        userId: string;
+        tokenHash: string;
+        refreshTokenHash: string;
+        expiresAt: Date;
+        flowAttemptId?: string | null;
+        deviceId?: string | null;
+        ipAddress?: string | null;
+        userAgent?: string | null;
+        deviceFingerprint?: string | null;
+    }) {
+        return this.prisma.authSession.create({
+            data,
+        });
+    }
+
+    updateSessionTokenHash(sessionId: string, tokenHash: string) {
+        return this.prisma.authSession.update({
+            where: { id: sessionId },
+            data: { tokenHash },
+        });
+    }
+
+    findActiveSessionById(sessionId: string) {
+        return this.prisma.authSession.findFirst({
+            where: {
+                id: sessionId,
+                revokedAt: null,
+                expiresAt: { gt: new Date() },
+            },
+            include: {
+                user: {
+                    select: userSelect,
+                },
+            },
+        });
+    }
+
+    revokeSessionById(sessionId: string, reason: string) {
+        return this.prisma.authSession.updateMany({
+            where: { id: sessionId, revokedAt: null },
+            data: {
+                revokedAt: new Date(),
+                revokeReason: reason,
+            },
+        });
+    }
+
+    deleteOldOtpChallenges(cutoff: Date) {
+        return this.prisma.authOtpChallenge.deleteMany({
+            where: {
+                OR: [{ expiresAt: { lt: cutoff } }, { consumedAt: { lt: cutoff } }],
+            },
+        });
+    }
+
+    createSecurityEvent(data: {
+        type: AuthSecurityEventType;
+        userId?: string | null;
+        flowAttemptId?: string | null;
+        sessionId?: string | null;
+        ipAddress?: string | null;
+        userAgent?: string | null;
+        deviceFingerprint?: string | null;
+        metadata?: Prisma.InputJsonValue;
+    }) {
+        return this.prisma.authSecurityEvent.create({
+            data: data as Prisma.AuthSecurityEventUncheckedCreateInput,
+        });
+    }
+
+    private toDisplayName(value: string) {
+        return value
+            .toLowerCase()
+            .split("_")
+            .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
+            .join(" ");
     }
 }

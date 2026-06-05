@@ -1,4 +1,4 @@
-type OtpPurpose = "LOGIN" | "REGISTER";
+type OtpPurpose = "LOGIN" | "REGISTER" | "FORGOT_PASSWORD";
 
 type BuildOtpEmailInput = {
 	name: string;
@@ -26,6 +26,16 @@ function getCopy(purpose: OtpPurpose) {
 			message:
 				"We received a request to sign in to your account. Use the code below to continue your login securely.",
 			actionLabel: "Sign in with your code",
+		};
+	}
+
+	if (purpose === "FORGOT_PASSWORD") {
+		return {
+			subject: `${BRAND_NAME} password reset code`,
+			headline: "Reset your password",
+			message:
+				"We received a request to reset your password. Use the code below to choose a new password securely.",
+			actionLabel: "Reset password with your code",
 		};
 	}
 

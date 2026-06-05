@@ -27,7 +27,7 @@ export class AuthEmailService {
         });
     }
 
-    async sendOtpEmail(email: string, name: string, code: string, purpose: "LOGIN" | "REGISTER") {
+    async sendOtpEmail(email: string, name: string, code: string, purpose: "LOGIN" | "REGISTER" | "FORGOT_PASSWORD") {
         const { subject, text, html } = buildOtpEmail({ name, code, purpose });
 
         if (!this.transporter) {
@@ -42,5 +42,9 @@ export class AuthEmailService {
             text,
             html,
         });
+    }
+
+    async sendOtpPhone(phone: string, code: string, purpose: "LOGIN" | "REGISTER" | "FORGOT_PASSWORD") {
+        this.logger.warn(`SMS provider is not configured. OTP for ${phone} (${purpose}): ${code}`);
     }
 }

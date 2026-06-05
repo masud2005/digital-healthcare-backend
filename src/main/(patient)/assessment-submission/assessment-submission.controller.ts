@@ -25,7 +25,7 @@ export class AssessmentSubmissionController {
             properties: {
                 userPayload: {
                     type: 'string',
-                    description: 'JSON stringified UserPayloadDto. STEP 1: { email, password, confirmPassword } to request OTP. STEP 2: { email, otp } to verify & submit assessment',
+                    description: 'JSON stringified UserPayloadDto. STEP 1: { email, phone, password, confirmPassword, otpChannel } to register/send OTP or { email, password, otpChannel } to login/send OTP. STEP 2: { challengeId, otp } to verify & submit assessment',
                     example: JSON.stringify({
                         email: 'masud.rana@example.com',
                         password: 'securePassword123',
@@ -43,6 +43,7 @@ export class AssessmentSubmissionController {
                         step2: {
                             value: JSON.stringify({
                                 email: 'masud.rana@example.com',
+                                challengeId: 'challenge_uuid',
                                 otp: '123456',
                             }),
                             description: 'Step 2: Verify OTP & submit assessment',
@@ -89,7 +90,8 @@ export class AssessmentSubmissionController {
     }
 
     private async requestOtp(userPayload: UserPayloadDto) {
-        const { email, password, confirmPassword } = userPayload;
+        const { email, phone, password, confirmPassword } = userPayload;
+        const method = userPayload.otpChannel ?? "EMAIL";
 
         if (!email || !password) {
             throw new BadRequestException('STEP 1: email and password are required');
@@ -100,16 +102,18 @@ export class AssessmentSubmissionController {
 
         if (existingUser) {
             // User exists → Login flow
-            await this.authService.requestLoginOtp({ email, password });
+            await this.authService.login({ email, password });
+            const result = await this.authService.sendOtp({ userId: existingUser.id, purpose: "LOGIN", method }, {});
+            return { ...result, message: 'OTP sent. Proceed to STEP 2 with { challengeId, otp }' };
         } else {
             // User doesn't exist → Registration flow
-            if (!confirmPassword) {
-                throw new BadRequestException('STEP 1 (registration): confirmPassword is required for new users');
+            if (!confirmPassword || !phone) {
+                throw new BadRequestException('STEP 1 (registration): phone and confirmPassword are required for new users');
             }
-            await this.authService.requestRegisterOtp({ email, password, confirmPassword });
+            const registration = await this.authService.register({ email, phone, password, confirmPassword });
+            const result = await this.authService.sendOtp({ userId: registration.data.userId, purpose: "REGISTER", method }, {});
+            return { ...result, message: 'OTP sent. Proceed to STEP 2 with { challengeId, otp }' };
         }
-
-        return { message: 'OTP sent to email. Proceed to STEP 2 with { email, otp }' };
     }
 
     private async verifyAndSubmit(
@@ -117,18 +121,17 @@ export class AssessmentSubmissionController {
         assessmentPayload?: string,
         files?: Express.Multer.File[],
     ) {
-        const { email, otp } = userPayload;
+        const { challengeId, otp } = userPayload;
 
-        if (!email || !otp) {
-            throw new BadRequestException('STEP 2: email and otp are required');
+        if (!challengeId || !otp) {
+            throw new BadRequestException('STEP 2: challengeId and otp are required');
         }
 
         if (!assessmentPayload) {
             throw new BadRequestException('STEP 2: assessmentPayload is required');
         }
 
-        // Verify OTP & get authenticated user (auto-detects purpose)
-        const authResponse = await this.authService.verifyOtpAuto(email, otp);
+        const authResponse = await this.authService.verifyOtpAuto(challengeId, otp, {});
 
         // Parse assessment payload
         const body: CreateAssessmentSubmissionDto =
@@ -151,11 +154,11 @@ export class AssessmentSubmissionController {
         }
 
         // Create assessment submission
-        const submission = await this.assessmentSubmissionService.create(authResponse.user.id, body);
+        const submission = await this.assessmentSubmissionService.create(authResponse.data.user.id, body);
 
         return {
-            accessToken: authResponse.accessToken,
-            user: authResponse.user,
+            accessToken: authResponse.data.accessToken,
+            user: authResponse.data.user,
             submission,
         };
     }
