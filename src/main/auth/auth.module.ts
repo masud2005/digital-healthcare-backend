@@ -8,7 +8,7 @@ import { AuthProfileController } from "./controllers/auth-profile.controller";
 import { AuthSessionController } from "./controllers/auth-session.controller";
 import { AuthAccountService } from "./services/auth-account.service";
 import { AuthCleanupService } from "./services/auth-cleanup.service";
-import { AuthEmailService } from "./services/auth-email.service";
+import { AuthOtpDeliveryService } from "./services/auth-otp-delivery.service";
 import { AuthOtpService } from "./services/auth-otp.service";
 import { AuthPasswordService } from "./services/auth-password.service";
 import { AuthService } from "./services/auth.service";
@@ -27,7 +27,7 @@ import { AuthSharedService } from "./services/auth-shared.service";
     providers: [
         AuthService,
         AuthRepository,
-        AuthEmailService,
+        AuthOtpDeliveryService,
         AuthCleanupService,
         AuthSharedService,
         AuthAccountService,

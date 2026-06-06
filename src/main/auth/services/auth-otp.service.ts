@@ -6,7 +6,7 @@ import { ResendOtpDto } from "../dto/resend-otp.dto";
 import { SendOtpDto } from "../dto/send-otp.dto";
 import { VerifyOtpDto } from "../dto/verify-otp.dto";
 import type { AuthRequestContext } from "./auth-context.type";
-import { AuthEmailService } from "./auth-email.service";
+import { AuthOtpDeliveryService } from "./auth-otp-delivery.service";
 import { AuthSessionService } from "./auth-session.service";
 import { AuthSharedService } from "./auth-shared.service";
 
@@ -20,7 +20,7 @@ type PublicOtpMethod = "EMAIL" | "SMS";
 export class AuthOtpService {
     constructor(
         private readonly authRepository: AuthRepository,
-        private readonly authEmailService: AuthEmailService,
+        private readonly authOtpDeliveryService: AuthOtpDeliveryService,
         private readonly authSessionService: AuthSessionService,
         private readonly authSharedService: AuthSharedService,
     ) {}
@@ -285,14 +285,14 @@ export class AuthOtpService {
         });
 
         if (input.channel === "EMAIL") {
-            await this.authEmailService.sendOtpEmail(
+            await this.authOtpDeliveryService.sendOtpEmail(
                 recipient,
                 input.displayName,
                 otp,
                 input.purpose,
             );
         } else {
-            await this.authEmailService.sendOtpPhone(recipient, otp, input.purpose);
+            await this.authOtpDeliveryService.sendOtpPhone(recipient, otp, input.purpose);
         }
 
         await this.authRepository.createSecurityEvent({
