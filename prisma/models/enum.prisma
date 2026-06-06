@@ -12,14 +12,53 @@ enum AssessmentStatus {
   DISABLED
 }
 
+enum AuthAttemptStatus {
+  STARTED
+  OTP_SENT
+  VERIFIED
+  FAILED
+  EXPIRED
+  CANCELLED
+}
+
+enum AuthSecurityEventType {
+  REGISTER_STARTED
+  LOGIN_STARTED
+  OTP_SENT
+  OTP_RESENT
+  OTP_VERIFY_FAILED
+  OTP_VERIFIED
+  SESSION_CREATED
+  SESSION_REVOKED
+  DEVICE_TRUSTED
+  DEVICE_REVOKED
+  PASSWORD_CHANGED
+  PASSWORD_RESET_STARTED
+  PASSWORD_RESET_COMPLETED
+}
+
 enum CategoryStatus {
   ACTIVE
   DISABLED
 }
 
+enum OtpChannel {
+  EMAIL
+  PHONE
+}
+
 enum OtpPurpose {
   LOGIN
   REGISTER
+  FORGOT_PASSWORD
+}
+
+enum OtpStatus {
+  PENDING
+  VERIFIED
+  EXPIRED
+  CANCELLED
+  FAILED
 }
 
 enum QuestionType {
@@ -29,16 +68,19 @@ enum QuestionType {
   INPUT
 }
 
-enum Role {
-  ADMIN
-  DOCTOR
-  PATIENT
-}
-
 enum SubmissionStatus {
   PENDING
   ACCEPTED
   REJECTED
+}
+
+enum UserStatus {
+  PENDING_VERIFICATION
+  ACTIVE
+  SUSPENDED
+  DISABLED
+  BLOCKED
+  DELETED
 }
 
 // ENUMS_END

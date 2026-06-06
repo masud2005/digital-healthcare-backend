@@ -1,5 +1,5 @@
 import { Injectable, Logger, OnModuleDestroy, OnModuleInit } from "@nestjs/common";
-import { AuthRepository } from "./auth.repository";
+import { AuthRepository } from "../auth.repository";
 
 @Injectable()
 export class AuthCleanupService implements OnModuleInit, OnModuleDestroy {
@@ -14,7 +14,9 @@ export class AuthCleanupService implements OnModuleInit, OnModuleDestroy {
             const cutoff = new Date(Date.now() - retentionDays * 24 * 60 * 60 * 1000);
 
             const deleted = await this.authRepository.deleteOldOtpChallenges(cutoff);
-            this.logger.debug(`Pruned ${deleted.count} old OTP challenges older than ${cutoff.toISOString()}`);
+            this.logger.debug(
+                `Pruned ${deleted.count} old OTP challenges older than ${cutoff.toISOString()}`,
+            );
         } catch (err) {
             this.logger.error("Failed to prune OTP challenges", err as any);
         }
