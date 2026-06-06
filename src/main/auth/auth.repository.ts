@@ -21,7 +21,6 @@ const roleSelect = {
 
 const userSelect = {
     id: true,
-    name: true,
     email: true,
     phone: true,
     password: true,
@@ -65,7 +64,6 @@ export class AuthRepository {
 
     async createOrUpdatePendingUser(data: {
         userId?: string;
-        name?: string | null;
         email: string;
         phone: string;
         password: string;
@@ -74,7 +72,6 @@ export class AuthRepository {
             ? await this.prisma.user.update({
                   where: { id: data.userId },
                   data: {
-                      name: data.name,
                       email: data.email,
                       phone: data.phone,
                       password: data.password,
@@ -84,7 +81,6 @@ export class AuthRepository {
               })
             : await this.prisma.user.create({
                   data: {
-                      name: data.name,
                       email: data.email,
                       phone: data.phone,
                       password: data.password,
