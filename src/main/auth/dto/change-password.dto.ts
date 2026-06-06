@@ -1,5 +1,5 @@
 import { ApiProperty } from "@nestjs/swagger";
-import { IsEmail, IsString, Matches } from "class-validator";
+import { IsString, Matches } from "class-validator";
 import {
     strongPasswordExample,
     strongPasswordMessage,
@@ -7,14 +7,10 @@ import {
 } from "./password-validation.constants";
 import { MatchesField } from "./matches-field.decorator";
 
-export class RegisterDto {
-    @ApiProperty({ example: "user@gmail.com" })
-    @IsEmail()
-    email!: string;
-
-    @ApiProperty({ example: "+88017xxxxxxxx" })
+export class ChangePasswordDto {
+    @ApiProperty({ example: "currentPassword123" })
     @IsString()
-    phone!: string;
+    currentPassword!: string;
 
     @ApiProperty({
         example: strongPasswordExample,
@@ -23,13 +19,13 @@ export class RegisterDto {
     })
     @IsString()
     @Matches(strongPasswordPattern, { message: strongPasswordMessage })
-    password!: string;
+    newPassword!: string;
 
     @ApiProperty({
         example: strongPasswordExample,
-        description: "Must match password",
+        description: "Must match newPassword",
     })
     @IsString()
-    @MatchesField("password", "Password and confirmPassword do not match")
+    @MatchesField("newPassword", "newPassword and confirmPassword do not match")
     confirmPassword!: string;
 }

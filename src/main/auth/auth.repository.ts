@@ -1,7 +1,13 @@
 import { PrismaService } from "@global/prisma/prisma.service";
 import { Injectable } from "@nestjs/common";
 import { Prisma } from "@prisma/client";
-import type { AuthAttemptStatus, AuthSecurityEventType, OtpChannel, OtpPurpose, OtpStatus } from "@prisma/client";
+import type {
+    AuthAttemptStatus,
+    AuthSecurityEventType,
+    OtpChannel,
+    OtpPurpose,
+    OtpStatus,
+} from "@prisma/client";
 
 const roleSelect = {
     role: {
@@ -57,7 +63,13 @@ export class AuthRepository {
         });
     }
 
-    async createOrUpdatePendingUser(data: { userId?: string; name?: string | null; email: string; phone: string; password: string }) {
+    async createOrUpdatePendingUser(data: {
+        userId?: string;
+        name?: string | null;
+        email: string;
+        phone: string;
+        password: string;
+    }) {
         const user = data.userId
             ? await this.prisma.user.update({
                   where: { id: data.userId },
@@ -189,7 +201,14 @@ export class AuthRepository {
         });
     }
 
-    updateFlowAttemptStatus(id: string, data: { status: AuthAttemptStatus; failureReason?: string | null; verifiedAt?: Date | null }) {
+    updateFlowAttemptStatus(
+        id: string,
+        data: {
+            status: AuthAttemptStatus;
+            failureReason?: string | null;
+            verifiedAt?: Date | null;
+        },
+    ) {
         return this.prisma.authFlowAttempt.update({
             where: { id },
             data,
@@ -353,6 +372,24 @@ export class AuthRepository {
         userAgent?: string | null;
         deviceFingerprint?: string | null;
     }) {
+        if (data.flowAttemptId) {
+            return this.prisma.authSession.upsert({
+                where: { flowAttemptId: data.flowAttemptId },
+                update: {
+                    tokenHash: data.tokenHash,
+                    refreshTokenHash: data.refreshTokenHash,
+                    expiresAt: data.expiresAt,
+                    deviceId: data.deviceId,
+                    ipAddress: data.ipAddress,
+                    userAgent: data.userAgent,
+                    deviceFingerprint: data.deviceFingerprint,
+                    revokedAt: null,
+                    revokeReason: null,
+                },
+                create: data,
+            });
+        }
+
         return this.prisma.authSession.create({
             data,
         });

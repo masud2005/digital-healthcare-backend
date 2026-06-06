@@ -29,12 +29,12 @@ model User {
 }
 
 model Role {
-  id          String    @id @default(uuid())
-  name        String    @unique
+  id          String           @id @default(uuid())
+  name        String           @unique
   displayName String?
   description String?
-  isSystem    Boolean   @default(false)
-  isActive    Boolean   @default(true)
+  isSystem    Boolean          @default(false)
+  isActive    Boolean          @default(true)
   userRoles   UserRole[]
   permissions RolePermission[]
 

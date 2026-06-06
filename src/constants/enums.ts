@@ -1,4 +1,4 @@
-export const userStatus = ["PENDING_VERIFICATION", "ACTIVE", "SUSPENDED", "DISABLED"] as const;
+export const userStatus = ["PENDING_VERIFICATION", "ACTIVE", "SUSPENDED", "DISABLED","BLOCKED", "DELETED"] as const;
 export type UserStatus = (typeof userStatus)[number];
 
 export const categoryStatus = ["ACTIVE", "DISABLED"] as const;
@@ -51,5 +51,8 @@ export const authSecurityEventType = [
     "SESSION_REVOKED",
     "DEVICE_TRUSTED",
     "DEVICE_REVOKED",
+    "PASSWORD_CHANGED",
+    "PASSWORD_RESET_STARTED",
+    "PASSWORD_RESET_COMPLETED",
 ] as const;
 export type AuthSecurityEventType = (typeof authSecurityEventType)[number];

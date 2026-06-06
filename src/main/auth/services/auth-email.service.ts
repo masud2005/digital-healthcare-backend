@@ -1,6 +1,6 @@
 import { Injectable, Logger } from "@nestjs/common";
 import nodemailer from "nodemailer";
-import { buildOtpEmail } from "./email/auth-email-template";
+import { buildOtpEmail } from "../email/auth-email-template";
 
 @Injectable()
 export class AuthEmailService {
@@ -27,7 +27,12 @@ export class AuthEmailService {
         });
     }
 
-    async sendOtpEmail(email: string, name: string, code: string, purpose: "LOGIN" | "REGISTER" | "FORGOT_PASSWORD") {
+    async sendOtpEmail(
+        email: string,
+        name: string,
+        code: string,
+        purpose: "LOGIN" | "REGISTER" | "FORGOT_PASSWORD",
+    ) {
         const { subject, text, html } = buildOtpEmail({ name, code, purpose });
 
         if (!this.transporter) {
@@ -44,7 +49,11 @@ export class AuthEmailService {
         });
     }
 
-    async sendOtpPhone(phone: string, code: string, purpose: "LOGIN" | "REGISTER" | "FORGOT_PASSWORD") {
+    async sendOtpPhone(
+        phone: string,
+        code: string,
+        purpose: "LOGIN" | "REGISTER" | "FORGOT_PASSWORD",
+    ) {
         this.logger.warn(`SMS provider is not configured. OTP for ${phone} (${purpose}): ${code}`);
     }
 }
