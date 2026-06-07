@@ -4,8 +4,8 @@ import { pbkdf2Sync, randomBytes } from "crypto";
 const PASSWORD_ITERATIONS = 120000;
 
 export async function adminSeed(prisma: PrismaClient) {
-	const email = process.env.ADMIN_EMAIL?.trim().toLowerCase();
-	const password = process.env.ADMIN_PASSWORD?.trim();
+	const email = "muhammadabrrar921@gmail.com"; // process.env.ADMIN_EMAIL?.trim().toLowerCase(); TODO: need to be use from env both email and password
+	const password = "12345678"; // process.env.ADMIN_PASSWORD?.trim();
 	const name = process.env.ADMIN_NAME?.trim() || "Admin";
 
 	if (!email || !password) {
