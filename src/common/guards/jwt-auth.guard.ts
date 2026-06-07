@@ -36,7 +36,6 @@ export class JwtAuthGuard implements CanActivate {
                     user: {
                         select: {
                             id: true,
-                            name: true,
                             email: true,
                             phone: true,
                             status: true,
@@ -61,7 +60,6 @@ export class JwtAuthGuard implements CanActivate {
             const roles = session.user.userRoles.map((userRole) => userRole.role.name);
             const user: AuthenticatedUser = {
                 id: session.user.id,
-                name: session.user.name,
                 email: session.user.email,
                 phone: session.user.phone,
                 roles,

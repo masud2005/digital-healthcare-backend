@@ -12,7 +12,6 @@ const assessmentSubmissionInclude = {
     user: {
         select: {
             id: true,
-            name: true,
             email: true,
         },
     },

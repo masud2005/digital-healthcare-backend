@@ -71,7 +71,7 @@ export class AuthOtpService {
             userId: user.id,
             email: user.email,
             phone: user.phone,
-            displayName: user.name ?? this.authSharedService.deriveDisplayName(user.email),
+            displayName: this.authSharedService.deriveDisplayName(user.email),
             context,
         });
 
@@ -134,7 +134,7 @@ export class AuthOtpService {
             userId: user.id,
             email: user.email,
             phone: user.phone,
-            displayName: user.name ?? this.authSharedService.deriveDisplayName(user.email),
+            displayName: this.authSharedService.deriveDisplayName(user.email),
             context,
             eventType: "OTP_RESENT",
         });

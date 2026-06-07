@@ -56,3 +56,4 @@ export const authSecurityEventType = [
     "PASSWORD_RESET_COMPLETED",
 ] as const;
 export type AuthSecurityEventType = (typeof authSecurityEventType)[number];
+

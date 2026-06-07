@@ -4,9 +4,6 @@ export class AuthUserResponseDto {
     @ApiProperty()
     id!: string;
 
-    @ApiPropertyOptional()
-    name?: string | null;
-
     @ApiProperty()
     email!: string;
 
