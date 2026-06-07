@@ -1,63 +1,73 @@
-type OtpPurpose = "LOGIN" | "REGISTER";
+type OtpPurpose = "LOGIN" | "REGISTER" | "FORGOT_PASSWORD";
 
 type BuildOtpEmailInput = {
-	name: string;
-	code: string;
-	purpose: OtpPurpose;
+    name: string;
+    code: string;
+    purpose: OtpPurpose;
 };
 
 const BRAND_NAME = "WeightLossMD";
 const SUPPORT_EMAIL = process.env.SUPPORT_EMAIL || "support@weightlossmd.com";
 
 function escapeHtml(value: string) {
-	return value
-		.replace(/&/g, "&amp;")
-		.replace(/</g, "&lt;")
-		.replace(/>/g, "&gt;")
-		.replace(/"/g, "&quot;")
-		.replace(/'/g, "&#39;");
+    return value
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#39;");
 }
 
 function getCopy(purpose: OtpPurpose) {
-	if (purpose === "LOGIN") {
-		return {
-			subject: `${BRAND_NAME} login verification code`,
-			headline: "Secure login verification",
-			message:
-				"We received a request to sign in to your account. Use the code below to continue your login securely.",
-			actionLabel: "Sign in with your code",
-		};
-	}
+    if (purpose === "LOGIN") {
+        return {
+            subject: `${BRAND_NAME} login verification code`,
+            headline: "Secure login verification",
+            message:
+                "We received a request to sign in to your account. Use the code below to continue your login securely.",
+            actionLabel: "Sign in with your code",
+        };
+    }
 
-	return {
-		subject: `Welcome to ${BRAND_NAME} — verify your email`,
-		headline: "Complete your account verification",
-		message:
-			"Thanks for joining WeightLossMD. Enter the one-time code below to verify your email and complete registration.",
-		actionLabel: "Verify your account",
-	};
+    if (purpose === "FORGOT_PASSWORD") {
+        return {
+            subject: `${BRAND_NAME} password reset code`,
+            headline: "Reset your password",
+            message:
+                "We received a request to reset your password. Use the code below to choose a new password securely.",
+            actionLabel: "Reset password with your code",
+        };
+    }
+
+    return {
+        subject: `Welcome to ${BRAND_NAME} — verify your email`,
+        headline: "Complete your account verification",
+        message:
+            "Thanks for joining WeightLossMD. Enter the one-time code below to verify your email and complete registration.",
+        actionLabel: "Verify your account",
+    };
 }
 
 export function buildOtpEmail({ name, code, purpose }: BuildOtpEmailInput) {
-	const copy = getCopy(purpose);
-	const safeName = escapeHtml(name || "there");
-	const safeCode = escapeHtml(code);
+    const copy = getCopy(purpose);
+    const safeName = escapeHtml(name || "there");
+    const safeCode = escapeHtml(code);
 
-	const text = [
-		`Hi ${name || "there"},`,
-		"",
-		copy.message,
-		"",
-		`Your verification code: ${code}`,
-		"",
-		"This code expires in 10 minutes.",
-		"",
-		"If you did not request this email, you can safely ignore it.",
-		"",
-		`Need help? Contact ${SUPPORT_EMAIL}`,
-	].join("\n");
+    const text = [
+        `Hi ${name || "there"},`,
+        "",
+        copy.message,
+        "",
+        `Your verification code: ${code}`,
+        "",
+        "This code expires in 10 minutes.",
+        "",
+        "If you did not request this email, you can safely ignore it.",
+        "",
+        `Need help? Contact ${SUPPORT_EMAIL}`,
+    ].join("\n");
 
-	const html = `
+    const html = `
 <!DOCTYPE html>
 <html lang="en">
   <head>
@@ -123,9 +133,9 @@ export function buildOtpEmail({ name, code, purpose }: BuildOtpEmailInput) {
   </body>
 </html>`;
 
-	return {
-		subject: copy.subject,
-		text,
-		html,
-	};
+    return {
+        subject: copy.subject,
+        text,
+        html,
+    };
 }

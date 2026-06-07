@@ -26,15 +26,29 @@ export async function adminSeed(prisma: PrismaClient) {
 	const salt = randomBytes(16).toString("hex");
 	const derived = pbkdf2Sync(password, salt, PASSWORD_ITERATIONS, 32, "sha256").toString("hex");
 	const passwordHash = `${salt}:${derived}`;
-
-	await prisma.user.create({
+	const role = await prisma.role.upsert({
+		where: { name: "ADMIN" },
+		update: { isActive: true },
+		create: {
+			name: "ADMIN",
+			displayName: "Admin",
+			isSystem: true,
+		},
+	});
+	const user = await prisma.user.create({
 		data: {
 			name,
 			email,
-			passwordHash,
-			role: "ADMIN",
+			password: passwordHash,
 			status: "ACTIVE",
 			emailVerifiedAt: new Date(),
+		},
+	});
+
+	await prisma.userRole.create({
+		data: {
+			userId: user.id,
+			roleId: role.id,
 		},
 	});
 
