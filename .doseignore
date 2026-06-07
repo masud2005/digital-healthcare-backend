@@ -24,3 +24,4 @@ Dockerfile
 prisma.config.ts
 
 minio-data
+dist
