@@ -4,6 +4,7 @@ import {
     Injectable,
     NotFoundException,
 } from "@nestjs/common";
+import { StorageService } from "@global/storage/storage.service";
 import { ContactLeadsRepository } from "./contact-leads.repository";
 import { ContactLeadQueryDto } from "./dto/contact-lead-query.dto";
 import { CreateContactLeadDto } from "./dto/create-contact-lead.dto";
@@ -14,14 +15,18 @@ const DEFAULT_LIMIT = 10;
 
 @Injectable()
 export class ContactLeadsService {
-    constructor(private readonly contactLeadsRepository: ContactLeadsRepository) {}
+    constructor(
+        private readonly contactLeadsRepository: ContactLeadsRepository,
+        private readonly storageService: StorageService,
+    ) {}
 
     async create(payload: CreateContactLeadDto) {
         const data = this.normalizeCreatePayload(payload);
         await this.ensureEmailIsAvailable(data.email);
 
         try {
-            return await this.contactLeadsRepository.create(data);
+            const contactLead = await this.contactLeadsRepository.create(data);
+            return this.resolveAttachment(contactLead);
         } catch (error) {
             this.throwKnownPrismaError(error);
             throw error;
@@ -42,7 +47,7 @@ export class ContactLeadsService {
         });
 
         return {
-            data,
+            data: await Promise.all(data.map((contactLead) => this.resolveAttachment(contactLead))),
             meta: {
                 page,
                 limit,
@@ -59,7 +64,7 @@ export class ContactLeadsService {
             throw new NotFoundException("Contact lead not found");
         }
 
-        return contactLead;
+        return this.resolveAttachment(contactLead);
     }
 
     async update(id: string, payload: UpdateContactLeadDto) {
@@ -71,7 +76,8 @@ export class ContactLeadsService {
         }
 
         try {
-            return await this.contactLeadsRepository.update(id, data);
+            const contactLead = await this.contactLeadsRepository.update(id, data);
+            return this.resolveAttachment(contactLead);
         } catch (error) {
             this.throwKnownPrismaError(error);
             throw error;
@@ -87,6 +93,13 @@ export class ContactLeadsService {
             this.throwKnownPrismaError(error);
             throw error;
         }
+    }
+
+    private async resolveAttachment<T extends { attachments: string | null }>(contactLead: T) {
+        return {
+            ...contactLead,
+            attachments: await this.storageService.resolveKey(contactLead.attachments),
+        };
     }
 
     private normalizeCreatePayload(payload: CreateContactLeadDto) {

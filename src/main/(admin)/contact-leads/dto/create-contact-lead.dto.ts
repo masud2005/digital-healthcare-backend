@@ -26,7 +26,11 @@ export class CreateContactLeadDto {
     @IsString()
     message?: string;
 
-    @ApiPropertyOptional({ example: "contact-leads/john-labs.pdf" })
+    @ApiPropertyOptional({
+        type: "string",
+        format: "binary",
+        description: "Contact lead attachment file",
+    })
     @IsOptional()
     @IsString()
     attachments?: string;

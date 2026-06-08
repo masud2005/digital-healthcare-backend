@@ -41,7 +41,12 @@ export class UpdateContactLeadDto {
     @IsBoolean()
     responded?: boolean;
 
-    @ApiPropertyOptional({ example: "contact-leads/john-labs.pdf", nullable: true })
+    @ApiPropertyOptional({
+        type: "string",
+        format: "binary",
+        nullable: true,
+        description: "Contact lead attachment file",
+    })
     @IsOptional()
     @IsString()
     attachments?: string | null;

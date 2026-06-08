@@ -67,6 +67,7 @@ export class ContactLeadsRepository {
             }),
             this.prisma.contactLead.count({ where }),
         ]);
+        console.log("data: ", data);
 
         return { data, total };
     }

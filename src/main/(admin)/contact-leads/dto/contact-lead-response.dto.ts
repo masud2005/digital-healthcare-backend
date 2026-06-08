@@ -25,7 +25,10 @@ export class ContactLeadResponseDto {
     @ApiProperty({ example: false })
     responded: boolean;
 
-    @ApiPropertyOptional({ example: "contact-leads/john-labs.pdf", nullable: true })
+    @ApiPropertyOptional({
+        example: "https://minio.example.com/testing/2026-06-08/file.pdf",
+        nullable: true,
+    })
     attachments: string | null;
 
     @ApiProperty({ example: "2026-05-18T04:00:00.000Z" })

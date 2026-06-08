@@ -1,5 +1,20 @@
-import { Body, Controller, Delete, Get, HttpCode, Param, Patch, Post, Query } from "@nestjs/common";
+import { StorageService } from "@global/storage/storage.service";
 import {
+    Body,
+    Controller,
+    Delete,
+    Get,
+    HttpCode,
+    Param,
+    Patch,
+    Post,
+    Query,
+    UploadedFile,
+    UseInterceptors,
+} from "@nestjs/common";
+import { FileInterceptor } from "@nestjs/platform-express";
+import {
+    ApiConsumes,
     ApiCreatedResponse,
     ApiNoContentResponse,
     ApiOkResponse,
@@ -19,12 +34,25 @@ import { UpdateContactLeadDto } from "./dto/update-contact-lead.dto";
 @ApiTags("Admin Contact Leads")
 @Controller("admin/contact-leads")
 export class ContactLeadsController {
-    constructor(private readonly contactLeadsService: ContactLeadsService) {}
+    constructor(
+        private readonly contactLeadsService: ContactLeadsService,
+        private readonly storageService: StorageService,
+    ) {}
 
     @Post()
     @ApiOperation({ summary: "Create a contact lead" })
+    @ApiConsumes("multipart/form-data")
+    @UseInterceptors(FileInterceptor("attachments"))
     @ApiCreatedResponse({ type: ContactLeadResponseDto })
-    create(@Body() payload: CreateContactLeadDto) {
+    async create(
+        @Body() payload: CreateContactLeadDto,
+        @UploadedFile() file?: Express.Multer.File,
+    ) {
+        if (file) {
+            const uploaded = await this.storageService.uploadFile(file);
+            payload.attachments = uploaded.key;
+        }
+
         return this.contactLeadsService.create(payload);
     }
 
@@ -44,8 +72,19 @@ export class ContactLeadsController {
 
     @Patch(":id")
     @ApiOperation({ summary: "Update a contact lead" })
+    @ApiConsumes("multipart/form-data")
+    @UseInterceptors(FileInterceptor("attachments"))
     @ApiOkResponse({ type: ContactLeadResponseDto })
-    update(@Param() params: ContactLeadParamDto, @Body() payload: UpdateContactLeadDto) {
+    async update(
+        @Param() params: ContactLeadParamDto,
+        @Body() payload: UpdateContactLeadDto,
+        @UploadedFile() file?: Express.Multer.File,
+    ) {
+        if (file) {
+            const uploaded = await this.storageService.uploadFile(file);
+            payload.attachments = uploaded.key;
+        }
+
         return this.contactLeadsService.update(params.id, payload);
     }
 
