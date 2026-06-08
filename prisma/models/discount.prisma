@@ -1,0 +1,17 @@
+model Discount {
+    id   String @id @default(uuid())
+    code String @unique
+
+    // Enum to handle the radio button selection
+    type DiscountType
+
+    value Float
+
+    expiresAt DateTime? // Optional expiration date
+    isActive  Boolean   @default(true) // To toggle without deleting
+
+    createdAt DateTime @default(now())
+    updatedAt DateTime @updatedAt
+
+    @@map("discounts")
+}
