@@ -1,16 +1,34 @@
-import { Injectable, Logger, ServiceUnavailableException } from "@nestjs/common";
+import { Injectable, Logger, OnModuleInit, ServiceUnavailableException } from "@nestjs/common";
 import nodemailer from "nodemailer";
 import { buildOtpEmail } from "../templates/auth-email-template";
 import { buildOtpSms } from "../templates/auth-sms-template";
 
 @Injectable()
-export class AuthOtpDeliveryService {
+export class AuthOtpDeliveryService implements OnModuleInit {
     private readonly logger = new Logger(AuthOtpDeliveryService.name);
     private readonly transporter = this.createTransporter();
 
+    async onModuleInit() {
+        if (!this.transporter) {
+            this.logger.warn("SMTP is not configured. Email OTP delivery is disabled.");
+            return;
+        }
+
+        if (process.env.SMTP_VERIFY_ON_STARTUP !== "true") {
+            return;
+        }
+
+        try {
+            await this.transporter.verify();
+            this.logger.log("SMTP connection verified");
+        } catch (error) {
+            this.logger.error("SMTP connection verification failed", error as Error);
+        }
+    }
+
     private createTransporter() {
-        const host = process.env.SMTP_HOST;
-        const user = process.env.SMTP_USER;
+        const host = process.env.SMTP_HOST?.trim();
+        const user = process.env.SMTP_USER?.trim();
         const pass = process.env.SMTP_PASS;
 
         if (!host || !user || !pass) {
@@ -21,6 +39,9 @@ export class AuthOtpDeliveryService {
             host,
             port: Number(process.env.SMTP_PORT ?? 587),
             secure: process.env.SMTP_SECURE === "true",
+            connectionTimeout: 10000,
+            greetingTimeout: 10000,
+            socketTimeout: 15000,
             auth: {
                 user,
                 pass,
@@ -37,17 +58,26 @@ export class AuthOtpDeliveryService {
         const { subject, text, html } = buildOtpEmail({ name, code, purpose });
 
         if (!this.transporter) {
-            this.logger.warn(`SMTP is not configured. OTP for ${email}: ${code}`);
-            return;
+            if (process.env.MAIL_LOG_OTP_WHEN_UNCONFIGURED === "true") {
+                this.logger.warn(`SMTP is not configured. OTP for ${email}: ${code}`);
+                return;
+            }
+
+            throw new ServiceUnavailableException("Email provider is not configured");
         }
 
-        await this.transporter.sendMail({
-            from: process.env.MAIL_FROM ?? process.env.SMTP_USER,
-            to: email,
-            subject,
-            text,
-            html,
-        });
+        try {
+            await this.transporter.sendMail({
+                from: process.env.MAIL_FROM ?? process.env.SMTP_USER,
+                to: email,
+                subject,
+                text,
+                html,
+            });
+        } catch (error) {
+            this.logger.error(`Failed to send OTP email to ${email}`, error as Error);
+            throw new ServiceUnavailableException("Unable to send email verification code");
+        }
     }
 
     async sendOtpPhone(
