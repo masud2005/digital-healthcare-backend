@@ -57,3 +57,5 @@ export const authSecurityEventType = [
 ] as const;
 export type AuthSecurityEventType = (typeof authSecurityEventType)[number];
 
+export const discountType = ["PERCENTAGE", "FIXED_AMOUNT"] as const;
+export type DiscountType = (typeof discountType)[number];

@@ -17,6 +17,7 @@ async function bootstrap() {
             "https://client.weightlossmdcherrycreek.com",
             "https://doc-frontend-omega.vercel.app",
             "https://doc-dashboard-delta.vercel.app",
+            "https://dashboard.weightlossmdcherrycreek.com",
         ],
         methods: "GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS",
         credentials: true,

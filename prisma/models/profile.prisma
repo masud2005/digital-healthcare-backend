@@ -14,6 +14,8 @@ model DoctorProfile {
   createdAt         DateTime  @default(now())
   updatedAt         DateTime  @updatedAt
   deletedAt         DateTime?
+  // @@index([status])
+  // @@index([officeLocationId])
 
   @@index([name])
   @@index([userId])

@@ -42,6 +42,11 @@ enum CategoryStatus {
   DISABLED
 }
 
+enum DiscountType {
+  PERCENTAGE
+  FIXED_AMOUNT
+}
+
 enum OtpChannel {
   EMAIL
   PHONE
