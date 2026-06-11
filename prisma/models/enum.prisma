@@ -47,6 +47,27 @@ enum DiscountType {
   FIXED_AMOUNT
 }
 
+enum IncidentSeverity {
+  CRITICAL
+  HIGH
+  MEDIUM
+  LOW
+}
+
+enum IncidentSource {
+  SECURITY_SCAN
+  SYSTEM_MONITORING
+  USER_REPORT
+  MANUAL
+}
+
+enum IncidentStatus {
+  OPEN
+  INVESTIGATING
+  RESOLVED
+  CLOSED
+}
+
 enum OtpChannel {
   EMAIL
   PHONE

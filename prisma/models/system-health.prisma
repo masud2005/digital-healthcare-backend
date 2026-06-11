@@ -1,60 +1,60 @@
 model SystemHealth {
-    id String @id @default(uuid())
+  id String @id @default(uuid())
 
-    key         String             @unique
-    name        String
-    category    String?
-    status      SystemHealthStatus @default(OPERATIONAL)
-    description String?
-    message     String?
+  key         String             @unique
+  name        String
+  category    String?
+  status      SystemHealthStatus @default(OPERATIONAL)
+  description String?
+  message     String?
 
-    responseTimeMs Int?
-    uptimePercent  Float?
+  responseTimeMs Int?
+  uptimePercent  Float?
 
-    checkedAt  DateTime  @default(now())
-    resolvedAt DateTime?
-    metadata   Json?
-    isActive   Boolean   @default(true)
+  checkedAt  DateTime  @default(now())
+  resolvedAt DateTime?
+  metadata   Json?
+  isActive   Boolean   @default(true)
 
-    createdAt DateTime @default(now())
-    updatedAt DateTime @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
-    @@index([category])
-    @@index([status])
-    @@index([checkedAt])
-    @@map("system_health")
+  @@index([category])
+  @@index([status])
+  @@index([checkedAt])
+  @@map("system_health")
 }
 
 model SystemHealthMetric {
-    id String @id @default(uuid())
+  id String @id @default(uuid())
 
-    label String
-    key   String
-    value Float
-    unit  String?
+  label String
+  key   String
+  value Float
+  unit  String?
 
-    displayValue String?
-    recordedAt   DateTime @default(now())
-    metadata     Json?
-    isActive     Boolean  @default(true)
+  displayValue String?
+  recordedAt   DateTime @default(now())
+  metadata     Json?
+  isActive     Boolean  @default(true)
 
-    createdAt DateTime @default(now())
-    updatedAt DateTime @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
-    @@unique([key])
-    @@index([recordedAt])
-    @@map("system_health_metrics")
+  @@unique([key])
+  @@index([recordedAt])
+  @@map("system_health_metrics")
 }
 
 model SystemHealthLog {
-    id             String             @id @default(uuid())
-    systemKey      String
-    status         SystemHealthStatus @default(OPERATIONAL)
-    responseTimeMs Int?
-    message        String?
-    createdAt      DateTime           @default(now())
+  id             String             @id @default(uuid())
+  systemKey      String
+  status         SystemHealthStatus @default(OPERATIONAL)
+  responseTimeMs Int?
+  message        String?
+  createdAt      DateTime           @default(now())
 
-    @@index([systemKey])
-    @@index([createdAt])
-    @@map("system_health_logs")
+  @@index([systemKey])
+  @@index([createdAt])
+  @@map("system_health_logs")
 }

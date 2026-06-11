@@ -1,0 +1,28 @@
+model Incident {
+  id String @id @default(uuid())
+
+  incidentId      String           @unique
+  type            String
+  severity        IncidentSeverity
+  status          IncidentStatus   @default(OPEN)
+  source          IncidentSource   @default(MANUAL)
+  affectedSystem  String?
+  reportedBy      String?
+  assignedTo      String?
+  description     String?
+  responseSummary String?
+
+  detectedAt DateTime  @default(now())
+  resolvedAt DateTime?
+  metadata   Json?
+  isActive   Boolean   @default(true)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([incidentId])
+  @@index([severity])
+  @@index([status])
+  @@index([detectedAt])
+  @@map("incidents")
+}

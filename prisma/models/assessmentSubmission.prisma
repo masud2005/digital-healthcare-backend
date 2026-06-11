@@ -1,51 +1,51 @@
 model AssessmentSubmission {
-    id          String           @id @default(uuid())
-    status      SubmissionStatus @default(PENDING)
-    reviewedBy  String?
-    reviewedAt  DateTime?
-    doctorNotes String?          @db.Text
+  id          String           @id @default(uuid())
+  status      SubmissionStatus @default(PENDING)
+  reviewedBy  String?
+  reviewedAt  DateTime?
+  doctorNotes String?          @db.Text
 
-    // Relations
-    userId       String
-    user         User               @relation(fields: [userId], references: [id], onDelete: Cascade)
-    assessmentId String
-    assessment   Assessment         @relation(fields: [assessmentId], references: [id], onDelete: Cascade)
-    answers      SubmissionAnswer[]
+  // Relations
+  userId       String
+  user         User               @relation(fields: [userId], references: [id], onDelete: Cascade)
+  assessmentId String
+  assessment   Assessment         @relation(fields: [assessmentId], references: [id], onDelete: Cascade)
+  answers      SubmissionAnswer[]
 
-    createdAt DateTime @default(now())
-    updatedAt DateTime @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
-    @@index([userId])
-    @@index([assessmentId])
-    @@index([status])
+  @@index([userId])
+  @@index([assessmentId])
+  @@index([status])
 }
 
 model SubmissionAnswer {
-    id           String  @id @default(uuid())
-    textResponse String? @db.Text
+  id           String  @id @default(uuid())
+  textResponse String? @db.Text
 
-    // Relations
-    submissionId    String
-    submission      AssessmentSubmission @relation(fields: [submissionId], references: [id], onDelete: Cascade)
-    questionId      String
-    question        Question             @relation(fields: [questionId], references: [id], onDelete: Cascade)
-    selectedOptions SelectedOption[]
+  // Relations
+  submissionId    String
+  submission      AssessmentSubmission @relation(fields: [submissionId], references: [id], onDelete: Cascade)
+  questionId      String
+  question        Question             @relation(fields: [questionId], references: [id], onDelete: Cascade)
+  selectedOptions SelectedOption[]
 
-    createdAt DateTime @default(now())
+  createdAt DateTime @default(now())
 
-    @@index([submissionId])
-    @@index([questionId])
+  @@index([submissionId])
+  @@index([questionId])
 }
 
 model SelectedOption {
-    id String @id @default(uuid())
+  id String @id @default(uuid())
 
-    // Relations
-    submissionAnswerId String
-    submissionAnswer   SubmissionAnswer @relation(fields: [submissionAnswerId], references: [id], onDelete: Cascade)
-    optionId           String
-    option             QuestionOption   @relation(fields: [optionId], references: [id], onDelete: Cascade)
+  // Relations
+  submissionAnswerId String
+  submissionAnswer   SubmissionAnswer @relation(fields: [submissionAnswerId], references: [id], onDelete: Cascade)
+  optionId           String
+  option             QuestionOption   @relation(fields: [optionId], references: [id], onDelete: Cascade)
 
-    @@index([submissionAnswerId])
-    @@index([optionId])
+  @@index([submissionAnswerId])
+  @@index([optionId])
 }
