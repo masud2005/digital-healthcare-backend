@@ -5,6 +5,7 @@ import {
     NotFoundException,
     UnauthorizedException,
 } from "@nestjs/common";
+import { SystemHealthService } from "../../(compliance)/system-health/system-health.service";
 import { AuthRepository } from "../auth.repository";
 import { LoginDto } from "../dto/login.dto";
 import { RegisterDto } from "../dto/register.dto";
@@ -15,6 +16,7 @@ export class AuthAccountService {
     constructor(
         private readonly authRepository: AuthRepository,
         private readonly authSharedService: AuthSharedService,
+        private readonly systemHealthService: SystemHealthService,
     ) {}
 
     async register(payload: RegisterDto) {
@@ -59,29 +61,36 @@ export class AuthAccountService {
     }
 
     async login(payload: LoginDto) {
-        const email = this.authSharedService.normalizeEmail(payload.email);
-        const user = await this.authRepository.findUserByEmail(email);
+        try {
+            const email = this.authSharedService.normalizeEmail(payload.email);
+            const user = await this.authRepository.findUserByEmail(email);
 
-        if (!user || !user.password) {
-            throw new UnauthorizedException("Invalid credentials");
+            if (!user || !user.password) {
+                throw new UnauthorizedException("Invalid credentials");
+            }
+
+            if (user.status !== "ACTIVE") {
+                throw new BadRequestException("Account is not active");
+            }
+
+            if (!this.authSharedService.verifyPassword(payload.password, user.password)) {
+                throw new UnauthorizedException("Invalid credentials");
+            }
+
+            await this.systemHealthService.recordLoginAttempt(true).catch(() => {});
+
+            return {
+                success: true,
+                message: "Credentials verified. OTP verification required.",
+                data: {
+                    userId: user.id,
+                    status: "OTP_REQUIRED",
+                },
+            };
+        } catch (error) {
+            await this.systemHealthService.recordLoginAttempt(false).catch(() => {});
+            throw error;
         }
-
-        if (user.status !== "ACTIVE") {
-            throw new BadRequestException("Account is not active");
-        }
-
-        if (!this.authSharedService.verifyPassword(payload.password, user.password)) {
-            throw new UnauthorizedException("Invalid credentials");
-        }
-
-        return {
-            success: true,
-            message: "Credentials verified. OTP verification required.",
-            data: {
-                userId: user.id,
-                status: "OTP_REQUIRED",
-            },
-        };
     }
 
     async getProfile(userId: string) {
