@@ -69,3 +69,6 @@ export type DiscountType = (typeof discountType)[number];
 
 export const systemHealthStatus = ["OPERATIONAL", "DEGRADED", "OUTAGE", "MAINTENANCE"] as const;
 export type SystemHealthStatus = (typeof systemHealthStatus)[number];
+
+export const attachmentContext = ["PROFILE_PICTURE", "CHAT_MESSAGE", "PRODUCT_IMAGE", "ASSESSMENT_FILE", "MEDICAL_REPORT"] as const;
+export type AttachmentContext = (typeof attachmentContext)[number];

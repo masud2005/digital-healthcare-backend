@@ -12,6 +12,14 @@ enum AssessmentStatus {
   DISABLED
 }
 
+enum AttachmentContext {
+  PROFILE_PICTURE
+  CHAT_MESSAGE
+  PRODUCT_IMAGE
+  ASSESSMENT_FILE
+  MEDICAL_REPORT
+}
+
 enum AuthAttemptStatus {
   STARTED
   OTP_SENT

@@ -1,0 +1,21 @@
+model Attachment {
+    id       String @id @default(uuid())
+    fileName String
+    fileUrl  String
+    fileType String
+    fileSize Int
+    context AttachmentContext
+
+    // Optional relation to User who uploaded the attachment
+    uploadedById String?
+    uploadedBy   User?   @relation(fields: [uploadedById], references: [id])
+
+    // Optional relation, depending on the context of the attachment (e.g., Product, Assessment)
+
+
+    createdAt DateTime @default(now())
+    updatedAt DateTime @updatedAt
+
+    @@index([context])
+    @@index([uploadedById, context])
+}
