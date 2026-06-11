@@ -1,0 +1,46 @@
+model SystemHealth {
+    id String @id @default(uuid())
+
+    name        String
+    category    String?
+    status      SystemHealthStatus @default(OPERATIONAL)
+    description String?
+    message     String?
+
+    responseTimeMs Int?
+    uptimePercent  Float?
+
+    checkedAt  DateTime  @default(now())
+    resolvedAt DateTime?
+    metadata   Json?
+    isActive   Boolean   @default(true)
+
+    createdAt DateTime @default(now())
+    updatedAt DateTime @updatedAt
+
+    @@index([category])
+    @@index([status])
+    @@index([checkedAt])
+    @@map("system_health")
+}
+
+model SystemHealthMetric {
+    id String @id @default(uuid())
+
+    label String
+    key   String
+    value Float
+    unit  String?
+
+    displayValue String?
+    recordedAt   DateTime @default(now())
+    metadata     Json?
+    isActive     Boolean  @default(true)
+
+    createdAt DateTime @default(now())
+    updatedAt DateTime @updatedAt
+
+    @@unique([key])
+    @@index([recordedAt])
+    @@map("system_health_metrics")
+}

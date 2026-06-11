@@ -1,4 +1,11 @@
-export const userStatus = ["PENDING_VERIFICATION", "ACTIVE", "SUSPENDED", "DISABLED","BLOCKED", "DELETED"] as const;
+export const userStatus = [
+    "PENDING_VERIFICATION",
+    "ACTIVE",
+    "SUSPENDED",
+    "DISABLED",
+    "BLOCKED",
+    "DELETED",
+] as const;
 export type UserStatus = (typeof userStatus)[number];
 
 export const categoryStatus = ["ACTIVE", "DISABLED"] as const;
@@ -59,3 +66,6 @@ export type AuthSecurityEventType = (typeof authSecurityEventType)[number];
 
 export const discountType = ["PERCENTAGE", "FIXED_AMOUNT"] as const;
 export type DiscountType = (typeof discountType)[number];
+
+export const systemHealthStatus = ["OPERATIONAL", "DEGRADED", "OUTAGE", "MAINTENANCE"] as const;
+export type SystemHealthStatus = (typeof systemHealthStatus)[number];
