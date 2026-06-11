@@ -1,6 +1,21 @@
 import { BadRequestException, Injectable, NotFoundException } from "@nestjs/common";
+import type { QuestionType } from "@prisma/client";
 import { AssessmentSubmissionRecord, AssessmentSubmissionRepository } from "./assessment-submission.repository";
 import { CreateAssessmentSubmissionDto } from "./dto/create-assessment-submission.dto";
+
+type NormalizedAnswer = {
+    questionId: string;
+    textResponse?: string | null;
+    selectedOptionIds: string[];
+};
+
+type SubmissionQuestion = {
+    id: string;
+    type: QuestionType;
+    isRequired: boolean;
+    parentOptionId: string | null;
+    options: Array<{ id: string }>;
+};
 
 @Injectable()
 export class AssessmentSubmissionService {
@@ -25,36 +40,15 @@ export class AssessmentSubmissionService {
 
         const normalizedAnswers = this.normalizeAnswers(payload.answers);
         const questionIds = normalizedAnswers.map((answer) => answer.questionId);
-        const questions = await this.assessmentSubmissionRepository.findQuestionsByIds(payload.assessmentId, questionIds);
+        const questions = await this.assessmentSubmissionRepository.findQuestionsByAssessment(payload.assessmentId);
+        const submittedQuestions = questions.filter((question) => questionIds.includes(question.id));
 
-        if (questions.length !== questionIds.length) {
+        if (submittedQuestions.length !== questionIds.length) {
             throw new BadRequestException("One or more questions are invalid for this assessment");
         }
 
         const questionMap = new Map(questions.map((question) => [question.id, question]));
-
-        for (const answer of normalizedAnswers) {
-            const question = questionMap.get(answer.questionId);
-
-            if (!question) {
-                throw new BadRequestException("One or more questions are invalid for this assessment");
-            }
-
-            if (question.isRequired && !answer.textResponse && answer.selectedOptionIds.length === 0) {
-                throw new BadRequestException("All required questions must be answered");
-            }
-
-            if (question.type === "SINGLE_CHOICE" && answer.selectedOptionIds.length > 1) {
-                throw new BadRequestException("Single choice questions accept only one option");
-            }
-
-            const allowedOptionIds = new Set(question.options.map((option) => option.id));
-            for (const selectedOptionId of answer.selectedOptionIds) {
-                if (!allowedOptionIds.has(selectedOptionId)) {
-                    throw new BadRequestException("One or more selected options are invalid for the question");
-                }
-            }
-        }
+        this.validateAnswers(normalizedAnswers, questions, questionMap);
 
         const submission = await this.assessmentSubmissionRepository.createSubmission({
             userId,
@@ -65,13 +59,99 @@ export class AssessmentSubmissionService {
         return this.mapSubmission(submission);
     }
 
-    private normalizeAnswers(
-        answers: CreateAssessmentSubmissionDto["answers"],
-    ): Array<{
-        questionId: string;
-        textResponse?: string | null;
-        selectedOptionIds: string[];
-    }> {
+    private validateAnswers(
+        answers: NormalizedAnswer[],
+        questions: SubmissionQuestion[],
+        questionMap: Map<string, SubmissionQuestion>,
+    ) {
+        const answerMap = new Map(answers.map((answer) => [answer.questionId, answer]));
+        const selectedOptionIds = new Set(answers.flatMap((answer) => answer.selectedOptionIds));
+
+        for (const answer of answers) {
+            const question = questionMap.get(answer.questionId);
+
+            if (!question) {
+                throw new BadRequestException("One or more questions are invalid for this assessment");
+            }
+
+            this.validateQuestionApplicability(question, selectedOptionIds);
+            this.validateAnswerByQuestionType(answer, question);
+        }
+
+        for (const question of questions) {
+            if (!this.requiresAnswer(question, selectedOptionIds)) {
+                continue;
+            }
+
+            const answer = answerMap.get(question.id);
+
+            if (!answer || !this.hasAnswerValue(answer)) {
+                throw new BadRequestException("All required questions must be answered");
+            }
+        }
+    }
+
+    private validateQuestionApplicability(question: SubmissionQuestion, selectedOptionIds: Set<string>) {
+        if (question.parentOptionId && !selectedOptionIds.has(question.parentOptionId)) {
+            throw new BadRequestException(
+                "Sub-question answers are allowed only when their parent option is selected",
+            );
+        }
+    }
+
+    private validateAnswerByQuestionType(answer: NormalizedAnswer, question: SubmissionQuestion) {
+        if (question.type === "INFORMATION_ONLY") {
+            throw new BadRequestException("Information-only questions do not accept answers");
+        }
+
+        if (question.type === "INPUT") {
+            if (answer.selectedOptionIds.length > 0) {
+                throw new BadRequestException("Input questions accept textResponse only");
+            }
+
+            if (!answer.textResponse) {
+                throw new BadRequestException("Input questions require textResponse");
+            }
+
+            return;
+        }
+
+        if (answer.textResponse) {
+            throw new BadRequestException("Choice questions accept selectedOptionIds only");
+        }
+
+        if (question.type === "SINGLE_CHOICE" && answer.selectedOptionIds.length !== 1) {
+            throw new BadRequestException("Single choice questions require exactly one selected option");
+        }
+
+        if (question.type === "MULTIPLE_CHOICE" && answer.selectedOptionIds.length === 0) {
+            throw new BadRequestException("Multiple choice questions require at least one selected option");
+        }
+
+        if (question.type === "SINGLE_CHOICE" || question.type === "MULTIPLE_CHOICE") {
+            const allowedOptionIds = new Set(question.options.map((option) => option.id));
+
+            for (const selectedOptionId of answer.selectedOptionIds) {
+                if (!allowedOptionIds.has(selectedOptionId)) {
+                    throw new BadRequestException("One or more selected options are invalid for the question");
+                }
+            }
+        }
+    }
+
+    private requiresAnswer(question: SubmissionQuestion, selectedOptionIds: Set<string>) {
+        return (
+            question.isRequired &&
+            question.type !== "INFORMATION_ONLY" &&
+            (!question.parentOptionId || selectedOptionIds.has(question.parentOptionId))
+        );
+    }
+
+    private hasAnswerValue(answer: NormalizedAnswer) {
+        return Boolean(answer.textResponse) || answer.selectedOptionIds.length > 0;
+    }
+
+    private normalizeAnswers(answers: CreateAssessmentSubmissionDto["answers"]): NormalizedAnswer[] {
         const seenQuestionIds = new Set<string>();
 
         return answers.map((answer) => {

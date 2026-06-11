@@ -1,215 +1,116 @@
-import { StorageService } from "@global/storage/storage.service";
-import { AuthService } from "@main/auth/services/auth.service";
-import {
-    BadRequestException,
-    Body,
-    Controller,
-    Post,
-    UploadedFiles,
-    UseInterceptors,
-} from "@nestjs/common";
-import { AnyFilesInterceptor } from "@nestjs/platform-express";
-import { ApiBody, ApiConsumes, ApiOperation, ApiTags } from "@nestjs/swagger";
+import { CurrentUser } from "@common/decorators/current-user.decorator";
+import { JwtAuthGuard } from "@common/guards/jwt-auth.guard";
+import type { AuthenticatedUser } from "@main/auth/auth.types";
+import { Body, Controller, Post, UseGuards } from "@nestjs/common";
+import { ApiBearerAuth, ApiBody, ApiCreatedResponse, ApiOperation, ApiTags } from "@nestjs/swagger";
 import { AssessmentSubmissionService } from "./assessment-submission.service";
+import { AssessmentSubmissionResponseDto } from "./dto/assessment-submission-response.dto";
 import { CreateAssessmentSubmissionDto } from "./dto/create-assessment-submission.dto";
-import { UserPayloadDto } from "./dto/user-payload.dto";
 
 @ApiTags("Patient Assessment Submissions")
+@ApiBearerAuth()
+@UseGuards(JwtAuthGuard)
 @Controller("patient/assessment-submissions")
 export class AssessmentSubmissionController {
-    constructor(
-        private readonly assessmentSubmissionService: AssessmentSubmissionService,
-        private readonly storageService: StorageService,
-        private readonly authService: AuthService,
-    ) {}
+    constructor(private readonly assessmentSubmissionService: AssessmentSubmissionService) {}
 
     @Post()
-    @UseInterceptors(AnyFilesInterceptor())
-    @ApiConsumes("multipart/form-data")
+    @ApiOperation({
+        summary: "Submit an assessment for the authenticated patient",
+        description:
+            "Requires a Bearer access token. Rules by admin question type: INFORMATION_ONLY is display-only and must be omitted from answers; INPUT requires textResponse; SINGLE_CHOICE requires exactly one selectedOptionId; MULTIPLE_CHOICE requires one or more selectedOptionIds. For attachment answers, upload the file through POST /attachments/upload with context ASSESSMENT_FILE first, then submit the returned attachment data.id or data.fileUrl as textResponse for the related INPUT question.",
+    })
     @ApiBody({
-        schema: {
-            type: "object",
-            properties: {
-                userPayload: {
-                    type: "string",
-                    description:
-                        "JSON stringified UserPayloadDto. STEP 1: { email, phone, password, confirmPassword, otpChannel } to register/send OTP or { email, password, otpChannel } to login/send OTP. STEP 2: { challengeId, otp } to verify & submit assessment",
-                    example: JSON.stringify({
-                        email: "masud.rana@example.com",
-                        password: "securePassword123",
-                        confirmPassword: "securePassword123",
-                    }),
-                    examples: {
-                        step1: {
-                            value: JSON.stringify({
-                                email: "masud.rana@example.com",
-                                password: "securePassword123",
-                                confirmPassword: "securePassword123",
-                            }),
-                            description:
-                                "Step 1: Request OTP (will auto-detect registration vs login)",
+        type: CreateAssessmentSubmissionDto,
+        examples: {
+            input: {
+                summary: "INPUT question",
+                description: "Use textResponse for admin questions created with type INPUT.",
+                value: {
+                    assessmentId: "7f4145d8-087e-4d33-82bd-0f65d3fbdb4f",
+                    answers: [
+                        {
+                            questionId: "9c2d34a5-f6eb-4c7e-9e3d-7dcb1cf0de69",
+                            textResponse: "I walk 3 times a week",
                         },
-                        step2: {
-                            value: JSON.stringify({
-                                email: "masud.rana@example.com",
-                                challengeId: "challenge_uuid",
-                                otp: "123456",
-                            }),
-                            description: "Step 2: Verify OTP & submit assessment",
-                        },
-                    },
-                },
-                assessmentPayload: {
-                    type: "string",
-                    description:
-                        "JSON stringified CreateAssessmentSubmissionDto. ONLY required in STEP 2 (when otp is present)",
-                    example: JSON.stringify({
-                        assessmentId: "a1b2c3d4-1111-2222-3333-444455556666",
-                        answers: [
-                            {
-                                questionId: "9c2d34a5-f6eb-4c7e-9e3d-7dcb1cf0de69",
-                                textResponse: "I walk 3 times a week",
-                            },
-                            {
-                                questionId: "bf8cfc71-75ff-49e7-8ec8-7b6f099f0dd8",
-                                selectedOptionIds: ["8f8f4f73-9d72-4b76-a1f5-1d0d4b1f7f1e"],
-                            },
-                            {
-                                questionId: "c5a1f8d2-3b4c-4e2a-8f7d-1234567890ab",
-                                fileField: "file_q3",
-                            },
-                        ],
-                    }),
-                },
-                file_q3: {
-                    type: "string",
-                    format: "binary",
-                    description: "File for question (STEP 2 only)",
-                },
-                file_q2: {
-                    type: "string",
-                    format: "binary",
-                    description: "Optional additional file field (STEP 2 only)",
+                    ],
                 },
             },
-            required: ["userPayload"],
+            singleChoice: {
+                summary: "SINGLE_CHOICE question",
+                description: "Send exactly one option id for admin questions created with type SINGLE_CHOICE.",
+                value: {
+                    assessmentId: "7f4145d8-087e-4d33-82bd-0f65d3fbdb4f",
+                    answers: [
+                        {
+                            questionId: "bf8cfc71-75ff-49e7-8ec8-7b6f099f0dd8",
+                            selectedOptionIds: ["8f8f4f73-9d72-4b76-a1f5-1d0d4b1f7f1e"],
+                        },
+                    ],
+                },
+            },
+            multipleChoice: {
+                summary: "MULTIPLE_CHOICE question",
+                description: "Send one or more option ids for admin questions created with type MULTIPLE_CHOICE.",
+                value: {
+                    assessmentId: "7f4145d8-087e-4d33-82bd-0f65d3fbdb4f",
+                    answers: [
+                        {
+                            questionId: "6f8f4f73-9d72-4b76-a1f5-1d0d4b1f7f1e",
+                            selectedOptionIds: [
+                                "088d7df7-79e6-4a41-9ce2-c2cf02bdc1aa",
+                                "927c27cc-c31b-4bf4-a865-025f3b1f7b83",
+                            ],
+                        },
+                    ],
+                },
+            },
+            informationOnly: {
+                summary: "INFORMATION_ONLY question",
+                description:
+                    "Do not submit an answer for INFORMATION_ONLY questions. Submit only answerable questions from the same assessment.",
+                value: {
+                    assessmentId: "7f4145d8-087e-4d33-82bd-0f65d3fbdb4f",
+                    answers: [
+                        {
+                            questionId: "9c2d34a5-f6eb-4c7e-9e3d-7dcb1cf0de69",
+                            textResponse: "Information-only question was displayed to the patient; this answer is for the next INPUT question.",
+                        },
+                    ],
+                },
+            },
+            attachmentInput: {
+                summary: "Attachment reference",
+                description:
+                    "Upload the file first using POST /attachments/upload with context ASSESSMENT_FILE. Then submit one answer object where questionId is the INPUT/file question id and textResponse is the returned attachment data.id or data.fileUrl string.",
+                value: {
+                    assessmentId: "7f4145d8-087e-4d33-82bd-0f65d3fbdb4f",
+                    answers: [
+                        {
+                            questionId: "c5a1f8d2-3b4c-4e2a-8f7d-1234567890ab",
+                            textResponse: "7ac8d7e2-4c27-4cb1-b1d4-1c4a0a0c7f6f",
+                        },
+                    ],
+                },
+            },
+            attachmentFileUrl: {
+                summary: "Attachment fileUrl alternative",
+                description:
+                    "If your client stores the attachment URL instead of the attachment id, submit the returned data.fileUrl as textResponse. Keep selectedOptionIds empty/omitted.",
+                value: {
+                    assessmentId: "7f4145d8-087e-4d33-82bd-0f65d3fbdb4f",
+                    answers: [
+                        {
+                            questionId: "c5a1f8d2-3b4c-4e2a-8f7d-1234567890ab",
+                            textResponse: "https://signed-url.example.com/assessment-file.pdf",
+                        },
+                    ],
+                },
+            },
         },
     })
-    @ApiOperation({
-        summary: "Assessment submission with inline auth",
-        description:
-            "STEP 1: Send { email, password, confirmPassword } for new users or { email, password } for existing users to request OTP\nSTEP 2: Send { email, otp } + assessmentPayload + files to verify & submit",
-    })
-    async create(
-        @Body("userPayload") userPayload: string,
-        @Body("assessmentPayload") assessmentPayload?: string,
-        @UploadedFiles() files?: Express.Multer.File[],
-    ) {
-        const parsedUserPayload: UserPayloadDto =
-            typeof userPayload === "string" ? JSON.parse(userPayload) : (userPayload as any);
-
-        // STEP 1: OTP Request (email + password + confirmPassword for new users)
-        if (!parsedUserPayload.otp) {
-            return this.requestOtp(parsedUserPayload);
-        }
-
-        // STEP 2: Verify OTP & Submit Assessment
-        return this.verifyAndSubmit(parsedUserPayload, assessmentPayload, files);
-    }
-
-    private async requestOtp(userPayload: UserPayloadDto) {
-        const { email, phone, password, confirmPassword } = userPayload;
-        const method = userPayload.otpChannel ?? "EMAIL";
-
-        if (!email || !password) {
-            throw new BadRequestException("STEP 1: email and password are required");
-        }
-
-        // Check if user exists
-        const existingUser = await this.authService["authRepository"].findUserByEmail(email);
-
-        if (existingUser) {
-            // User exists → Login flow
-            await this.authService.login({ email, password });
-            const result = await this.authService.sendOtp(
-                { userId: existingUser.id, purpose: "LOGIN", method },
-                {},
-            );
-            return { ...result, message: "OTP sent. Proceed to STEP 2 with { challengeId, otp }" };
-        } else {
-            // User doesn't exist → Registration flow
-            if (!confirmPassword || !phone) {
-                throw new BadRequestException(
-                    "STEP 1 (registration): phone and confirmPassword are required for new users",
-                );
-            }
-            const registration = await this.authService.register({
-                email,
-                phone,
-                password,
-                confirmPassword,
-            });
-            const result = await this.authService.sendOtp(
-                { userId: registration.data.userId, purpose: "REGISTER", method },
-                {},
-            );
-            return { ...result, message: "OTP sent. Proceed to STEP 2 with { challengeId, otp }" };
-        }
-    }
-
-    private async verifyAndSubmit(
-        userPayload: UserPayloadDto,
-        assessmentPayload?: string,
-        files?: Express.Multer.File[],
-    ) {
-        const { challengeId, otp } = userPayload;
-
-        if (!challengeId || !otp) {
-            throw new BadRequestException("STEP 2: challengeId and otp are required");
-        }
-
-        if (!assessmentPayload) {
-            throw new BadRequestException("STEP 2: assessmentPayload is required");
-        }
-
-        const authResponse = await this.authService.verifyOtpAuto(challengeId, otp, {});
-
-        // Parse assessment payload
-        const body: CreateAssessmentSubmissionDto =
-            typeof assessmentPayload === "string"
-                ? JSON.parse(assessmentPayload)
-                : (assessmentPayload as any);
-
-        // Handle file uploads
-        if (files && files.length > 0) {
-            const filesMap = new Map(files.map((f) => [f.fieldname, f]));
-
-            for (const answer of body.answers) {
-                if (answer.fileField) {
-                    const file = filesMap.get(answer.fileField);
-
-                    if (file) {
-                        const uploaded = await this.storageService.uploadFile(file);
-                        answer.textResponse = uploaded.key;
-                    }
-                }
-            }
-        }
-
-        if (!authResponse.data?.user) {
-            throw new BadRequestException("OTP verification did not return an authenticated user");
-        }
-
-        // Create assessment submission
-        const submission = await this.assessmentSubmissionService.create(
-            authResponse.data.user.id,
-            body,
-        );
-
-        return {
-            accessToken: authResponse.data.accessToken,
-            user: authResponse.data.user,
-            submission,
-        };
+    @ApiCreatedResponse({ type: AssessmentSubmissionResponseDto })
+    create(@Body() payload: CreateAssessmentSubmissionDto, @CurrentUser() user: AuthenticatedUser) {
+        return this.assessmentSubmissionService.create(user.id, payload);
     }
 }

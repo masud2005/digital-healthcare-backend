@@ -111,6 +111,24 @@ export class AssessmentSubmissionRepository {
                 id: true,
                 type: true,
                 isRequired: true,
+                parentOptionId: true,
+                options: {
+                    select: {
+                        id: true,
+                    },
+                },
+            },
+        });
+    }
+
+    findQuestionsByAssessment(assessmentId: string) {
+        return this.prisma.question.findMany({
+            where: { assessmentId },
+            select: {
+                id: true,
+                type: true,
+                isRequired: true,
+                parentOptionId: true,
                 options: {
                     select: {
                         id: true,
