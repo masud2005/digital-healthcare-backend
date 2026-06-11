@@ -79,6 +79,13 @@ enum SubmissionStatus {
   REJECTED
 }
 
+enum SystemHealthStatus {
+  OPERATIONAL
+  DEGRADED
+  OUTAGE
+  MAINTENANCE
+}
+
 enum UserStatus {
   PENDING_VERIFICATION
   ACTIVE
