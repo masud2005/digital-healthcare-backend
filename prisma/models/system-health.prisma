@@ -1,6 +1,7 @@
 model SystemHealth {
     id String @id @default(uuid())
 
+    key         String             @unique
     name        String
     category    String?
     status      SystemHealthStatus @default(OPERATIONAL)
@@ -43,4 +44,17 @@ model SystemHealthMetric {
     @@unique([key])
     @@index([recordedAt])
     @@map("system_health_metrics")
+}
+
+model SystemHealthLog {
+    id             String             @id @default(uuid())
+    systemKey      String
+    status         SystemHealthStatus @default(OPERATIONAL)
+    responseTimeMs Int?
+    message        String?
+    createdAt      DateTime           @default(now())
+
+    @@index([systemKey])
+    @@index([createdAt])
+    @@map("system_health_logs")
 }

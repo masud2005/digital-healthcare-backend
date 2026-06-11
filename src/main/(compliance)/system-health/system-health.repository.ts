@@ -92,6 +92,72 @@ export class SystemHealthRepository {
         });
     }
 
+    createLog(data: { systemKey: string; status: SystemHealthStatus; responseTimeMs?: number; message?: string }) {
+        return this.prisma.systemHealthLog.create({
+            data,
+        });
+    }
+
+    getLogs(systemKey: string, limit: number) {
+        return this.prisma.systemHealthLog.findMany({
+            where: { systemKey },
+            orderBy: { createdAt: "desc" },
+            take: limit,
+        });
+    }
+
+    getLogsSince(systemKey: string, since: Date) {
+        return this.prisma.systemHealthLog.findMany({
+            where: {
+                systemKey,
+                createdAt: { gte: since },
+            },
+            orderBy: { createdAt: "desc" },
+        });
+    }
+
+    async updateServiceHealth(
+        key: string,
+        data: { status: SystemHealthStatus; responseTimeMs?: number | null; uptimePercent?: number; message?: string | null },
+    ) {
+        return this.prisma.systemHealth.update({
+            where: { key },
+            data: {
+                status: data.status,
+                responseTimeMs: data.responseTimeMs,
+                uptimePercent: data.uptimePercent,
+                message: data.message,
+                checkedAt: new Date(),
+            },
+        });
+    }
+
+    async upsertMetricValue(
+        key: string,
+        label: string,
+        value: number,
+        unit?: string | null,
+        displayValue?: string | null,
+    ) {
+        return this.prisma.systemHealthMetric.upsert({
+            where: { key },
+            update: {
+                value,
+                unit,
+                displayValue,
+                recordedAt: new Date(),
+            },
+            create: {
+                key,
+                label,
+                value,
+                unit,
+                displayValue,
+                recordedAt: new Date(),
+            },
+        });
+    }
+
     private buildWhere(params: SystemHealthFindAllParams): Prisma.SystemHealthWhereInput {
         const checkedAtFilter = this.buildDateRangeFilter(params.checkedFrom, params.checkedTo);
 

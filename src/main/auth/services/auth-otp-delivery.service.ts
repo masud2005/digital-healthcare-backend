@@ -1,5 +1,6 @@
 import { Injectable, Logger, OnModuleInit, ServiceUnavailableException } from "@nestjs/common";
 import nodemailer from "nodemailer";
+import { SystemHealthService } from "../../(compliance)/system-health/system-health.service";
 import { buildOtpEmail } from "../templates/auth-email-template";
 import { buildOtpSms } from "../templates/auth-sms-template";
 
@@ -7,6 +8,8 @@ import { buildOtpSms } from "../templates/auth-sms-template";
 export class AuthOtpDeliveryService implements OnModuleInit {
     private readonly logger = new Logger(AuthOtpDeliveryService.name);
     private readonly transporter = this.createTransporter();
+
+    constructor(private readonly systemHealthService: SystemHealthService) {}
 
     async onModuleInit() {
         if (!this.transporter) {
@@ -66,6 +69,7 @@ export class AuthOtpDeliveryService implements OnModuleInit {
             throw new ServiceUnavailableException("Email provider is not configured");
         }
 
+        const startTime = Date.now();
         try {
             await this.transporter.sendMail({
                 from: process.env.MAIL_FROM ?? process.env.SMTP_USER,
@@ -74,7 +78,11 @@ export class AuthOtpDeliveryService implements OnModuleInit {
                 text,
                 html,
             });
+            const duration = Date.now() - startTime;
+            await this.systemHealthService.recordEmailDelivery(true, duration).catch(() => {});
         } catch (error) {
+            const duration = Date.now() - startTime;
+            await this.systemHealthService.recordEmailDelivery(false, duration).catch(() => {});
             this.logger.error(`Failed to send OTP email to ${email}`, error as Error);
             throw new ServiceUnavailableException("Unable to send email verification code");
         }
@@ -105,22 +113,35 @@ export class AuthOtpDeliveryService implements OnModuleInit {
             body.set("From", from);
         }
 
-        const response = await fetch(
-            `https://api.twilio.com/2010-04-01/Accounts/${accountSid}/Messages.json`,
-            {
-                method: "POST",
-                headers: {
-                    Authorization: `Basic ${Buffer.from(`${accountSid}:${authToken}`).toString("base64")}`,
-                    "Content-Type": "application/x-www-form-urlencoded",
+        const startTime = Date.now();
+        try {
+            const response = await fetch(
+                `https://api.twilio.com/2010-04-01/Accounts/${accountSid}/Messages.json`,
+                {
+                    method: "POST",
+                    headers: {
+                        Authorization: `Basic ${Buffer.from(`${accountSid}:${authToken}`).toString("base64")}`,
+                        "Content-Type": "application/x-www-form-urlencoded",
+                    },
+                    body,
                 },
-                body,
-            },
-        );
+            );
 
-        if (!response.ok) {
-            const errorBody = await response.text();
-            this.logger.error(`Twilio SMS failed with status ${response.status}: ${errorBody}`);
-            throw new ServiceUnavailableException("Unable to send SMS verification code");
+            const duration = Date.now() - startTime;
+            if (!response.ok) {
+                const errorBody = await response.text();
+                this.logger.error(`Twilio SMS failed with status ${response.status}: ${errorBody}`);
+                await this.systemHealthService.recordSmsDelivery(false, duration).catch(() => {});
+                throw new ServiceUnavailableException("Unable to send SMS verification code");
+            }
+
+            await this.systemHealthService.recordSmsDelivery(true, duration).catch(() => {});
+        } catch (error) {
+            const duration = Date.now() - startTime;
+            if (!(error instanceof ServiceUnavailableException)) {
+                await this.systemHealthService.recordSmsDelivery(false, duration).catch(() => {});
+            }
+            throw error;
         }
     }
 }
