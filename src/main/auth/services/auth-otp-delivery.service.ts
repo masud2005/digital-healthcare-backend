@@ -95,23 +95,20 @@ export class AuthOtpDeliveryService implements OnModuleInit {
     ) {
         const accountSid = process.env.TWILIO_ACCOUNT_SID;
         const authToken = process.env.TWILIO_AUTH_TOKEN;
-        const messagingServiceSid = process.env.TWILIO_MESSAGING_SERVICE_SID;
         const from = process.env.TWILIO_FROM_NUMBER ?? process.env.TWILIO_PHONE_NUMBER;
 
-        if (!accountSid || !authToken || (!messagingServiceSid && !from)) {
-            throw new ServiceUnavailableException("SMS provider is not configured");
+        if (!accountSid || !authToken || !from) {
+            this.logger.error("Twilio credentials or phone number is missing in .env");
+            throw new ServiceUnavailableException("SMS provider is not configured properly");
         }
+
+        const formattedPhone = phone.trim().replace(/\s+/g, '');
 
         const body = new URLSearchParams({
-            To: phone,
+            To: formattedPhone,
             Body: buildOtpSms({ code, purpose }),
+            From: from,
         });
-
-        if (messagingServiceSid) {
-            body.set("MessagingServiceSid", messagingServiceSid);
-        } else if (from) {
-            body.set("From", from);
-        }
 
         const startTime = Date.now();
         try {
