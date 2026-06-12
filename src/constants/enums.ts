@@ -67,6 +67,15 @@ export type AuthSecurityEventType = (typeof authSecurityEventType)[number];
 export const discountType = ["PERCENTAGE", "FIXED_AMOUNT"] as const;
 export type DiscountType = (typeof discountType)[number];
 
+export const incidentSeverity = ["CRITICAL", "HIGH", "MEDIUM", "LOW"] as const;
+export type IncidentSeverity = (typeof incidentSeverity)[number];
+
+export const incidentSource = ["SECURITY_SCAN", "SYSTEM_MONITORING", "USER_REPORT", "MANUAL"] as const;
+export type IncidentSource = (typeof incidentSource)[number];
+
+export const incidentStatus = ["OPEN", "INVESTIGATING", "RESOLVED", "CLOSED"] as const;
+export type IncidentStatus = (typeof incidentStatus)[number];
+
 export const systemHealthStatus = ["OPERATIONAL", "DEGRADED", "OUTAGE", "MAINTENANCE"] as const;
 export type SystemHealthStatus = (typeof systemHealthStatus)[number];
 
