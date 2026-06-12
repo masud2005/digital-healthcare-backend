@@ -1,16 +1,8 @@
 import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
 import { Type } from "class-transformer";
-import {
-    ArrayMinSize,
-    IsArray,
-    IsNotEmpty,
-    IsOptional,
-    IsString,
-    IsUUID,
-    ValidateNested,
-} from "class-validator";
+import { ArrayMinSize, IsArray, IsNotEmpty, IsOptional, IsString, IsUUID, ValidateNested } from "class-validator";
 
-export class AssessmentSubmissionAnswerInputDto {
+export class UpdateSubmissionAnswerInputDto {
     @ApiProperty({
         example: "bf8cfc71-75ff-49e7-8ec8-7b6f099f0dd8",
         description:
@@ -50,18 +42,12 @@ export class AssessmentSubmissionAnswerInputDto {
     selectedOptionIds?: string[];
 }
 
-export class CreateAssessmentSubmissionDto {
+export class UpdateAssessmentSubmissionDto {
     @ApiProperty({
-        example: "7f4145d8-087e-4d33-82bd-0f65d3fbdb4f",
-        description: "The id of the active assessment to submit answers for.",
-    })
-    @IsUUID()
-    assessmentId: string;
-
-    @ApiProperty({
-        type: [AssessmentSubmissionAnswerInputDto],
+        type: [UpdateSubmissionAnswerInputDto],
         description:
-            "Array of answers, one object per answerable question. " +
+            "Replaces ALL existing answers for this submission. " +
+            "Send the complete updated answers array — partial updates are not supported. " +
             "INFORMATION_ONLY questions must be omitted. " +
             "Sub-questions must only be included when their parent option is selected. " +
             "Duplicate questionIds are not allowed.",
@@ -69,6 +55,6 @@ export class CreateAssessmentSubmissionDto {
     @IsArray()
     @ArrayMinSize(1)
     @ValidateNested({ each: true })
-    @Type(() => AssessmentSubmissionAnswerInputDto)
-    answers: AssessmentSubmissionAnswerInputDto[];
+    @Type(() => UpdateSubmissionAnswerInputDto)
+    answers: UpdateSubmissionAnswerInputDto[];
 }

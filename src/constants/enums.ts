@@ -25,7 +25,7 @@ export type QuestionType = (typeof questionType)[number];
 export const alignment = ["LEFT", "CENTER", "RIGHT"] as const;
 export type Alignment = (typeof alignment)[number];
 
-export const submissionStatus = ["PENDING", "ACCEPTED", "REJECTED"] as const;
+export const submissionStatus = [ "DRAFT", "PENDING", "REVIEWED", "ACCEPTED", "REFIL_REQUESTED", "REJECTED"] as const;
 export type SubmissionStatus = (typeof submissionStatus)[number];
 
 export const otpPurpose = ["LOGIN", "REGISTER", "FORGOT_PASSWORD"] as const;

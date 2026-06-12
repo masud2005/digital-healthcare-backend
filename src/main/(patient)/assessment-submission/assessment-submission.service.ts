@@ -1,7 +1,13 @@
-import { BadRequestException, Injectable, NotFoundException } from "@nestjs/common";
+import { BadRequestException, ForbiddenException, Injectable, NotFoundException } from "@nestjs/common";
+import { StorageService } from "@global/storage/storage.service";
 import type { QuestionType } from "@prisma/client";
-import { AssessmentSubmissionRecord, AssessmentSubmissionRepository } from "./assessment-submission.repository";
+import {
+    AssessmentSubmissionRecord,
+    AssessmentSubmissionRepository,
+    BlueprintSubmissionRecord,
+} from "./assessment-submission.repository";
 import { CreateAssessmentSubmissionDto } from "./dto/create-assessment-submission.dto";
+import { UpdateAssessmentSubmissionDto } from "./dto/update-assessment-submission.dto";
 
 type NormalizedAnswer = {
     questionId: string;
@@ -17,9 +23,46 @@ type SubmissionQuestion = {
     options: Array<{ id: string }>;
 };
 
+const EDITABLE_STATUSES: string[] = ["DRAFT", "REFIL_REQUESTED"];
+
 @Injectable()
 export class AssessmentSubmissionService {
-    constructor(private readonly assessmentSubmissionRepository: AssessmentSubmissionRepository) {}
+    constructor(
+        private readonly assessmentSubmissionRepository: AssessmentSubmissionRepository,
+        private readonly storageService: StorageService,
+    ) {}
+
+    async getMyAssessmentBlueprints(userId: string) {
+        const submissions = await this.assessmentSubmissionRepository.findMySubmissions(userId);
+        return Promise.all(submissions.map((s) => this.mapBlueprint(s)));
+    }
+
+    async updateSubmission(submissionId: string, userId: string, payload: UpdateAssessmentSubmissionDto) {
+        const submission = await this.assessmentSubmissionRepository.findSubmissionById(submissionId, userId);
+
+        if (!submission) {
+            throw new NotFoundException("Submission not found");
+        }
+
+        if (!EDITABLE_STATUSES.includes(submission.status)) {
+            throw new ForbiddenException("Only DRAFT submissions can be edited");
+        }
+
+        const normalizedAnswers = this.normalizeAnswers(payload.answers);
+        const questionIds = normalizedAnswers.map((a) => a.questionId);
+        const questions = await this.assessmentSubmissionRepository.findQuestionsByAssessment(submission.assessmentId);
+        const submittedQuestions = questions.filter((q) => questionIds.includes(q.id));
+
+        if (submittedQuestions.length !== questionIds.length) {
+            throw new BadRequestException("One or more questions are invalid for this assessment");
+        }
+
+        const questionMap = new Map(questions.map((q) => [q.id, q]));
+        this.validateAnswers(normalizedAnswers, questions, questionMap);
+
+        const updated = await this.assessmentSubmissionRepository.updateSubmission(submissionId, normalizedAnswers);
+        return this.mapBlueprint(updated);
+    }
 
     async create(userId: string, payload: CreateAssessmentSubmissionDto) {
         const assessment = await this.assessmentSubmissionRepository.findAssessmentById(payload.assessmentId);
@@ -57,6 +100,68 @@ export class AssessmentSubmissionService {
         });
 
         return this.mapSubmission(submission);
+    }
+
+    private async mapBlueprint(submission: BlueprintSubmissionRecord) {
+        const { assessment } = submission;
+
+        const answerMap = new Map(
+            submission.answers.map((a) => [
+                a.questionId,
+                {
+                    textResponse: a.textResponse,
+                    selectedOptionIds: a.selectedOptions.map((s) => s.optionId),
+                },
+            ]),
+        );
+
+        const thumbnail = await this.storageService.resolveKey(assessment.thumbnail);
+
+        const questionsByParentOptionId = new Map<string, typeof assessment.questions>();
+        for (const q of assessment.questions) {
+            if (!q.parentOptionId) continue;
+            const group = questionsByParentOptionId.get(q.parentOptionId) ?? [];
+            group.push(q);
+            questionsByParentOptionId.set(q.parentOptionId, group);
+        }
+
+        const buildQuestion = (q: (typeof assessment.questions)[number]): object => ({
+            id: q.id,
+            type: q.type,
+            heading: q.heading ?? null,
+            questionText: q.questionText ?? null,
+            description: q.description ?? null,
+            options: q.options.map((opt) => ({
+                id: opt.id,
+                label: opt.label,
+                inputType: opt.inputType ?? null,
+                subQuestions: (questionsByParentOptionId.get(opt.id) ?? []).map(buildQuestion),
+            })),
+            patientAnswer: answerMap.get(q.id)
+                ? {
+                      selectedOptionIds: answerMap.get(q.id)!.selectedOptionIds,
+                      textResponse: answerMap.get(q.id)!.textResponse ?? null,
+                  }
+                : null,
+        });
+
+        const rootQuestions = assessment.questions
+            .filter((q) => !q.parentOptionId)
+            .map(buildQuestion);
+
+        return {
+            submissionId: submission.id,
+            submissionCode: submission.submissionCode,
+            status: submission.status,
+            isEditable: EDITABLE_STATUSES.includes(submission.status),
+            assessment: {
+                id: assessment.id,
+                title: assessment.title,
+                thumbnail,
+                category: assessment.category.name,
+            },
+            questions: rootQuestions,
+        };
     }
 
     private validateAnswers(

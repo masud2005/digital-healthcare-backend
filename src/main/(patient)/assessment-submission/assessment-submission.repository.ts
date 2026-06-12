@@ -2,6 +2,16 @@ import { PrismaService } from "@global/prisma/prisma.service";
 import { Injectable } from "@nestjs/common";
 import type { Prisma, SubmissionStatus } from "@prisma/client";
 
+const SUBMISSION_CODE_CHARS = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+const SUBMISSION_CODE_LENGTH = 6;
+const SUBMISSION_CODE_MAX_RETRIES = 5;
+
+function generateSubmissionCode(): string {
+    return Array.from({ length: SUBMISSION_CODE_LENGTH })
+        .map(() => SUBMISSION_CODE_CHARS[Math.floor(Math.random() * SUBMISSION_CODE_CHARS.length)])
+        .join("");
+}
+
 const assessmentSubmissionInclude = {
     assessment: {
         select: {
@@ -37,8 +47,43 @@ const assessmentSubmissionInclude = {
     },
 } satisfies Prisma.AssessmentSubmissionInclude;
 
+const blueprintSubmissionInclude = {
+    assessment: {
+        include: {
+            category: {
+                select: { name: true },
+            },
+            questions: {
+                orderBy: { createdAt: "asc" },
+                include: {
+                    options: {
+                        select: {
+                            id: true,
+                            label: true,
+                            inputType: true,
+                        },
+                    },
+                },
+            },
+        },
+    },
+    answers: {
+        include: {
+            selectedOptions: {
+                select: {
+                    optionId: true,
+                },
+            },
+        },
+    },
+} satisfies Prisma.AssessmentSubmissionInclude;
+
 export type AssessmentSubmissionRecord = Prisma.AssessmentSubmissionGetPayload<{
     include: typeof assessmentSubmissionInclude;
+}>;
+
+export type BlueprintSubmissionRecord = Prisma.AssessmentSubmissionGetPayload<{
+    include: typeof blueprintSubmissionInclude;
 }>;
 
 export type CreateAssessmentSubmissionInput = {
@@ -56,28 +101,44 @@ export type CreateAssessmentSubmissionInput = {
 export class AssessmentSubmissionRepository {
     constructor(private readonly prisma: PrismaService) {}
 
-    create(data: CreateAssessmentSubmissionInput) {
-        return this.prisma.assessmentSubmission.create({
-            data: {
-                userId: data.userId,
-                assessmentId: data.assessmentId,
-                status: data.status,
-                answers: {
-                    create: data.answers.map((answer) => ({
-                        questionId: answer.questionId,
-                        textResponse: answer.textResponse ?? null,
-                        selectedOptions: answer.selectedOptionIds?.length
-                            ? {
-                                  create: answer.selectedOptionIds.map((optionId) => ({
-                                      optionId,
-                                  })),
-                              }
-                            : undefined,
-                    })),
-                },
-            },
-            include: assessmentSubmissionInclude,
-        });
+    async create(data: CreateAssessmentSubmissionInput) {
+        for (let attempt = 0; attempt < SUBMISSION_CODE_MAX_RETRIES; attempt++) {
+            const submissionCode = generateSubmissionCode();
+
+            try {
+                return await this.prisma.assessmentSubmission.create({
+                    data: {
+                        submissionCode,
+                        userId: data.userId,
+                        assessmentId: data.assessmentId,
+                        status: data.status,
+                        answers: {
+                            create: data.answers.map((answer) => ({
+                                questionId: answer.questionId,
+                                textResponse: answer.textResponse ?? null,
+                                selectedOptions: answer.selectedOptionIds?.length
+                                    ? {
+                                          create: answer.selectedOptionIds.map((optionId) => ({
+                                              optionId,
+                                          })),
+                                      }
+                                    : undefined,
+                            })),
+                        },
+                    },
+                    include: assessmentSubmissionInclude,
+                });
+            } catch (error: any) {
+                const isUniqueViolation = error?.code === "P2002" &&
+                    error?.meta?.target?.includes("submissionCode");
+
+                if (!isUniqueViolation || attempt === SUBMISSION_CODE_MAX_RETRIES - 1) {
+                    throw error;
+                }
+            }
+        }
+
+        throw new Error("Failed to generate a unique submission code");
     }
 
     findAssessmentById(assessmentId: string) {
@@ -140,5 +201,53 @@ export class AssessmentSubmissionRepository {
 
     createSubmission(data: CreateAssessmentSubmissionInput) {
         return this.create(data);
+    }
+
+    findMySubmissions(userId: string): Promise<BlueprintSubmissionRecord[]> {
+        return this.prisma.assessmentSubmission.findMany({
+            where: { userId },
+            orderBy: { createdAt: "desc" },
+            include: blueprintSubmissionInclude,
+        });
+    }
+
+    findSubmissionById(id: string, userId: string): Promise<BlueprintSubmissionRecord | null> {
+        return this.prisma.assessmentSubmission.findFirst({
+            where: { id, userId },
+            include: blueprintSubmissionInclude,
+        });
+    }
+
+    async updateSubmission(
+        id: string,
+        answers: Array<{
+            questionId: string;
+            textResponse?: string | null;
+            selectedOptionIds?: string[];
+        }>,
+    ) {
+        return this.prisma.$transaction(async (tx) => {
+            await tx.submissionAnswer.deleteMany({ where: { submissionId: id } });
+
+            return tx.assessmentSubmission.update({
+                where: { id },
+                data: {
+                    answers: {
+                        create: answers.map((answer) => ({
+                            questionId: answer.questionId,
+                            textResponse: answer.textResponse ?? null,
+                            selectedOptions: answer.selectedOptionIds?.length
+                                ? {
+                                      create: answer.selectedOptionIds.map((optionId) => ({
+                                          optionId,
+                                      })),
+                                  }
+                                : undefined,
+                        })),
+                    },
+                },
+                include: blueprintSubmissionInclude,
+            });
+        });
     }
 }

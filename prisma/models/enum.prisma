@@ -103,8 +103,11 @@ enum QuestionType {
 }
 
 enum SubmissionStatus {
+  DRAFT
   PENDING
+  REVIEWED
   ACCEPTED
+  REFIL_REQUESTED
   REJECTED
 }
 
