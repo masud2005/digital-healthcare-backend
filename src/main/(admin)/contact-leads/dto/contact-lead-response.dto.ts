@@ -31,6 +31,21 @@ export class ContactLeadResponseDto {
     })
     attachments: string | null;
 
+    @ApiPropertyOptional({ example: "Welcome to Weight Loss MD", nullable: true })
+    responseSubject: string | null;
+
+    @ApiPropertyOptional({ example: "Dear Jessica...", nullable: true })
+    responseMessage: string | null;
+
+    @ApiPropertyOptional({
+        example: "https://minio.example.com/testing/2026-06-08/file.pdf",
+        nullable: true,
+    })
+    responseAttachments: string | null;
+
+    @ApiPropertyOptional({ example: "2026-05-18T04:00:00.000Z", nullable: true })
+    respondedAt: Date | null;
+
     @ApiProperty({ example: "2026-05-18T04:00:00.000Z" })
     createdAt: Date;
 

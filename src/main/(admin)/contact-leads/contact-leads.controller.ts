@@ -30,6 +30,7 @@ import {
 } from "./dto/contact-lead-response.dto";
 import { CreateContactLeadDto } from "./dto/create-contact-lead.dto";
 import { UpdateContactLeadDto } from "./dto/update-contact-lead.dto";
+import { RespondContactLeadDto } from "./dto/respond-contact-lead.dto";
 
 @ApiTags("(Admin) Contact Leads")
 @Controller("admin/contact-leads")
@@ -94,5 +95,18 @@ export class ContactLeadsController {
     @ApiNoContentResponse({ description: "Contact lead deleted successfully" })
     async remove(@Param() params: ContactLeadParamDto) {
         await this.contactLeadsService.remove(params.id);
+    }
+
+    @Post(":id/respond")
+    @ApiOperation({ summary: "Send a response back to a contact lead" })
+    @ApiConsumes("multipart/form-data")
+    @UseInterceptors(FileInterceptor("attachments"))
+    @ApiOkResponse({ type: ContactLeadResponseDto })
+    async respond(
+        @Param() params: ContactLeadParamDto,
+        @Body() payload: RespondContactLeadDto,
+        @UploadedFile() file?: Express.Multer.File,
+    ) {
+        return this.contactLeadsService.respond(params.id, payload, file);
     }
 }

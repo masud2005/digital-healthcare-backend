@@ -5,10 +5,12 @@ import {
     NotFoundException,
 } from "@nestjs/common";
 import { StorageService } from "@global/storage/storage.service";
+import { MailService } from "@global/mail/mail.service";
 import { ContactLeadsRepository } from "./contact-leads.repository";
 import { ContactLeadQueryDto } from "./dto/contact-lead-query.dto";
 import { CreateContactLeadDto } from "./dto/create-contact-lead.dto";
 import { UpdateContactLeadDto } from "./dto/update-contact-lead.dto";
+import { RespondContactLeadDto } from "./dto/respond-contact-lead.dto";
 
 const DEFAULT_PAGE = 1;
 const DEFAULT_LIMIT = 10;
@@ -18,11 +20,11 @@ export class ContactLeadsService {
     constructor(
         private readonly contactLeadsRepository: ContactLeadsRepository,
         private readonly storageService: StorageService,
+        private readonly mailService: MailService,
     ) {}
 
     async create(payload: CreateContactLeadDto) {
         const data = this.normalizeCreatePayload(payload);
-        await this.ensureEmailIsAvailable(data.email);
 
         try {
             const contactLead = await this.contactLeadsRepository.create(data);
@@ -71,12 +73,43 @@ export class ContactLeadsService {
         await this.findOne(id);
         const data = this.normalizeUpdatePayload(payload);
 
-        if (data.email) {
-            await this.ensureEmailIsAvailable(data.email, id);
+        try {
+            const contactLead = await this.contactLeadsRepository.update(id, data);
+            return this.resolveAttachment(contactLead);
+        } catch (error) {
+            this.throwKnownPrismaError(error);
+            throw error;
+        }
+    }
+
+    async respond(id: string, payload: RespondContactLeadDto, file?: Express.Multer.File) {
+        const lead = await this.findOne(id);
+
+        let responseAttachments: string | null = null;
+        if (file) {
+            const uploaded = await this.storageService.uploadFile(file);
+            responseAttachments = uploaded.key;
         }
 
         try {
-            const contactLead = await this.contactLeadsRepository.update(id, data);
+            const contactLead = await this.contactLeadsRepository.update(id, {
+                responded: true,
+                respondedAt: new Date(),
+                responseSubject: payload.subject,
+                responseMessage: payload.message,
+                responseAttachments,
+            });
+
+            await this.mailService.sendMail({
+                to: lead.email,
+                subject: payload.subject,
+                text: payload.message,
+                attachments: file ? [{
+                    filename: file.originalname,
+                    content: file.buffer,
+                }] : undefined,
+            });
+
             return this.resolveAttachment(contactLead);
         } catch (error) {
             this.throwKnownPrismaError(error);
@@ -95,10 +128,11 @@ export class ContactLeadsService {
         }
     }
 
-    private async resolveAttachment<T extends { attachments: string | null }>(contactLead: T) {
+    private async resolveAttachment<T extends { attachments: string | null; responseAttachments?: string | null }>(contactLead: T) {
         return {
             ...contactLead,
             attachments: await this.storageService.resolveKey(contactLead.attachments),
+            responseAttachments: await this.storageService.resolveKey(contactLead.responseAttachments),
         };
     }
 
@@ -175,14 +209,6 @@ export class ContactLeadsService {
 
         const trimmed = value.trim();
         return trimmed.length > 0 ? trimmed : null;
-    }
-
-    private async ensureEmailIsAvailable(email: string, excludeId?: string) {
-        const existingContactLead = await this.contactLeadsRepository.findByEmail(email);
-
-        if (existingContactLead && existingContactLead.id !== excludeId) {
-            throw new ConflictException("Contact lead email already exists");
-        }
     }
 
     private throwKnownPrismaError(error: unknown) {
