@@ -35,21 +35,91 @@ async function bootstrap() {
     app.setGlobalPrefix("/api/v1");
 
     // ✅ Swagger config with Bearer Auth
-    const config = new DocumentBuilder()
-        .setTitle("Doc API")
-        .setDescription("API documentation for the Doc System")
+    const adminConfig = new DocumentBuilder()
+        .setTitle("Admin API")
+        .setDescription("API endpoints for Admin operations")
         .setVersion("1.0")
         .addBearerAuth()
         .build();
 
-    const document = SwaggerModule.createDocument(app, config, {
+    const authConfig = new DocumentBuilder()
+        .setTitle("Auth API")
+        .setDescription("API endpoints for Authentication and User management")
+        .setVersion("1.0")
+        .addBearerAuth()
+        .build();
+
+    const patientConfig = new DocumentBuilder()
+        .setTitle("Patient API")
+        .setDescription("API endpoints for Patient operations")
+        .setVersion("1.0")
+        .addBearerAuth()
+        .build();
+
+    const complianceConfig = new DocumentBuilder()
+        .setTitle("Compliance API")
+        .setDescription("API endpoints for Compliance and System Health")
+        .setVersion("1.0")
+        .addBearerAuth()
+        .build();
+
+    const globalConfig = new DocumentBuilder()
+        .setTitle("Doc API (All)")
+        .setDescription("Full API documentation for the Doc System")
+        .setVersion("1.0")
+        .addBearerAuth()
+        .build();
+
+    // Import modules dynamically to avoid circular references at runtime
+    const { AdminModule } = require("./main/(admin)/admin.module");
+    const { AuthModule } = require("./main/auth/auth.module");
+    const { PatientModule } = require("./main/(patient)/patient.module");
+    const { ComplianceModule } = require("./main/(compliance)/compliance.module");
+
+    // Setup Admin Docs
+    const adminDocument = SwaggerModule.createDocument(app, adminConfig, {
+        include: [AdminModule],
         deepScanRoutes: true,
     });
-    SwaggerModule.setup("docs", app, document, {
-        swaggerOptions: {
-            persistAuthorization: true,
-        },
+    SwaggerModule.setup("docs/admin", app, adminDocument, {
+        swaggerOptions: { persistAuthorization: true },
     });
+
+    // Setup Auth Docs
+    const authDocument = SwaggerModule.createDocument(app, authConfig, {
+        include: [AuthModule],
+        deepScanRoutes: true,
+    });
+    SwaggerModule.setup("docs/auth", app, authDocument, {
+        swaggerOptions: { persistAuthorization: true },
+    });
+
+    // Setup Patient Docs
+    const patientDocument = SwaggerModule.createDocument(app, patientConfig, {
+        include: [PatientModule],
+        deepScanRoutes: true,
+    });
+    SwaggerModule.setup("docs/patient", app, patientDocument, {
+        swaggerOptions: { persistAuthorization: true },
+    });
+
+    // Setup Compliance Docs
+    const complianceDocument = SwaggerModule.createDocument(app, complianceConfig, {
+        include: [ComplianceModule],
+        deepScanRoutes: true,
+    });
+    SwaggerModule.setup("docs/compliance", app, complianceDocument, {
+        swaggerOptions: { persistAuthorization: true },
+    });
+
+    // Setup Global Docs
+    const globalDocument = SwaggerModule.createDocument(app, globalConfig, {
+        deepScanRoutes: true,
+    });
+    SwaggerModule.setup("docs", app, globalDocument, {
+        swaggerOptions: { persistAuthorization: true },
+    });
+
     // dose-ignore
     console.log("Server is running on port " + (process.env.PORT ?? 3031));
     // dose-ignore

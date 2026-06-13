@@ -7,7 +7,7 @@ import { RegisterDto } from "../dto/register.dto";
 import { AuthAccountService } from "../services/auth-account.service";
 import { AuthOtpService } from "../services/auth-otp.service";
 
-@ApiTags("Auth")
+@ApiTags("(Auth) Account")
 @Controller("auth")
 export class AuthAccountController {
     constructor(

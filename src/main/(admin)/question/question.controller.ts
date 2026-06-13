@@ -9,7 +9,7 @@ import { QuestionListResponseDto, QuestionResponseDto } from "./dto/question-res
 import { UpdateQuestionDto } from "./dto/update-question.dto";
 import { QuestionService } from "./question.service";
 
-@ApiTags("Admin Questions")
+@ApiTags("(Admin) Question")
 @Controller("admin/questions")
 export class QuestionController {
     constructor(

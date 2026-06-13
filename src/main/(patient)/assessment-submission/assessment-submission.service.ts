@@ -1,5 +1,5 @@
-import { BadRequestException, ForbiddenException, Injectable, NotFoundException } from "@nestjs/common";
 import { StorageService } from "@global/storage/storage.service";
+import { BadRequestException, ForbiddenException, Injectable, NotFoundException } from "@nestjs/common";
 import type { QuestionType } from "@prisma/client";
 import {
     AssessmentSubmissionRecord,
@@ -65,7 +65,9 @@ export class AssessmentSubmissionService {
     }
 
     async create(userId: string, payload: CreateAssessmentSubmissionDto) {
-        const assessment = await this.assessmentSubmissionRepository.findAssessmentById(payload.assessmentId);
+        const assessment = await this.assessmentSubmissionRepository.findAssessmentById(
+            payload.assessmentId,
+        );
 
         if (!assessment) {
             throw new NotFoundException("Assessment not found");

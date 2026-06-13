@@ -12,7 +12,7 @@ type AuthenticatedRequest = Request & {
     };
 };
 
-@ApiTags("Auth")
+@ApiTags("(Auth) Session")
 @Controller("auth")
 export class AuthSessionController {
     constructor(private readonly authSessionService: AuthSessionService) {}

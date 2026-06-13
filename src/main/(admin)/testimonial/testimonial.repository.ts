@@ -34,6 +34,10 @@ export class TestimonialRepository {
         return this.prisma.testimonial.create({ data });
     }
 
+    count() {
+        return this.prisma.testimonial.count();
+    }
+
     async findAll(params: TestimonialFindAllParams) {
         const { page, limit } = params;
         const where = this.buildWhere(params);

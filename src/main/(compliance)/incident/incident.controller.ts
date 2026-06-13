@@ -17,7 +17,7 @@ import {
 import { UpdateIncidentDto } from "./dto/update-incident.dto";
 import { IncidentService } from "./incident.service";
 
-@ApiTags("Compliance Incident Management")
+@ApiTags("(Compliance) Incident Management")
 @Controller("compliance/incidents")
 export class IncidentController {
     constructor(private readonly incidentService: IncidentService) {}

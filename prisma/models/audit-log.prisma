@@ -1,0 +1,21 @@
+model AuditLog {
+  id           String   @id @default(uuid())
+  userId       String?
+  userName     String
+  userRole     String
+  activityType String
+  event        String
+  ipAddress    String?
+  sessionDue   String?
+  fileUrl      String?
+  status       String   @default("SUCCESS") // SUCCESS or FAILED
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  user User? @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  @@index([activityType])
+  @@index([userRole])
+  @@index([createdAt])
+  @@map("audit_logs")
+}

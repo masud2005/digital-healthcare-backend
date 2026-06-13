@@ -20,6 +20,10 @@ type ContactLeadUpdateData = {
     read?: boolean;
     responded?: boolean;
     attachments?: string | null;
+    responseSubject?: string | null;
+    responseMessage?: string | null;
+    responseAttachments?: string | null;
+    respondedAt?: Date | null;
 };
 
 type ContactLeadFindAllParams = {
@@ -75,12 +79,6 @@ export class ContactLeadsRepository {
     findById(id: string) {
         return this.prisma.contactLead.findUnique({
             where: { id },
-        });
-    }
-
-    findByEmail(email: string) {
-        return this.prisma.contactLead.findUnique({
-            where: { email },
         });
     }
 

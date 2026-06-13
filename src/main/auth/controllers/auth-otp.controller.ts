@@ -8,7 +8,7 @@ import { VerifyOtpDto } from "../dto/verify-otp.dto";
 import { AuthOtpService } from "../services/auth-otp.service";
 import { getRequestContext, setRefreshCookieAndReturnBody } from "./auth-controller.utils";
 
-@ApiTags("Auth")
+@ApiTags("(Auth) OTP")
 @Controller("auth")
 export class AuthOtpController {
     constructor(private readonly authOtpService: AuthOtpService) {}

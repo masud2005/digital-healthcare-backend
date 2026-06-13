@@ -33,7 +33,7 @@ import {
 import { CreateAssessmentDto } from "./dto/create-assessment.dto";
 import { UpdateAssessmentDto } from "./dto/update-assessment.dto";
 
-@ApiTags("Admin Assessments")
+@ApiTags("(Admin) Assessment")
 @Controller("admin/assessments")
 export class AssessmentController {
     constructor(

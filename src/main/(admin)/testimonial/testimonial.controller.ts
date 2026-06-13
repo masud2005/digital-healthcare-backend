@@ -13,7 +13,7 @@ import { TestimonialListResponseDto, TestimonialResponseDto } from "./dto/testim
 import { UpdateTestimonialDto } from "./dto/update-testimonial.dto";
 import { TestimonialService } from "./testimonial.service";
 
-@ApiTags("Admin Testimonials")
+@ApiTags("(Admin) Testimonial")
 @Controller("admin/testimonials")
 export class TestimonialController {
     constructor(private readonly testimonialService: TestimonialService) {}

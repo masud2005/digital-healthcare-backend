@@ -1,6 +1,7 @@
 import { Injectable, UnauthorizedException } from "@nestjs/common";
 import { randomBytes } from "crypto";
 import jwt from "jsonwebtoken";
+import { AuditLogService } from "../../(compliance)/audit-log/audit-log.service";
 import { AuthRepository } from "../auth.repository";
 import type { AuthenticatedUser } from "../auth.types";
 import type { AuthRequestContext } from "./auth-context.type";
@@ -13,6 +14,7 @@ export class AuthSessionService {
     constructor(
         private readonly authRepository: AuthRepository,
         private readonly authSharedService: AuthSharedService,
+        private readonly auditLogService: AuditLogService,
     ) {}
 
     async createAuthenticatedResponse(
@@ -68,6 +70,20 @@ export class AuthSessionService {
             deviceFingerprint: fingerprint,
         });
 
+        // Audit log: successful login
+        const userRole = user.userRoles?.[0]?.role?.name ?? "Patient";
+        this.auditLogService
+            .createLog({
+                userId: user.id,
+                userName: user.email,
+                userRole,
+                activityType: "Login",
+                event: `User logged in successfully`,
+                ipAddress: context.ipAddress ?? undefined,
+                status: "SUCCESS",
+            })
+            .catch(() => {});
+
         return {
             accessToken,
             tokenType: "Bearer",
@@ -81,7 +97,25 @@ export class AuthSessionService {
             throw new UnauthorizedException("Missing session");
         }
 
+        const session = await this.authRepository.findActiveSessionById(sessionId).catch(() => null);
+
         await this.authRepository.revokeSessionById(sessionId, "LOGOUT");
+
+        // Audit log: logout
+        if (session?.user) {
+            const userRole = session.user.userRoles?.[0]?.role?.name ?? "Patient";
+            this.auditLogService
+                .createLog({
+                    userId: session.user.id,
+                    userName: session.user.email,
+                    userRole,
+                    activityType: "Login",
+                    event: "User logged out",
+                    ipAddress: session.ipAddress ?? undefined,
+                    status: "SUCCESS",
+                })
+                .catch(() => {});
+        }
 
         return {
             success: true,

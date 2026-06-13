@@ -6,7 +6,7 @@ import type { AuthenticatedUser } from "../auth.types";
 import { AuthProfileResponseDto } from "../dto/auth-response.dto";
 import { AuthAccountService } from "../services/auth-account.service";
 
-@ApiTags("Auth")
+@ApiTags("(Auth) Profile")
 @Controller("auth")
 export class AuthProfileController {
     constructor(private readonly authAccountService: AuthAccountService) {}

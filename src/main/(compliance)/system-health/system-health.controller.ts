@@ -12,7 +12,7 @@ import {
 } from "./dto/system-health-response.dto";
 import { SystemHealthService } from "./system-health.service";
 
-@ApiTags("Compliance System Health")
+@ApiTags("(Compliance) System Health")
 @Controller("compliance/system-health")
 export class SystemHealthController {
     constructor(private readonly systemHealthService: SystemHealthService) {}
