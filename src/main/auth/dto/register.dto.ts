@@ -1,19 +1,20 @@
 import { ApiProperty } from "@nestjs/swagger";
-import { IsEmail, IsString, Matches } from "class-validator";
+import { IsEmail, IsNotEmpty, IsPhoneNumber, IsString, Matches } from "class-validator";
+import { MatchesField } from "./matches-field.decorator";
 import {
     strongPasswordExample,
     strongPasswordMessage,
     strongPasswordPattern,
 } from "./password-validation.constants";
-import { MatchesField } from "./matches-field.decorator";
 
 export class RegisterDto {
     @ApiProperty({ example: "user@gmail.com" })
     @IsEmail()
     email!: string;
 
-    @ApiProperty({ example: "+88017xxxxxxxx" })
-    @IsString()
+@ApiProperty({ example: "+880183414XXXX" })
+    @IsNotEmpty()
+    @IsPhoneNumber(undefined, { message: "Phone number must be a valid international number with country code (e.g., +88018XXXXXXXX)" })
     phone!: string;
 
     @ApiProperty({

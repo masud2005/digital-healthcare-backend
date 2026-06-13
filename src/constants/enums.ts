@@ -10,6 +10,8 @@ export type UserStatus = (typeof userStatus)[number];
 
 export const categoryStatus = ["ACTIVE", "DISABLED"] as const;
 export type CategoryStatus = (typeof categoryStatus)[number];
+export const billingCycle = ["MONTHLY", "YEARLY", "QUARTERLY"] as const;
+export type BillingCycle = (typeof billingCycle)[number];
 
 export const assessmentStatus = ["DRAFT", "ACTIVE", "DISABLED"] as const;
 export type AssessmentStatus = (typeof assessmentStatus)[number];
@@ -25,7 +27,14 @@ export type QuestionType = (typeof questionType)[number];
 export const alignment = ["LEFT", "CENTER", "RIGHT"] as const;
 export type Alignment = (typeof alignment)[number];
 
-export const submissionStatus = ["PENDING", "ACCEPTED", "REJECTED"] as const;
+export const submissionStatus = [
+    "DRAFT",
+    "PENDING",
+    "REVIEWED",
+    "ACCEPTED",
+    "REFIL_REQUESTED",
+    "REJECTED",
+] as const;
 export type SubmissionStatus = (typeof submissionStatus)[number];
 
 export const otpPurpose = ["LOGIN", "REGISTER", "FORGOT_PASSWORD"] as const;
@@ -70,7 +79,12 @@ export type DiscountType = (typeof discountType)[number];
 export const incidentSeverity = ["CRITICAL", "HIGH", "MEDIUM", "LOW"] as const;
 export type IncidentSeverity = (typeof incidentSeverity)[number];
 
-export const incidentSource = ["SECURITY_SCAN", "SYSTEM_MONITORING", "USER_REPORT", "MANUAL"] as const;
+export const incidentSource = [
+    "SECURITY_SCAN",
+    "SYSTEM_MONITORING",
+    "USER_REPORT",
+    "MANUAL",
+] as const;
 export type IncidentSource = (typeof incidentSource)[number];
 
 export const incidentStatus = ["OPEN", "INVESTIGATING", "RESOLVED", "CLOSED"] as const;
@@ -87,3 +101,12 @@ export type ConsentStatus = (typeof consentStatus)[number];
 
 export const consentSource = ["WEB", "MOBILE"] as const;
 export type ConsentSource = (typeof consentSource)[number];
+export const attachmentContext = [
+    "PROFILE_PICTURE",
+    "CHAT_MESSAGE",
+    "PRODUCT_IMAGE",
+    "ASSESSMENT_FILE",
+    "MEDICAL_REPORT",
+    "CATEGORY_ICON",
+] as const;
+export type AttachmentContext = (typeof attachmentContext)[number];

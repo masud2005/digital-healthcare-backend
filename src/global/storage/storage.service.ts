@@ -1,4 +1,4 @@
-import { GetObjectCommand, PutObjectCommand, S3Client } from "@aws-sdk/client-s3";
+import { DeleteObjectCommand, GetObjectCommand, PutObjectCommand, S3Client } from "@aws-sdk/client-s3";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 import { Inject, Injectable, OnModuleInit } from "@nestjs/common";
 import "multer";
@@ -91,6 +91,18 @@ export class StorageService implements OnModuleInit {
     async resolveKey(key: string | null | undefined, expiresIn?: number): Promise<string | null> {
         if (!key) return null;
         return this.getSignedUrl(key, expiresIn);
+    }
+
+    /**
+     * 🗑️ Delete a file from MinIO using its storage key.
+     */
+    async deleteFile(key: string): Promise<void> {
+        const command = new DeleteObjectCommand({
+            Bucket: this.bucket,
+            Key: key,
+        });
+
+        await this.s3.send(command);
     }
 
     private generateFileKey(originalName: string): string {
