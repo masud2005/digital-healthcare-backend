@@ -11,7 +11,7 @@ import { ResetPasswordDto } from "../dto/reset-password.dto";
 import { AuthPasswordService } from "../services/auth-password.service";
 import { getRequestContext } from "./auth-controller.utils";
 
-@ApiTags("Auth")
+@ApiTags("(Auth) Password")
 @Controller("auth")
 export class AuthPasswordController {
     constructor(private readonly authPasswordService: AuthPasswordService) {}

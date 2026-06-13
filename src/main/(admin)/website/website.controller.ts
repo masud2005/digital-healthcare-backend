@@ -5,7 +5,7 @@ import { UpdateWebsiteSettingsDto } from "./dto/update-website-settings.dto";
 import { WebsiteSettingsResponseDto } from "./dto/website-settings-response.dto";
 import { WebsiteService } from "./website.service";
 
-@ApiTags("Admin Website Settings")
+@ApiTags("(Admin) Website Settings")
 @Controller("admin/website-settings")
 export class WebsiteController {
     constructor(private readonly websiteService: WebsiteService) {}

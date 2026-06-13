@@ -31,7 +31,7 @@ import {
 import { CreateContactLeadDto } from "./dto/create-contact-lead.dto";
 import { UpdateContactLeadDto } from "./dto/update-contact-lead.dto";
 
-@ApiTags("Admin Contact Leads")
+@ApiTags("(Admin) Contact Leads")
 @Controller("admin/contact-leads")
 export class ContactLeadsController {
     constructor(

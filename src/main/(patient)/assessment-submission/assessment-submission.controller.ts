@@ -14,7 +14,7 @@ import { AssessmentSubmissionService } from "./assessment-submission.service";
 import { CreateAssessmentSubmissionDto } from "./dto/create-assessment-submission.dto";
 import { UserPayloadDto } from "./dto/user-payload.dto";
 
-@ApiTags("Patient Assessment Submissions")
+@ApiTags("(Patient) Assessment Submission")
 @Controller("patient/assessment-submissions")
 export class AssessmentSubmissionController {
     constructor(

@@ -13,7 +13,7 @@ import { DiscountQueryDto } from "./dto/discount-query.dto";
 import { DiscountListResponseDto, DiscountResponseDto } from "./dto/discount-response.dto";
 import { UpdateDiscountDto } from "./dto/update-discount.dto";
 
-@ApiTags("Admin Discounts")
+@ApiTags("(Admin) Discount")
 @Controller("admin/discounts")
 export class DiscountController {
     constructor(private readonly discountService: DiscountService) {}

@@ -8,7 +8,7 @@ import { AuthAccountService } from "../services/auth-account.service";
 import { AuthOtpService } from "../services/auth-otp.service";
 import { getRequestContext } from "./auth-controller.utils";
 
-@ApiTags("Auth")
+@ApiTags("(Auth) Account")
 @Controller("auth")
 export class AuthAccountController {
     constructor(

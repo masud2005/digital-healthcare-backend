@@ -30,7 +30,7 @@ import { ProductListResponseDto, ProductResponseDto } from "./dto/product-respon
 import { UpdateProductDto } from "./dto/update-product.dto";
 import { ProductService } from "./product.service";
 
-@ApiTags("Admin Products")
+@ApiTags("(Admin) Product")
 @Controller("admin/products")
 export class ProductController {
     constructor(

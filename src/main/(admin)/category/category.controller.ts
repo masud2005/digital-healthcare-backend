@@ -13,7 +13,7 @@ import { CategoryListResponseDto, CategoryResponseDto } from "./dto/category-res
 import { CreateCategoryDto } from "./dto/create-category.dto";
 import { UpdateCategoryDto } from "./dto/update-category.dto";
 
-@ApiTags("Admin Categories")
+@ApiTags("(Admin) Category")
 @Controller("admin/categories")
 export class CategoryController {
     constructor(private readonly categoryService: CategoryService) {}

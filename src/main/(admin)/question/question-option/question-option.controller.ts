@@ -7,7 +7,7 @@ import { QuestionOptionListResponseDto, QuestionOptionResponseDto } from "./dto/
 import { UpdateQuestionOptionDto } from "./dto/update-question-option.dto";
 import { QuestionOptionService } from "./question-option.service";
 
-@ApiTags("Admin Question Options")
+@ApiTags("(Admin) Question Option")
 @Controller("admin/question-options")
 export class QuestionOptionController {
     constructor(private readonly questionOptionService: QuestionOptionService) {}
