@@ -11,7 +11,7 @@ model User {
   lastLoginAt     DateTime?
 
   categoryId            String?
-  category              Category?              @relation(fields: [categoryId], references: [id])
+  category              Category?              @relation(fields: [categoryId], references: [id], onDelete: Cascade)
   assessmentSubmissions AssessmentSubmission[]
   authDevices           AuthDevice[]
   authFlowAttempts      AuthFlowAttempt[]
@@ -21,6 +21,7 @@ model User {
   userRoles             UserRole[]
   doctorProfile         DoctorProfile?
   auditLogs             AuditLog[]
+  attachments           Attachment[]
 
   createdAt DateTime  @default(now())
   updatedAt DateTime  @updatedAt

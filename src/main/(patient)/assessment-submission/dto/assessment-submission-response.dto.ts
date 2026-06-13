@@ -51,6 +51,9 @@ export class AssessmentSubmissionResponseDto {
     @ApiProperty({ example: "f43ce7a9-39da-4a58-8e8f-2f40fd8b2d2a" })
     id: string;
 
+    @ApiProperty({ example: "A3K9P2" })
+    submissionCode: string;
+
     @ApiProperty({ example: "PENDING" })
     status: string;
 

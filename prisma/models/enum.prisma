@@ -12,6 +12,15 @@ enum AssessmentStatus {
   DISABLED
 }
 
+enum AttachmentContext {
+  PROFILE_PICTURE
+  CHAT_MESSAGE
+  PRODUCT_IMAGE
+  ASSESSMENT_FILE
+  MEDICAL_REPORT
+  CATEGORY_ICON
+}
+
 enum AuthAttemptStatus {
   STARTED
   OTP_SENT
@@ -35,6 +44,12 @@ enum AuthSecurityEventType {
   PASSWORD_CHANGED
   PASSWORD_RESET_STARTED
   PASSWORD_RESET_COMPLETED
+}
+
+enum BillingCycle {
+  MONTHLY
+  YEARLY
+  QUARTERLY
 }
 
 enum CategoryStatus {
@@ -95,8 +110,11 @@ enum QuestionType {
 }
 
 enum SubmissionStatus {
+  DRAFT
   PENDING
+  REVIEWED
   ACCEPTED
+  REFIL_REQUESTED
   REJECTED
 }
 
