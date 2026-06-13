@@ -78,3 +78,12 @@ export type IncidentStatus = (typeof incidentStatus)[number];
 
 export const systemHealthStatus = ["OPERATIONAL", "DEGRADED", "OUTAGE", "MAINTENANCE"] as const;
 export type SystemHealthStatus = (typeof systemHealthStatus)[number];
+
+export const consentType = ["DATA_PROCESSING", "MARKETING", "ANALYTICS", "AI_TRAINING"] as const;
+export type ConsentType = (typeof consentType)[number];
+
+export const consentStatus = ["ACCEPTED", "REVOKED", "PENDING"] as const;
+export type ConsentStatus = (typeof consentStatus)[number];
+
+export const consentSource = ["WEB", "MOBILE"] as const;
+export type ConsentSource = (typeof consentSource)[number];

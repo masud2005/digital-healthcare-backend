@@ -1,0 +1,20 @@
+model Consent {
+  id String @id @default(uuid())
+
+  userName    String?
+  email       String?
+  type        ConsentType
+  status      ConsentStatus   @default(PENDING)
+  source      ConsentSource   @default(WEB)
+  
+  userId      String?
+  
+  consentDate DateTime       @default(now())
+  createdAt   DateTime       @default(now())
+  updatedAt   DateTime       @updatedAt
+
+  @@index([email])
+  @@index([status])
+  @@index([type])
+  @@map("consents")
+}

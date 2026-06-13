@@ -5,6 +5,7 @@ import { expand } from "dotenv-expand";
 import path from "path";
 import { adminSeed } from "./adminSeed";
 import { systemHealthSeed } from "./systemHealthSeed";
+import { consentSeed } from "./consentSeed";
 
 expand(config({ path: path.resolve(process.cwd(), ".env") }));
 
@@ -16,6 +17,7 @@ async function main() {
 	console.log("🌱 Prisma seed started");
 	await adminSeed(prisma);
 	await systemHealthSeed(prisma);
+	await consentSeed(prisma);
 	console.log("✅ Prisma seed finished");
 }
 
