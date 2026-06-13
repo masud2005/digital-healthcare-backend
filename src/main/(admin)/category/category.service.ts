@@ -5,17 +5,21 @@ import {
     NotFoundException,
 } from "@nestjs/common";
 import { slugify } from "@util/functions";
+import { StorageService } from "@global/storage/storage.service";
 import { CategoryRepository } from "./category.repository";
 import { CreateCategoryDto } from "./dto/create-category.dto";
 import { CategoryQueryDto } from "./dto/category-query.dto";
 import { UpdateCategoryDto } from "./dto/update-category.dto";
-import type { CategoryStatus } from "@constant/enums";
+import type { BillingCycle, CategoryStatus } from "@constant/enums";
 
 const DEFAULT_PAGE = 1;
 const DEFAULT_LIMIT = 10;
 @Injectable()
 export class CategoryService {
-    constructor(private readonly categoryRepository: CategoryRepository) {}
+    constructor(
+        private readonly categoryRepository: CategoryRepository,
+        private readonly storageService: StorageService,
+    ) {}
 
     async create(payload: CreateCategoryDto) {
         const data = this.normalizeCreatePayload(payload);
@@ -41,8 +45,10 @@ export class CategoryService {
             search,
         });
 
+        const resolved = await Promise.all(data.map((c) => this.resolveIcon(c)));
+
         return {
-            data,
+            data: resolved,
             meta: {
                 page,
                 limit,
@@ -59,7 +65,7 @@ export class CategoryService {
             throw new NotFoundException("Category not found");
         }
 
-        return category;
+        return this.resolveIcon(category);
     }
 
     async update(id: string, payload: UpdateCategoryDto) {
@@ -94,6 +100,8 @@ export class CategoryService {
             name: this.normalizeName(payload.name),
             description: this.parseDescription(payload.description),
             ...(payload.status ? { status: payload.status } : {}),
+            ...(payload.iconId ? { iconId: payload.iconId } : {}),
+            ...(payload.paymentPlan ? { paymentPlan: payload.paymentPlan } : {}),
         };
     }
 
@@ -102,6 +110,8 @@ export class CategoryService {
             name?: string;
             description?: string | null;
             status?: CategoryStatus;
+            iconId?: string | null;
+            paymentPlan?: { price?: number; billingCycle?: BillingCycle };
         } = {};
 
         if (payload.name !== undefined) {
@@ -116,11 +126,30 @@ export class CategoryService {
             data.status = payload.status;
         }
 
+        if (payload.iconId !== undefined) {
+            data.iconId = payload.iconId;
+        }
+
+        if (payload.paymentPlan !== undefined) {
+            data.paymentPlan = payload.paymentPlan;
+        }
+
         if (Object.keys(data).length === 0) {
             throw new BadRequestException("At least one category field is required");
         }
 
         return data;
+    }
+
+    private async resolveIcon<T extends { icon: { fileUrl: string } | null }>(category: T) {
+        if (!category.icon) return category;
+        return {
+            ...category,
+            icon: {
+                ...category.icon,
+                fileUrl: await this.storageService.getSignedUrl(category.icon.fileUrl),
+            },
+        };
     }
 
     private normalizeName(name: string) {

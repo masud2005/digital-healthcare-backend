@@ -1,9 +1,10 @@
 model AssessmentSubmission {
-  id          String           @id @default(uuid())
-  status      SubmissionStatus @default(PENDING)
-  reviewedBy  String?
-  reviewedAt  DateTime?
-  doctorNotes String?          @db.Text
+  id             String           @id @default(uuid())
+  submissionCode String           @unique
+  status         SubmissionStatus @default(PENDING)
+  reviewedBy     String?
+  reviewedAt     DateTime?
+  doctorNotes    String?          @db.Text
 
   // Relations
   userId       String

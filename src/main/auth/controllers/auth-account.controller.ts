@@ -6,7 +6,6 @@ import { LoginDto } from "../dto/login.dto";
 import { RegisterDto } from "../dto/register.dto";
 import { AuthAccountService } from "../services/auth-account.service";
 import { AuthOtpService } from "../services/auth-otp.service";
-import { getRequestContext } from "./auth-controller.utils";
 
 @ApiTags("(Auth) Account")
 @Controller("auth")
@@ -26,15 +25,7 @@ export class AuthAccountController {
     @Post("login")
     @ApiOperation({ summary: "Verify login credentials and send login OTP" })
     @ApiOkResponse({ type: AuthOtpResponseDto })
-    async login(@Body() payload: LoginDto, @Req() req: Request) {
-        const result = await this.authAccountService.login(payload);
-        return this.authOtpService.sendOtp(
-            {
-                userId: result.data.userId,
-                purpose: "LOGIN",
-                method: "EMAIL",
-            },
-            getRequestContext(req),
-        );
+    login(@Body() payload: LoginDto, @Req() req: Request) {
+        return this.authAccountService.login(payload);
     }
 }
