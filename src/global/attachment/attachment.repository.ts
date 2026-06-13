@@ -1,6 +1,6 @@
 import { PrismaService } from "@global/prisma/prisma.service";
 import { Injectable } from "@nestjs/common";
-import type { AttachmentContext } from "@prisma/client";
+import type { AttachmentContext } from "@constant/enums";
 
 @Injectable()
 export class AttachmentRepository {

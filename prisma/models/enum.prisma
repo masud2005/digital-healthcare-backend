@@ -18,6 +18,7 @@ enum AttachmentContext {
   PRODUCT_IMAGE
   ASSESSMENT_FILE
   MEDICAL_REPORT
+  CATEGORY_ICON
 }
 
 enum AuthAttemptStatus {
@@ -43,6 +44,12 @@ enum AuthSecurityEventType {
   PASSWORD_CHANGED
   PASSWORD_RESET_STARTED
   PASSWORD_RESET_COMPLETED
+}
+
+enum BillingCycle {
+  MONTHLY
+  YEARLY
+  QUARTERLY
 }
 
 enum CategoryStatus {

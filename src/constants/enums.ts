@@ -10,6 +10,8 @@ export type UserStatus = (typeof userStatus)[number];
 
 export const categoryStatus = ["ACTIVE", "DISABLED"] as const;
 export type CategoryStatus = (typeof categoryStatus)[number];
+export const billingCycle = ["MONTHLY", "YEARLY", "QUARTERLY"] as const;
+export type BillingCycle = (typeof billingCycle)[number];
 
 export const assessmentStatus = ["DRAFT", "ACTIVE", "DISABLED"] as const;
 export type AssessmentStatus = (typeof assessmentStatus)[number];
@@ -79,5 +81,5 @@ export type IncidentStatus = (typeof incidentStatus)[number];
 export const systemHealthStatus = ["OPERATIONAL", "DEGRADED", "OUTAGE", "MAINTENANCE"] as const;
 export type SystemHealthStatus = (typeof systemHealthStatus)[number];
 
-export const attachmentContext = ["PROFILE_PICTURE", "CHAT_MESSAGE", "PRODUCT_IMAGE", "ASSESSMENT_FILE", "MEDICAL_REPORT"] as const;
+export const attachmentContext = ["PROFILE_PICTURE", "CHAT_MESSAGE", "PRODUCT_IMAGE", "ASSESSMENT_FILE", "MEDICAL_REPORT", "CATEGORY_ICON"] as const;
 export type AttachmentContext = (typeof attachmentContext)[number];

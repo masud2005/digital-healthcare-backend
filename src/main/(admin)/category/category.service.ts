@@ -9,7 +9,7 @@ import { CategoryRepository } from "./category.repository";
 import { CreateCategoryDto } from "./dto/create-category.dto";
 import { CategoryQueryDto } from "./dto/category-query.dto";
 import { UpdateCategoryDto } from "./dto/update-category.dto";
-import type { CategoryStatus } from "@constant/enums";
+import type { BillingCycle, CategoryStatus } from "@constant/enums";
 
 const DEFAULT_PAGE = 1;
 const DEFAULT_LIMIT = 10;
@@ -94,6 +94,8 @@ export class CategoryService {
             name: this.normalizeName(payload.name),
             description: this.parseDescription(payload.description),
             ...(payload.status ? { status: payload.status } : {}),
+            ...(payload.iconId ? { iconId: payload.iconId } : {}),
+            ...(payload.paymentPlan ? { paymentPlan: payload.paymentPlan } : {}),
         };
     }
 
@@ -102,6 +104,8 @@ export class CategoryService {
             name?: string;
             description?: string | null;
             status?: CategoryStatus;
+            iconId?: string | null;
+            paymentPlan?: { price?: number; billingCycle?: BillingCycle };
         } = {};
 
         if (payload.name !== undefined) {
@@ -114,6 +118,14 @@ export class CategoryService {
 
         if (payload.status !== undefined) {
             data.status = payload.status;
+        }
+
+        if (payload.iconId !== undefined) {
+            data.iconId = payload.iconId;
+        }
+
+        if (payload.paymentPlan !== undefined) {
+            data.paymentPlan = payload.paymentPlan;
         }
 
         if (Object.keys(data).length === 0) {

@@ -10,8 +10,8 @@ model Attachment {
     uploadedById String?
     uploadedBy   User?   @relation(fields: [uploadedById], references: [id])
 
-    // Optional relation, depending on the context of the attachment (e.g., Product, Assessment)
-
+    // Back-relations
+    category     Category?
 
     createdAt DateTime @default(now())
     updatedAt DateTime @updatedAt

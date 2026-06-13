@@ -4,14 +4,31 @@ model Category {
   description String?        @db.Text
   status      CategoryStatus @default(ACTIVE)
 
+  // Icon (attachment)
+  iconId String?     @unique
+  icon   Attachment? @relation(fields: [iconId], references: [id], onDelete: Cascade)
+
   // Relations
   products    Product[]
   assessments Assessment[]
   patients    User[]
 
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+  paymentPlan PaymentPlan?
 
   @@index([status])
   @@index([name])
+}
+
+model PaymentPlan {
+  id           String       @id @default(uuid())
+  price        Decimal      @db.Decimal(10, 2)
+  billingCycle BillingCycle @default(MONTHLY)
+
+  categoryId String   @unique
+  category   Category @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }

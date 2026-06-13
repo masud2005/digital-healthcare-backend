@@ -1,6 +1,6 @@
 import { StorageService } from "@global/storage/storage.service";
 import { BadRequestException, Injectable, NotFoundException } from "@nestjs/common";
-import type { AttachmentContext } from "@prisma/client";
+import type { AttachmentContext } from "@constant/enums";
 import { AttachmentRepository } from "./attachment.repository";
 import type { ReplaceAttachmentDto } from "./dto/replace-attachment.dto";
 import type { UploadAttachmentDto } from "./dto/upload-attachment.dto";
