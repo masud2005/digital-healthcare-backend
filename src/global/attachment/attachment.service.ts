@@ -1,6 +1,6 @@
+import type { AttachmentContext } from "@constant/enums";
 import { StorageService } from "@global/storage/storage.service";
 import { BadRequestException, Injectable, NotFoundException } from "@nestjs/common";
-import type { AttachmentContext } from "@constant/enums";
 import { AttachmentRepository } from "./attachment.repository";
 import type { ReplaceAttachmentDto } from "./dto/replace-attachment.dto";
 import type { UploadAttachmentDto } from "./dto/upload-attachment.dto";
@@ -73,9 +73,11 @@ async findAll(query: { page?: number; limit?: number; context?: AttachmentContex
             context: query.context,
             uploadedById,
         });
+        // console.log("Attachments", attachments);
 
         // Resolve signed URLs for all fetched records
         const resolvedAttachments = await Promise.all(attachments.map((a) => this.resolveUrl(a)));
+        // console.log("Resolved Attachments", resolvedAttachments);
 
         const totalPages = Math.ceil(totalItems / limit);
 
