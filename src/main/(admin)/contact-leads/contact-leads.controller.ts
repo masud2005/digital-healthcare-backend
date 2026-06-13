@@ -9,6 +9,7 @@ import {
     Patch,
     Post,
     Query,
+    Res,
     UploadedFile,
     UseInterceptors,
 } from "@nestjs/common";
@@ -19,8 +20,11 @@ import {
     ApiNoContentResponse,
     ApiOkResponse,
     ApiOperation,
+    ApiProduces,
+    ApiQuery,
     ApiTags,
 } from "@nestjs/swagger";
+import type { Response } from "express";
 import { ContactLeadsService } from "./contact-leads.service";
 import { ContactLeadParamDto } from "./dto/contact-lead-param.dto";
 import { ContactLeadQueryDto } from "./dto/contact-lead-query.dto";
@@ -62,6 +66,42 @@ export class ContactLeadsController {
     @ApiOkResponse({ type: ContactLeadListResponseDto })
     findAll(@Query() query: ContactLeadQueryDto) {
         return this.contactLeadsService.findAll(query);
+    }
+
+    @Get("export")
+    @ApiOperation({ summary: "Export contact leads as CSV" })
+    @ApiProduces("text/csv")
+    @ApiQuery({ name: "search", required: false })
+    @ApiQuery({ name: "service", required: false })
+    @ApiQuery({ name: "read", required: false, type: Boolean })
+    @ApiQuery({ name: "responded", required: false, type: Boolean })
+    async export(
+        @Query("search") search?: string,
+        @Query("service") service?: string,
+        @Query("read") read?: string,
+        @Query("responded") responded?: string,
+        @Res({ passthrough: false }) res?: Response,
+    ) {
+        const parseBool = (val?: string): boolean | undefined => {
+            if (val === "true") return true;
+            if (val === "false") return false;
+            return undefined;
+        };
+
+        const csvContent = await this.contactLeadsService.exportCsv({
+            search,
+            service,
+            read: parseBool(read),
+            responded: parseBool(responded),
+        });
+
+        const timestamp = new Date().toISOString().replace(/[:.]/g, "-").slice(0, 19);
+        const filename = `contact-leads-${timestamp}.csv`;
+
+        res!.setHeader("Content-Type", "text/csv; charset=utf-8");
+        res!.setHeader("Content-Disposition", `attachment; filename="${filename}"`);
+        res!.setHeader("Cache-Control", "no-cache");
+        res!.send(csvContent);
     }
 
     @Get(":id")

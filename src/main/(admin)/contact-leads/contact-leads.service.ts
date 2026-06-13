@@ -6,6 +6,7 @@ import {
 } from "@nestjs/common";
 import { StorageService } from "@global/storage/storage.service";
 import { MailService } from "@global/mail/mail.service";
+import { ExportService } from "@global/export/export.service";
 import { ContactLeadsRepository } from "./contact-leads.repository";
 import { ContactLeadQueryDto } from "./dto/contact-lead-query.dto";
 import { CreateContactLeadDto } from "./dto/create-contact-lead.dto";
@@ -21,6 +22,7 @@ export class ContactLeadsService {
         private readonly contactLeadsRepository: ContactLeadsRepository,
         private readonly storageService: StorageService,
         private readonly mailService: MailService,
+        private readonly exportService: ExportService,
     ) {}
 
     async create(payload: CreateContactLeadDto) {
@@ -57,6 +59,47 @@ export class ContactLeadsService {
                 totalPages: Math.ceil(total / limit),
             },
         };
+    }
+
+    async exportCsv(query: Omit<ContactLeadQueryDto, "page" | "limit">): Promise<string> {
+        const leads = await this.contactLeadsRepository.findMany({
+            search: query.search?.trim(),
+            service: query.service?.trim(),
+            read: query.read,
+            responded: query.responded,
+        });
+
+        const headers = [
+            "ID",
+            "Full Name",
+            "Email",
+            "Phone Number",
+            "Service",
+            "Message/Comments",
+            "Read Status",
+            "Response Status",
+            "Response Subject",
+            "Response Message",
+            "Responded At",
+            "Created At",
+        ];
+
+        const rows = leads.map((lead) => [
+            lead.id,
+            lead.fullName,
+            lead.email,
+            lead.phone,
+            lead.service,
+            lead.message,
+            lead.read ? "Read" : "Unread",
+            lead.responded ? "Responded" : "No Response",
+            lead.responseSubject,
+            lead.responseMessage,
+            lead.respondedAt,
+            lead.createdAt,
+        ]);
+
+        return this.exportService.generateCsv(headers, rows);
     }
 
     async findOne(id: string) {

@@ -76,6 +76,31 @@ export class ContactLeadsRepository {
         return { data, total };
     }
 
+    findMany(params: Omit<ContactLeadFindAllParams, "page" | "limit">) {
+        const { search, service, read, responded } = params;
+        const where: Prisma.ContactLeadWhereInput = {
+            ...(read !== undefined ? { read } : {}),
+            ...(responded !== undefined ? { responded } : {}),
+            ...(service ? { service: { contains: service, mode: "insensitive" } } : {}),
+            ...(search
+                ? {
+                      OR: [
+                          { fullName: { contains: search, mode: "insensitive" } },
+                          { email: { contains: search, mode: "insensitive" } },
+                          { phone: { contains: search, mode: "insensitive" } },
+                          { service: { contains: search, mode: "insensitive" } },
+                          { message: { contains: search, mode: "insensitive" } },
+                      ],
+                  }
+                : {}),
+        };
+
+        return this.prisma.contactLead.findMany({
+            where,
+            orderBy: { createdAt: "desc" },
+        });
+    }
+
     findById(id: string) {
         return this.prisma.contactLead.findUnique({
             where: { id },

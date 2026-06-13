@@ -2,12 +2,16 @@ import { Injectable, Logger, OnModuleInit } from "@nestjs/common";
 import { AuditLogRepository } from "./audit-log.repository";
 import { AuditLogQueryDto } from "./dto/audit-log-query.dto";
 import { DEFAULT_AUDIT_LOGS, generateExtraLogs } from "./audit-log-seed.data";
+import { ExportService } from "@global/export/export.service";
 
 @Injectable()
 export class AuditLogService implements OnModuleInit {
     private readonly logger = new Logger(AuditLogService.name);
 
-    constructor(private readonly auditLogRepository: AuditLogRepository) {}
+    constructor(
+        private readonly auditLogRepository: AuditLogRepository,
+        private readonly exportService: ExportService,
+    ) {}
 
     async onModuleInit() {
         await this.seedAuditLogs();
@@ -84,31 +88,20 @@ export class AuditLogService implements OnModuleInit {
             "Created At",
         ];
 
-        const escapeCsvValue = (value: string | null | undefined): string => {
-            if (value === null || value === undefined) return "";
-            const str = String(value);
-            // Wrap in quotes if contains comma, newline, or double-quote
-            if (str.includes(",") || str.includes("\n") || str.includes('"')) {
-                return `"${str.replace(/"/g, '""')}"`;
-            }
-            return str;
-        };
-
         const rows = logs.map((log) => [
-            escapeCsvValue(log.id),
-            escapeCsvValue(log.userName),
-            escapeCsvValue(log.userRole),
-            escapeCsvValue(log.activityType),
-            escapeCsvValue(log.event),
-            escapeCsvValue(log.ipAddress),
-            escapeCsvValue(log.sessionDue),
-            escapeCsvValue(log.fileUrl),
-            escapeCsvValue(log.status),
-            escapeCsvValue(log.createdAt.toISOString()),
+            log.id,
+            log.userName,
+            log.userRole,
+            log.activityType,
+            log.event,
+            log.ipAddress,
+            log.sessionDue,
+            log.fileUrl,
+            log.status,
+            log.createdAt,
         ]);
 
-        const csvLines = [headers.join(","), ...rows.map((row) => row.join(","))];
-        return csvLines.join("\n");
+        return this.exportService.generateCsv(headers, rows);
     }
 
     async createLog(data: {
