@@ -54,7 +54,7 @@ export class AuditLogStatsResponseDto {
     @ApiProperty({ example: 142 })
     activeSessions: number;
 
-    @ApiProperty({ example: 142 })
+    @ApiProperty({ example: 8 })
     dataExports: number;
 }
 
@@ -62,7 +62,7 @@ export class AuditLogListResponseDto {
     @ApiProperty({ type: [AuditLogItemResponseDto] })
     data: AuditLogItemResponseDto[];
 
-    @ApiProperty({ example: 15 })
+    @ApiProperty({ example: 158 })
     total: number;
 
     @ApiProperty({ example: 1 })
@@ -70,4 +70,13 @@ export class AuditLogListResponseDto {
 
     @ApiProperty({ example: 10 })
     limit: number;
+}
+
+export class AuditLogExportQueryDto {
+    search?: string;
+    role?: string;
+    activityType?: string;
+    status?: string;
+    startDate?: string;
+    endDate?: string;
 }

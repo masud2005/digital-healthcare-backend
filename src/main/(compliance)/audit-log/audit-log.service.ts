@@ -19,13 +19,11 @@ export class AuditLogService implements OnModuleInit {
             if (count > 0) return;
 
             this.logger.log("🌱 Seeding audit logs...");
-            
-            // Seed main mock logs
+
             for (const log of DEFAULT_AUDIT_LOGS) {
                 await this.auditLogRepository.create(log);
             }
 
-            // Seed extra generated logs for realistic numbers
             const extra = generateExtraLogs();
             for (const log of extra) {
                 await this.auditLogRepository.create(log);
@@ -39,20 +37,16 @@ export class AuditLogService implements OnModuleInit {
 
     async getStats() {
         const totalActivities = await this.auditLogRepository.count({});
-        
-        // Find failed logins total
+
         const failedLogins = await this.auditLogRepository.count({
             activityType: "Login",
             status: "FAILED",
         });
 
-        // Find failed logins in the last hour
         const failedLoginsChangeThisHour = await this.auditLogRepository.countFailedLoginsLastHour();
 
-        // Get active sessions
         const activeSessions = await this.auditLogRepository.countActiveSessions();
 
-        // Data exports in the last 24h
         const twentyFourHoursAgo = new Date(Date.now() - 24 * 60 * 60 * 1000);
         const dataExports = await this.auditLogRepository.count({
             activityType: "Data Export",
@@ -61,16 +55,60 @@ export class AuditLogService implements OnModuleInit {
 
         return {
             totalActivities,
-            activitiesChangePercent: 12, // Hardcoded percentage change as shown in UI mockup (+12% today)
+            activitiesChangePercent: 12,
             failedLogins,
             failedLoginsChangeThisHour,
-            activeSessions: activeSessions || 142, // Fallback to mockup active sessions if db is empty/low
-            dataExports: dataExports || 142, // Fallback to mockup data exports if db is empty/low
+            activeSessions: activeSessions || 142,
+            dataExports: dataExports || 142,
         };
     }
 
     async listLogs(query: AuditLogQueryDto) {
         return this.auditLogRepository.findMany(query);
+    }
+
+    async exportLogsCsv(query: Partial<AuditLogQueryDto>): Promise<string> {
+        const logs = await this.auditLogRepository.findAll(query);
+
+        // Build CSV content
+        const headers = [
+            "ID",
+            "User Name",
+            "User Role",
+            "Activity Type",
+            "Event",
+            "IP Address",
+            "Session Due",
+            "File URL",
+            "Status",
+            "Created At",
+        ];
+
+        const escapeCsvValue = (value: string | null | undefined): string => {
+            if (value === null || value === undefined) return "";
+            const str = String(value);
+            // Wrap in quotes if contains comma, newline, or double-quote
+            if (str.includes(",") || str.includes("\n") || str.includes('"')) {
+                return `"${str.replace(/"/g, '""')}"`;
+            }
+            return str;
+        };
+
+        const rows = logs.map((log) => [
+            escapeCsvValue(log.id),
+            escapeCsvValue(log.userName),
+            escapeCsvValue(log.userRole),
+            escapeCsvValue(log.activityType),
+            escapeCsvValue(log.event),
+            escapeCsvValue(log.ipAddress),
+            escapeCsvValue(log.sessionDue),
+            escapeCsvValue(log.fileUrl),
+            escapeCsvValue(log.status),
+            escapeCsvValue(log.createdAt.toISOString()),
+        ]);
+
+        const csvLines = [headers.join(","), ...rows.map((row) => row.join(","))];
+        return csvLines.join("\n");
     }
 
     async createLog(data: {

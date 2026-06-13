@@ -4,6 +4,7 @@ import {
     Injectable,
     NotFoundException,
 } from "@nestjs/common";
+import { AuditLogService } from "../../(compliance)/audit-log/audit-log.service";
 import { AuthRepository } from "../auth.repository";
 import { ChangePasswordDto } from "../dto/change-password.dto";
 import { ForgotPasswordDto } from "../dto/forgot-password.dto";
@@ -16,6 +17,7 @@ export class AuthPasswordService {
     constructor(
         private readonly authRepository: AuthRepository,
         private readonly authSharedService: AuthSharedService,
+        private readonly auditLogService: AuditLogService,
     ) {}
 
     async forgotPassword(payload: ForgotPasswordDto) {
@@ -111,6 +113,20 @@ export class AuthPasswordService {
             deviceFingerprint: this.authSharedService.resolveDeviceFingerprint(context),
         });
 
+        // Audit log: password reset
+        const userRole = user.userRoles?.[0]?.role?.name ?? "Patient";
+        this.auditLogService
+            .createLog({
+                userId: user.id,
+                userName: user.email,
+                userRole,
+                activityType: "Password Change",
+                event: "User reset password via OTP",
+                ipAddress: context.ipAddress ?? undefined,
+                status: "SUCCESS",
+            })
+            .catch(() => {});
+
         return { success: true, message: "Password reset successfully" };
     }
 
@@ -126,6 +142,19 @@ export class AuthPasswordService {
         }
 
         if (!this.authSharedService.verifyPassword(payload.currentPassword, user.password)) {
+            // Audit log: failed password change attempt
+            const userRole = user.userRoles?.[0]?.role?.name ?? "Patient";
+            this.auditLogService
+                .createLog({
+                    userId: user.id,
+                    userName: user.email,
+                    userRole,
+                    activityType: "Password Change",
+                    event: "Failed password change — incorrect current password",
+                    ipAddress: context.ipAddress ?? undefined,
+                    status: "FAILED",
+                })
+                .catch(() => {});
             throw new BadRequestException("Current password is incorrect");
         }
 
@@ -140,6 +169,20 @@ export class AuthPasswordService {
             userAgent: context.userAgent,
             deviceFingerprint: this.authSharedService.resolveDeviceFingerprint(context),
         });
+
+        // Audit log: successful password change
+        const userRole = user.userRoles?.[0]?.role?.name ?? "Patient";
+        this.auditLogService
+            .createLog({
+                userId: user.id,
+                userName: user.email,
+                userRole,
+                activityType: "Password Change",
+                event: "User updated account password successfully",
+                ipAddress: context.ipAddress ?? undefined,
+                status: "SUCCESS",
+            })
+            .catch(() => {});
 
         return { success: true, message: "Password changed successfully" };
     }

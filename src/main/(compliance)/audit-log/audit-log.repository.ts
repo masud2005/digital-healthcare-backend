@@ -1,7 +1,6 @@
 import { Injectable } from "@nestjs/common";
 import { PrismaService } from "@global/prisma/prisma.service";
 import { AuditLogQueryDto } from "./dto/audit-log-query.dto";
-// Trigger rebuild
 import { Prisma } from "@prisma/client";
 
 @Injectable()
@@ -12,7 +11,7 @@ export class AuditLogRepository {
         return this.prisma.auditLog.count({ where });
     }
 
-    async findMany(query: AuditLogQueryDto) {
+    private buildWhereClause(query: Partial<AuditLogQueryDto>): Prisma.AuditLogWhereInput {
         const where: Prisma.AuditLogWhereInput = {};
 
         if (query.search) {
@@ -38,27 +37,42 @@ export class AuditLogRepository {
         if (query.startDate || query.endDate) {
             where.createdAt = {};
             if (query.startDate) {
-                where.createdAt.gte = new Date(query.startDate);
+                (where.createdAt as Prisma.DateTimeFilter).gte = new Date(query.startDate);
             }
             if (query.endDate) {
-                where.createdAt.lte = new Date(query.endDate);
+                (where.createdAt as Prisma.DateTimeFilter).lte = new Date(query.endDate);
             }
         }
 
-        const skip = (query.page! - 1) * query.limit!;
-        const take = query.limit;
+        return where;
+    }
+
+    async findMany(query: AuditLogQueryDto) {
+        const where = this.buildWhereClause(query);
+        const page = query.page ?? 1;
+        const limit = query.limit ?? 10;
+        const skip = (page - 1) * limit;
 
         const [data, total] = await Promise.all([
             this.prisma.auditLog.findMany({
                 where,
                 skip,
-                take,
+                take: limit,
                 orderBy: { createdAt: "desc" },
             }),
             this.prisma.auditLog.count({ where }),
         ]);
 
-        return { data, total };
+        return { data, total, page, limit };
+    }
+
+    async findAll(query: Partial<AuditLogQueryDto>) {
+        const where = this.buildWhereClause(query);
+
+        return this.prisma.auditLog.findMany({
+            where,
+            orderBy: { createdAt: "desc" },
+        });
     }
 
     async create(data: Prisma.AuditLogUncheckedCreateInput) {
@@ -66,7 +80,6 @@ export class AuditLogRepository {
     }
 
     async countActiveSessions() {
-        // Query active sessions from AuthSession where revokedAt is null and not expired
         return this.prisma.authSession.count({
             where: {
                 revokedAt: null,

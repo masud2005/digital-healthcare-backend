@@ -5,6 +5,7 @@ import {
     NotFoundException,
 } from "@nestjs/common";
 import { StorageService } from "@global/storage/storage.service";
+import { AuditLogService } from "../../(compliance)/audit-log/audit-log.service";
 import {
     type AssessmentDetailRecord,
     type AssessmentRecord,
@@ -22,6 +23,7 @@ export class AssessmentService {
     constructor(
         private readonly assessmentRepository: AssessmentRepository,
         private readonly storageService: StorageService,
+        private readonly auditLogService: AuditLogService,
     ) {}
 
     async create(payload: CreateAssessmentDto) {
@@ -30,6 +32,16 @@ export class AssessmentService {
 
         try {
             const assessment = await this.assessmentRepository.create(data);
+
+            this.auditLogService
+                .createLog({
+                    userName: "Admin",
+                    userRole: "Admin",
+                    activityType: "Record Edit",
+                    event: `Admin created assessment "${assessment.title}"`,
+                    status: "SUCCESS",
+                })
+                .catch(() => {});
 
             return this.mapAssessment(assessment);
         } catch (error) {
@@ -82,6 +94,16 @@ export class AssessmentService {
         try {
             const assessment = await this.assessmentRepository.update(id, data);
 
+            this.auditLogService
+                .createLog({
+                    userName: "Admin",
+                    userRole: "Admin",
+                    activityType: "Record Edit",
+                    event: `Admin updated assessment "${assessment.title}"`,
+                    status: "SUCCESS",
+                })
+                .catch(() => {});
+
             return this.mapAssessment(assessment);
         } catch (error) {
             this.throwKnownPrismaError(error);
@@ -90,10 +112,22 @@ export class AssessmentService {
     }
 
     async remove(id: string) {
-        await this.findOne(id);
+        const assessment = await this.findOne(id);
 
         try {
-            return await this.assessmentRepository.delete(id);
+            const result = await this.assessmentRepository.delete(id);
+
+            this.auditLogService
+                .createLog({
+                    userName: "Admin",
+                    userRole: "Admin",
+                    activityType: "Record Edit",
+                    event: `Admin deleted assessment "${assessment.title}"`,
+                    status: "SUCCESS",
+                })
+                .catch(() => {});
+
+            return result;
         } catch (error) {
             this.throwKnownPrismaError(error);
             throw error;

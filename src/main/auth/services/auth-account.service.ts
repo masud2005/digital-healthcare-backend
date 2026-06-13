@@ -5,6 +5,7 @@ import {
     NotFoundException,
     UnauthorizedException,
 } from "@nestjs/common";
+import { AuditLogService } from "../../(compliance)/audit-log/audit-log.service";
 import { SystemHealthService } from "../../(compliance)/system-health/system-health.service";
 import { AuthRepository } from "../auth.repository";
 import { LoginDto } from "../dto/login.dto";
@@ -17,6 +18,7 @@ export class AuthAccountService {
         private readonly authRepository: AuthRepository,
         private readonly authSharedService: AuthSharedService,
         private readonly systemHealthService: SystemHealthService,
+        private readonly auditLogService: AuditLogService,
     ) {}
 
     async register(payload: RegisterDto) {
@@ -50,6 +52,18 @@ export class AuthAccountService {
             throw new NotFoundException("User not found");
         }
 
+        // Audit log: new registration
+        this.auditLogService
+            .createLog({
+                userId: user.id,
+                userName: email,
+                userRole: "Patient",
+                activityType: "Login",
+                event: "New user registered — OTP verification pending",
+                status: "SUCCESS",
+            })
+            .catch(() => {});
+
         return {
             success: true,
             message: "Registration successful. OTP verification required.",
@@ -66,6 +80,16 @@ export class AuthAccountService {
             const user = await this.authRepository.findUserByEmail(email);
 
             if (!user || !user.password) {
+                // Audit log: failed login — unknown user
+                this.auditLogService
+                    .createLog({
+                        userName: payload.email,
+                        userRole: "Unknown",
+                        activityType: "Login",
+                        event: "Failed login attempt — account not found",
+                        status: "FAILED",
+                    })
+                    .catch(() => {});
                 throw new UnauthorizedException("Invalid credentials");
             }
 
@@ -74,6 +98,18 @@ export class AuthAccountService {
             }
 
             if (!this.authSharedService.verifyPassword(payload.password, user.password)) {
+                const userRole = user.userRoles?.[0]?.role?.name ?? "Patient";
+                // Audit log: failed login — wrong password
+                this.auditLogService
+                    .createLog({
+                        userId: user.id,
+                        userName: user.email,
+                        userRole,
+                        activityType: "Login",
+                        event: "Failed login attempt — invalid credentials",
+                        status: "FAILED",
+                    })
+                    .catch(() => {});
                 throw new UnauthorizedException("Invalid credentials");
             }
 
