@@ -5,6 +5,7 @@ const PASSWORD_ITERATIONS = 120000;
 
 const adminAccounts = [
 	"muhammadabrrar921@gmail.com",
+    "ashimsarkar5558@gmail.com",
 	"masud.softvenceomega@gmail.com",
 	"devlopersabbir@gmail.com",
     "doc4881@gmail.com"
