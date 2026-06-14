@@ -6,7 +6,7 @@ type DoctorCreateData = {
     email: string;
     password: string;
     status: UserStatus;
-    avatar?: string | null;
+    avatarId?: string | null;
     name: string;
     title?: string | null;
     bio?: string | null;
@@ -17,7 +17,7 @@ type DoctorUpdateData = {
     email?: string;
     password?: string;
     status?: UserStatus;
-    avatar?: string | null;
+    avatarId?: string | null;
     name?: string;
     title?: string | null;
     bio?: string | null;
@@ -42,6 +42,7 @@ const doctorInclude = {
             updatedAt: true,
         },
     },
+    avatar: true,
 } as const;
 
 @Injectable()
@@ -75,7 +76,7 @@ export class ManageDoctorRepository {
                     doctorProfile: {
                         create: {
                             name: data.name,
-                            avatar: data.avatar,
+                            avatarId: data.avatarId,
                             title: data.title,
                             bio: data.bio,
                             officeLocation: data.officeLocation,
@@ -200,7 +201,7 @@ export class ManageDoctorRepository {
     update(id: string, data: DoctorUpdateData) {
         const userData: { email?: string; password?: string; status?: UserStatus } = {};
         const profileData: {
-            avatar?: string | null;
+            avatarId?: string | null;
             name?: string;
             title?: string | null;
             bio?: string | null;
@@ -210,7 +211,7 @@ export class ManageDoctorRepository {
         if (data.email !== undefined) userData.email = data.email;
         if (data.password !== undefined) userData.password = data.password;
         if (data.status !== undefined) userData.status = data.status;
-        if (data.avatar !== undefined) profileData.avatar = data.avatar;
+        if (data.avatarId !== undefined) profileData.avatarId = data.avatarId;
         if (data.name !== undefined) profileData.name = data.name;
         if (data.title !== undefined) profileData.title = data.title;
         if (data.bio !== undefined) profileData.bio = data.bio;

@@ -3,7 +3,8 @@ model DoctorProfile {
   userId            String    @unique
   user              User      @relation(fields: [userId], references: [id], onDelete: Cascade)
   name              String
-  avatar            String?
+  avatarId          String?     @unique @map("avatar_id")
+  avatar            Attachment? @relation("DoctorAvatar", fields: [avatarId], references: [id], onDelete: Cascade)
   title             String?
   specialty         String?
   bio               String?   @db.Text

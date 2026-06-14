@@ -32,8 +32,14 @@ export class ProductRepository {
     constructor(private readonly prisma: PrismaService) {}
 
     create(data: ProductCreateData) {
+        const { images, ...rest } = data;
         return this.prisma.product.create({
-            data,
+            data: {
+                ...rest,
+                images: {
+                    connect: images.map((id) => ({ id })),
+                },
+            },
             include: this.productInclude,
         });
     }
@@ -80,9 +86,19 @@ export class ProductRepository {
     }
 
     update(id: string, data: ProductUpdateData) {
+        const { images, ...rest } = data;
         return this.prisma.product.update({
             where: { id },
-            data,
+            data: {
+                ...rest,
+                ...(images
+                    ? {
+                          images: {
+                              set: images.map((imgId) => ({ id: imgId })),
+                          },
+                      }
+                    : {}),
+            },
             include: this.productInclude,
         });
     }
@@ -107,5 +123,6 @@ export class ProductRepository {
                 name: true,
             },
         },
+        images: true,
     } satisfies Prisma.ProductInclude;
 }

@@ -1,3 +1,4 @@
+import { AttachmentService } from "@global/attachment/attachment.service";
 import { StorageService } from "@global/storage/storage.service";
 import {
     BadRequestException,
@@ -32,16 +33,17 @@ import { ProductService } from "./product.service";
 
 @ApiTags("(Admin) Product")
 @Controller("admin/products")
+@UseInterceptors(FilesInterceptor("images"))
 export class ProductController {
     constructor(
         private readonly productService: ProductService,
         private readonly storageService: StorageService,
+        private readonly attachmentService: AttachmentService,
     ) {}
 
     @Post()
     @ApiOperation({ summary: "Create a product" })
     @ApiConsumes("multipart/form-data")
-    @UseInterceptors(FilesInterceptor("images"))
     @ApiCreatedResponse({ type: ProductResponseDto })
     async create(@Body() payload: CreateProductDto, @UploadedFiles() files: Express.Multer.File[]) {
         if (!files || files.length === 0) {
@@ -49,13 +51,18 @@ export class ProductController {
         }
 
         const uploaded = await Promise.all(
-            files.map((file) => this.storageService.uploadFile(file)),
+            files.map((file) =>
+                this.attachmentService.upload([file], { context: "PRODUCT_IMAGE" }),
+            ),
         );
-        const imageKeys = uploaded.map((img) => img.key);
+        const imageIds = uploaded.map((res) => {
+            if (Array.isArray(res.data)) return res.data[0].id;
+            return (res.data as any).id;
+        });
 
         return this.productService.create({
             ...payload,
-            images: imageKeys,
+            images: imageIds,
         });
     }
 
@@ -76,7 +83,6 @@ export class ProductController {
     @Patch(":id")
     @ApiOperation({ summary: "Update a product" })
     @ApiConsumes("multipart/form-data")
-    @UseInterceptors(FilesInterceptor("images"))
     @ApiOkResponse({ type: ProductResponseDto })
     async update(
         @Param() params: ProductParamDto,
@@ -85,9 +91,14 @@ export class ProductController {
     ) {
         if (files?.length) {
             const uploaded = await Promise.all(
-                files.map((file) => this.storageService.uploadFile(file)),
+                files.map((file) =>
+                    this.attachmentService.upload([file], { context: "PRODUCT_IMAGE" }),
+                ),
             );
-            payload.images = uploaded.map((img) => img.key);
+            payload.images = uploaded.map((res) => {
+                if (Array.isArray(res.data)) return res.data[0].id;
+                return (res.data as any).id;
+            });
         }
 
         return this.productService.update(params.id, payload);

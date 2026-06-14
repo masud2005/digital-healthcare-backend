@@ -5,6 +5,7 @@ import {
     NotFoundException,
 } from "@nestjs/common";
 import { StorageService } from "@global/storage/storage.service";
+import { AttachmentService } from "@global/attachment/attachment.service";
 import { pbkdf2Sync, randomBytes } from "crypto";
 import type { UserStatus } from "@constant/enums";
 import { CreateDoctorDto } from "../dto/create-doctor.dto";
@@ -22,10 +23,11 @@ export class ManageDoctorService {
     constructor(
         private readonly manageDoctorRepository: ManageDoctorRepository,
         private readonly storageService: StorageService,
+        private readonly attachmentService: AttachmentService,
         private readonly doctorMailService: DoctorMailService,
     ) {}
 
-    async create(payload: CreateDoctorDto & { avatar?: string | null }) {
+    async create(payload: CreateDoctorDto & { avatarId?: string | null }) {
         this.doctorMailService.assertReady();
         const data = this.normalizeCreatePayload(payload);
         await this.ensureEmailIsAvailable(data.email);
@@ -102,7 +104,7 @@ export class ManageDoctorService {
         return this.mapDoctor(doctor, consultationCounts.get(doctor.userId) ?? 0);
     }
 
-    async update(id: string, payload: UpdateDoctorDto & { avatar?: string | null }) {
+    async update(id: string, payload: UpdateDoctorDto & { avatarId?: string | null }) {
         const doctor = await this.findExistingDoctor(id);
         const data = this.normalizeUpdatePayload(payload);
 
@@ -112,6 +114,10 @@ export class ManageDoctorService {
 
         if (data.password) {
             this.doctorMailService.assertReady();
+        }
+
+        if (data.avatarId && doctor.avatarId) {
+            await this.attachmentService.remove(doctor.avatarId).catch(() => {});
         }
 
         try {
@@ -163,7 +169,11 @@ export class ManageDoctorService {
     }
 
     async remove(id: string) {
-        await this.findExistingDoctor(id);
+        const doctor = await this.findExistingDoctor(id);
+
+        if (doctor.avatarId) {
+            await this.attachmentService.remove(doctor.avatarId).catch(() => {});
+        }
 
         try {
             await this.manageDoctorRepository.delete(id);
@@ -173,12 +183,12 @@ export class ManageDoctorService {
         }
     }
 
-    private normalizeCreatePayload(payload: CreateDoctorDto & { avatar?: string | null }) {
+    private normalizeCreatePayload(payload: CreateDoctorDto & { avatarId?: string | null }) {
         return {
             email: this.normalizeEmail(payload.email),
             password: payload.password.trim(),
             status: payload.status ?? "ACTIVE",
-            avatar: payload.avatar,
+            avatarId: payload.avatarId,
             name: this.normalizeRequiredString(payload.fullName, "Full name is required"),
             title: this.parseString(payload.roleTitle),
             bio: this.parseString(payload.shortBio),
@@ -186,12 +196,12 @@ export class ManageDoctorService {
         };
     }
 
-    private normalizeUpdatePayload(payload: UpdateDoctorDto & { avatar?: string | null }) {
+    private normalizeUpdatePayload(payload: UpdateDoctorDto & { avatarId?: string | null }) {
         const data: {
             email?: string;
             password?: string;
             status?: UserStatus;
-            avatar?: string | null;
+            avatarId?: string | null;
             name?: string;
             title?: string | null;
             bio?: string | null;
@@ -210,8 +220,8 @@ export class ManageDoctorService {
             data.status = payload.status;
         }
 
-        if (payload.avatar !== undefined) {
-            data.avatar = payload.avatar;
+        if (payload.avatarId !== undefined) {
+            data.avatarId = payload.avatarId;
         }
 
         if (payload.fullName !== undefined) {
@@ -298,7 +308,9 @@ export class ManageDoctorService {
             id: doctor.id,
             userId: doctor.userId,
             fullName: doctor.name,
-            thumbnail: await this.storageService.resolveKey(doctor.avatar),
+            thumbnail: doctor.avatar?.fileUrl
+                ? await this.storageService.getSignedUrl(doctor.avatar.fileUrl)
+                : null,
             roleTitle: doctor.title,
             shortBio: doctor.bio,
             email: doctor.user.email,

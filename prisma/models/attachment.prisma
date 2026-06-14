@@ -12,10 +12,25 @@ model Attachment {
 
     // Back-relations
     category     Category?
+    product      Product? @relation(fields: [productId], references: [id], onDelete: Cascade)
+    productId    String?
+
+    homePageContentHero  HomePageContent? @relation("HeroImage")
+    homePageContentBadge HomePageContent? @relation("HeroBadgeImage")
+    howItWorksStep       HowItWorksStep?  @relation("HowItWorksStepIcon")
+    whiteLogoSettings    SiteSettings?    @relation("WhiteLogo")
+    blackLogoSettings    SiteSettings?    @relation("BlackLogo")
+    faviconLightSettings SiteSettings?    @relation("FaviconLight")
+    faviconDarkSettings  SiteSettings?    @relation("FaviconDark")
+    socialPreviewSettings SiteSettings?   @relation("SocialPreview")
+    doctorProfile        DoctorProfile?   @relation("DoctorAvatar")
+    contactLead          ContactLead?     @relation("ContactLeadAttachment")
+    contactLeadResponse  ContactLead?     @relation("ContactLeadResponseAttachment")
 
     createdAt DateTime @default(now())
     updatedAt DateTime @updatedAt
 
     @@index([context])
     @@index([uploadedById, context])
+    @@index([productId])
 }

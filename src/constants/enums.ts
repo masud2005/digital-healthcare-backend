@@ -108,6 +108,14 @@ export const attachmentContext = [
     "ASSESSMENT_FILE",
     "MEDICAL_REPORT",
     "CATEGORY_ICON",
+    "HERO_IMAGE",
+    "HERO_BADGE_IMAGE",
+    "HOW_IT_WORKS_ICON",
+    "WEBSITE_LOGO",
+    "WEBSITE_FAVICON",
+    "WEBSITE_SOCIAL_PREVIEW",
+    "DOCTOR_AVATAR",
+    "CONTACT_LEAD_ATTACHMENT",
 ] as const;
 export type AttachmentContext = (typeof attachmentContext)[number];
 

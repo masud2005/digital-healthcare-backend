@@ -5,6 +5,7 @@ import {
     NotFoundException,
 } from "@nestjs/common";
 import { StorageService } from "@global/storage/storage.service";
+import { AttachmentService } from "@global/attachment/attachment.service";
 import { MailService } from "@global/mail/mail.service";
 import { ExportService } from "@global/export/export.service";
 import { ContactLeadsRepository } from "./contact-leads.repository";
@@ -21,6 +22,7 @@ export class ContactLeadsService {
     constructor(
         private readonly contactLeadsRepository: ContactLeadsRepository,
         private readonly storageService: StorageService,
+        private readonly attachmentService: AttachmentService,
         private readonly mailService: MailService,
         private readonly exportService: ExportService,
     ) {}
@@ -113,8 +115,12 @@ export class ContactLeadsService {
     }
 
     async update(id: string, payload: UpdateContactLeadDto) {
-        await this.findOne(id);
+        const existing = await this.findOne(id);
         const data = this.normalizeUpdatePayload(payload);
+
+        if (data.attachmentId && existing.attachmentId) {
+            await this.attachmentService.remove(existing.attachmentId).catch(() => {});
+        }
 
         try {
             const contactLead = await this.contactLeadsRepository.update(id, data);
@@ -128,10 +134,16 @@ export class ContactLeadsService {
     async respond(id: string, payload: RespondContactLeadDto, file?: Express.Multer.File) {
         const lead = await this.findOne(id);
 
-        let responseAttachments: string | null = null;
+        let responseAttachmentId: string | null = null;
         if (file) {
-            const uploaded = await this.storageService.uploadFile(file);
-            responseAttachments = uploaded.key;
+            const res = await this.attachmentService.upload([file], {
+                context: "CONTACT_LEAD_ATTACHMENT",
+            });
+            responseAttachmentId = Array.isArray(res.data) ? res.data[0].id : (res.data as any).id;
+
+            if (lead.responseAttachmentId) {
+                await this.attachmentService.remove(lead.responseAttachmentId).catch(() => {});
+            }
         }
 
         try {
@@ -140,7 +152,7 @@ export class ContactLeadsService {
                 respondedAt: new Date(),
                 responseSubject: payload.subject,
                 responseMessage: payload.message,
-                responseAttachments,
+                responseAttachmentId,
             });
 
             await this.mailService.sendMail({
@@ -165,7 +177,14 @@ export class ContactLeadsService {
     }
 
     async remove(id: string) {
-        await this.findOne(id);
+        const lead = await this.findOne(id);
+
+        if (lead.attachmentId) {
+            await this.attachmentService.remove(lead.attachmentId).catch(() => {});
+        }
+        if (lead.responseAttachmentId) {
+            await this.attachmentService.remove(lead.responseAttachmentId).catch(() => {});
+        }
 
         try {
             return await this.contactLeadsRepository.delete(id);
@@ -176,14 +195,24 @@ export class ContactLeadsService {
     }
 
     private async resolveAttachment<
-        T extends { attachments: string | null; responseAttachments?: string | null },
+        T extends {
+            attachment?: { fileUrl: string } | null;
+            responseAttachment?: { fileUrl: string } | null;
+        },
     >(contactLead: T) {
+        const [attachments, responseAttachments] = await Promise.all([
+            contactLead.attachment?.fileUrl
+                ? this.storageService.getSignedUrl(contactLead.attachment.fileUrl)
+                : Promise.resolve(null),
+            contactLead.responseAttachment?.fileUrl
+                ? this.storageService.getSignedUrl(contactLead.responseAttachment.fileUrl)
+                : Promise.resolve(null),
+        ]);
+
         return {
             ...contactLead,
-            attachments: await this.storageService.resolveKey(contactLead.attachments),
-            responseAttachments: await this.storageService.resolveKey(
-                contactLead.responseAttachments,
-            ),
+            attachments,
+            responseAttachments,
         };
     }
 
@@ -194,7 +223,7 @@ export class ContactLeadsService {
             phone: this.parseOptionalText(payload.phone),
             service: this.parseOptionalText(payload.service),
             message: this.parseOptionalText(payload.message),
-            attachments: this.parseOptionalText(payload.attachments),
+            attachmentId: this.parseOptionalText(payload.attachments),
         };
     }
 
@@ -207,7 +236,7 @@ export class ContactLeadsService {
             message?: string | null;
             read?: boolean;
             responded?: boolean;
-            attachments?: string | null;
+            attachmentId?: string | null;
         } = {};
 
         if (payload.fullName !== undefined) {
@@ -239,7 +268,7 @@ export class ContactLeadsService {
         }
 
         if (payload.attachments !== undefined) {
-            data.attachments = this.parseOptionalText(payload.attachments);
+            data.attachmentId = this.parseOptionalText(payload.attachments);
         }
 
         if (Object.keys(data).length === 0) {

@@ -8,11 +8,13 @@ model ContactLead {
   message             String?   @db.Text
   read                Boolean   @default(false)
   responded           Boolean   @default(false)
-  attachments         String?
-  responseSubject     String?
-  responseMessage     String?   @db.Text
-  responseAttachments String?
-  respondedAt         DateTime?
+  attachmentId          String?     @unique @map("attachment_id")
+  attachment            Attachment? @relation("ContactLeadAttachment", fields: [attachmentId], references: [id], onDelete: Cascade)
+  responseSubject       String?
+  responseMessage       String?     @db.Text
+  responseAttachmentId  String?     @unique @map("response_attachment_id")
+  responseAttachment    Attachment? @relation("ContactLeadResponseAttachment", fields: [responseAttachmentId], references: [id], onDelete: Cascade)
+  respondedAt           DateTime?
   createdAt           DateTime  @default(now())
   updatedAt           DateTime  @updatedAt
 }

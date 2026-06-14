@@ -103,12 +103,18 @@ export class ProductService {
 
     /**
      * Replace stored image keys with fresh signed URLs.
-     * The database always holds raw keys; clients always receive live URLs.
      */
-    private async resolveProductImages<T extends { images: string[] }>(product: T) {
+    private async resolveProductImages<
+        T extends {
+            images: Array<{ fileUrl: string }>;
+        },
+    >(product: T) {
+        const resolvedUrls = await Promise.all(
+            product.images.map((img) => this.storageService.getSignedUrl(img.fileUrl)),
+        );
         return {
             ...product,
-            images: await this.storageService.resolveKeys(product.images),
+            images: resolvedUrls,
         };
     }
 

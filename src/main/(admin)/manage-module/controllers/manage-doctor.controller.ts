@@ -1,4 +1,4 @@
-import { StorageService } from "@global/storage/storage.service";
+import { AttachmentService } from "@global/attachment/attachment.service";
 import {
     Body,
     Controller,
@@ -39,7 +39,7 @@ import { ManageDoctorService } from "../services/manage-doctor.service";
 export class ManageDoctorController {
     constructor(
         private readonly manageDoctorService: ManageDoctorService,
-        private readonly storageService: StorageService,
+        private readonly attachmentService: AttachmentService,
     ) {}
 
     @Post()
@@ -48,10 +48,15 @@ export class ManageDoctorController {
     @UseInterceptors(FileInterceptor("thumbnail"))
     @ApiCreatedResponse({ type: DoctorResponseDto })
     async create(@Body() payload: CreateDoctorDto, @UploadedFile() file?: Express.Multer.File) {
-        const avatar = file ? (await this.storageService.uploadFile(file)).key : undefined;
+        let avatarId: string | undefined = undefined;
+        if (file) {
+            const res = await this.attachmentService.upload([file], { context: "DOCTOR_AVATAR" });
+            avatarId = Array.isArray(res.data) ? res.data[0].id : (res.data as any).id;
+        }
+
         return this.manageDoctorService.create({
             ...payload,
-            avatar,
+            avatarId,
         });
     }
 
@@ -86,10 +91,15 @@ export class ManageDoctorController {
         @Body() payload: UpdateDoctorDto,
         @UploadedFile() file?: Express.Multer.File,
     ) {
-        const avatar = file ? (await this.storageService.uploadFile(file)).key : undefined;
+        let avatarId: string | undefined = undefined;
+        if (file) {
+            const res = await this.attachmentService.upload([file], { context: "DOCTOR_AVATAR" });
+            avatarId = Array.isArray(res.data) ? res.data[0].id : (res.data as any).id;
+        }
+
         return this.manageDoctorService.update(params.id, {
             ...payload,
-            avatar,
+            avatarId,
         });
     }
 

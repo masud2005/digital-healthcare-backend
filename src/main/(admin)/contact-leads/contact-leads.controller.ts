@@ -1,13 +1,13 @@
-import { StorageService } from "@global/storage/storage.service";
+import { AttachmentService } from "@global/attachment/attachment.service";
 import {
     Body,
     Controller,
     Delete,
-    Get,
     HttpCode,
     Param,
     Patch,
     Post,
+    Get,
     Query,
     Res,
     UploadedFile,
@@ -41,7 +41,7 @@ import { RespondContactLeadDto } from "./dto/respond-contact-lead.dto";
 export class ContactLeadsController {
     constructor(
         private readonly contactLeadsService: ContactLeadsService,
-        private readonly storageService: StorageService,
+        private readonly attachmentService: AttachmentService,
     ) {}
 
     @Post()
@@ -53,12 +53,18 @@ export class ContactLeadsController {
         @Body() payload: CreateContactLeadDto,
         @UploadedFile() file?: Express.Multer.File,
     ) {
+        let attachmentId: string | undefined = undefined;
         if (file) {
-            const uploaded = await this.storageService.uploadFile(file);
-            payload.attachments = uploaded.key;
+            const res = await this.attachmentService.upload([file], {
+                context: "CONTACT_LEAD_ATTACHMENT",
+            });
+            attachmentId = Array.isArray(res.data) ? res.data[0].id : (res.data as any).id;
         }
 
-        return this.contactLeadsService.create(payload);
+        return this.contactLeadsService.create({
+            ...payload,
+            attachments: attachmentId || undefined,
+        });
     }
 
     @Get()
@@ -121,12 +127,18 @@ export class ContactLeadsController {
         @Body() payload: UpdateContactLeadDto,
         @UploadedFile() file?: Express.Multer.File,
     ) {
+        let attachmentId: string | undefined = undefined;
         if (file) {
-            const uploaded = await this.storageService.uploadFile(file);
-            payload.attachments = uploaded.key;
+            const res = await this.attachmentService.upload([file], {
+                context: "CONTACT_LEAD_ATTACHMENT",
+            });
+            attachmentId = Array.isArray(res.data) ? res.data[0].id : (res.data as any).id;
         }
 
-        return this.contactLeadsService.update(params.id, payload);
+        return this.contactLeadsService.update(params.id, {
+            ...payload,
+            attachments: attachmentId || undefined,
+        });
     }
 
     @Delete(":id")
