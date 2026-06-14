@@ -10,7 +10,7 @@ import {
     Post,
     Query,
     UploadedFile,
-    UseInterceptors
+    UseInterceptors,
 } from "@nestjs/common";
 import { FileInterceptor } from "@nestjs/platform-express";
 import {
@@ -46,10 +46,7 @@ export class AssessmentController {
     @ApiConsumes("multipart/form-data")
     @UseInterceptors(FileInterceptor("thumbnail"))
     @ApiCreatedResponse({ type: AssessmentResponseDto })
-    async create(
-        @Body() payload: CreateAssessmentDto,
-        @UploadedFile() file?: Express.Multer.File,
-    ) {
+    async create(@Body() payload: CreateAssessmentDto, @UploadedFile() file?: Express.Multer.File) {
         if (file) {
             const uploaded = await this.storageService.uploadFile(file);
 

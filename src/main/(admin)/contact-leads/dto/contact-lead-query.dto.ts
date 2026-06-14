@@ -19,8 +19,8 @@ export class ContactLeadQueryDto {
     @ApiPropertyOptional({ example: false, type: Boolean })
     @IsOptional()
     @Transform(({ value }) => {
-        if (value === 'true') return true;
-        if (value === 'false') return false;
+        if (value === "true") return true;
+        if (value === "false") return false;
         return value;
     })
     @IsBoolean()
@@ -29,8 +29,8 @@ export class ContactLeadQueryDto {
     @ApiPropertyOptional({ example: false, type: Boolean })
     @IsOptional()
     @Transform(({ value }) => {
-        if (value === 'true') return true;
-        if (value === 'false') return false;
+        if (value === "true") return true;
+        if (value === "false") return false;
         return value;
     })
     @IsBoolean()
@@ -38,14 +38,14 @@ export class ContactLeadQueryDto {
 
     @ApiPropertyOptional({ example: 1, type: Number })
     @IsOptional()
-    @Transform(({ value }) => (value && value !== '' ? Number(value) : undefined))
+    @Transform(({ value }) => (value && value !== "" ? Number(value) : undefined))
     @IsInt()
     @Min(1)
     page?: number;
 
     @ApiPropertyOptional({ example: 10, type: Number })
     @IsOptional()
-    @Transform(({ value }) => (value && value !== '' ? Number(value) : undefined))
+    @Transform(({ value }) => (value && value !== "" ? Number(value) : undefined))
     @IsInt()
     @Min(1)
     @Max(100)

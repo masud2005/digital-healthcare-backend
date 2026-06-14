@@ -11,6 +11,11 @@ import { QuestionService } from "./question.service";
 @Module({
     imports: [PrismaModule, StorageModule],
     controllers: [QuestionController, QuestionOptionController],
-    providers: [QuestionService, QuestionRepository, QuestionOptionService, QuestionOptionRepository],
+    providers: [
+        QuestionService,
+        QuestionRepository,
+        QuestionOptionService,
+        QuestionOptionRepository,
+    ],
 })
 export class QuestionModule {}

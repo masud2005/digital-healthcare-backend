@@ -59,7 +59,9 @@ export class MailService implements OnModuleInit {
     }) {
         if (!this.transporter) {
             if (process.env.MAIL_LOG_OTP_WHEN_UNCONFIGURED === "true") {
-                this.logger.warn(`SMTP is not configured. Email to ${options.to}: Subject: ${options.subject}`);
+                this.logger.warn(
+                    `SMTP is not configured. Email to ${options.to}: Subject: ${options.subject}`,
+                );
                 return;
             }
 

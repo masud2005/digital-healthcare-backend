@@ -30,7 +30,7 @@ export class AttachmentService {
                 context,
                 uploadedById,
             });
-            
+
             const resolvedAttachment = await this.resolveUrl(attachment);
             return {
                 success: true,
@@ -61,7 +61,10 @@ export class AttachmentService {
         };
     }
 
-async findAll(query: { page?: number; limit?: number; context?: AttachmentContext }, uploadedById?: string) {
+    async findAll(
+        query: { page?: number; limit?: number; context?: AttachmentContext },
+        uploadedById?: string,
+    ) {
         const page = query.page || 1;
         const limit = query.limit || 10;
         const skip = (page - 1) * limit;
@@ -97,7 +100,7 @@ async findAll(query: { page?: number; limit?: number; context?: AttachmentContex
     async findOne(id: string) {
         const attachment = await this.attachmentRepository.findById(id);
         if (!attachment) throw new NotFoundException("Attachment not found");
-        
+
         const resolvedAttachment = await this.resolveUrl(attachment);
 
         return {
@@ -162,12 +165,11 @@ async findAll(query: { page?: number; limit?: number; context?: AttachmentContex
         // 2. Delete the record from database
         await this.attachmentRepository.delete(id);
 
-        return { 
-            success: true, 
-            message: "Attachment deleted successfully" 
+        return {
+            success: true,
+            message: "Attachment deleted successfully",
         };
     }
-
 
     //  Resolves the stored S3 storage key into a accessible dynamic signed URL
 

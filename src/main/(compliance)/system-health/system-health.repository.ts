@@ -92,7 +92,12 @@ export class SystemHealthRepository {
         });
     }
 
-    createLog(data: { systemKey: string; status: SystemHealthStatus; responseTimeMs?: number; message?: string }) {
+    createLog(data: {
+        systemKey: string;
+        status: SystemHealthStatus;
+        responseTimeMs?: number;
+        message?: string;
+    }) {
         return this.prisma.systemHealthLog.create({
             data,
         });
@@ -118,7 +123,12 @@ export class SystemHealthRepository {
 
     async updateServiceHealth(
         key: string,
-        data: { status: SystemHealthStatus; responseTimeMs?: number | null; uptimePercent?: number; message?: string | null },
+        data: {
+            status: SystemHealthStatus;
+            responseTimeMs?: number | null;
+            uptimePercent?: number;
+            message?: string | null;
+        },
     ) {
         return this.prisma.systemHealth.update({
             where: { key },

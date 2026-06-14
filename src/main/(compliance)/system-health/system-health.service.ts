@@ -20,7 +20,7 @@ export class SystemHealthService {
         this.recordDatabaseQuery(dbDuration).catch(() => {});
 
         // Dynamically update database health card in memory for current response
-        const dbService = services.find(s => s.key === "database_health");
+        const dbService = services.find((s) => s.key === "database_health");
         if (dbService) {
             dbService.responseTimeMs = dbDuration;
             if (dbDuration > 100) {
@@ -337,8 +337,10 @@ export class SystemHealthService {
             { outageUptime: 95, degradedUptime: 98, degradedLatency: 1000 },
             {
                 operational: "Email delivery operating normally",
-                outage: (upt) => `SendGrid delivery experiencing high failure rate: ${upt.toFixed(1)}%`,
-                degraded: (lat) => `Delays detected with SendGrid delivery - avg ${(lat / 1000).toFixed(1)}s latency`,
+                outage: (upt) =>
+                    `SendGrid delivery experiencing high failure rate: ${upt.toFixed(1)}%`,
+                degraded: (lat) =>
+                    `Delays detected with SendGrid delivery - avg ${(lat / 1000).toFixed(1)}s latency`,
             },
         );
     }
@@ -383,9 +385,9 @@ export class SystemHealthService {
         const logs = await this.systemHealthRepository.getLogs("login_error_rate", 100);
         if (logs.length === 0) return;
 
-        const failedCount = logs.filter(l => l.status === "DEGRADED").length;
+        const failedCount = logs.filter((l) => l.status === "DEGRADED").length;
         const errorRate = (failedCount / logs.length) * 100;
-        
+
         let status: SystemHealthStatus = "OPERATIONAL";
         let message = "Login error rate within normal parameters.";
 
@@ -405,20 +407,28 @@ export class SystemHealthService {
     private async recalculateHttpMetrics() {
         const now = new Date();
         const fiveMinutesAgo = new Date(now.getTime() - 5 * 60 * 1000);
-        const logs = await this.systemHealthRepository.getLogsSince("http_requests", fiveMinutesAgo);
+        const logs = await this.systemHealthRepository.getLogsSince(
+            "http_requests",
+            fiveMinutesAgo,
+        );
 
         // Requests per minute: count of logs in the last 1 minute
         const oneMinuteAgo = new Date(now.getTime() - 60 * 1000);
-        const reqsInLastMin = logs.filter(l => l.createdAt >= oneMinuteAgo).length;
+        const reqsInLastMin = logs.filter((l) => l.createdAt >= oneMinuteAgo).length;
 
         // Avg response time and error rate over last 5 minutes
         let avgResponse = 0;
         let errorRate = 0;
 
         if (logs.length > 0) {
-            const responseTimes = logs.filter(l => l.responseTimeMs !== null).map(l => l.responseTimeMs as number);
-            avgResponse = responseTimes.length > 0 ? responseTimes.reduce((a, b) => a + b, 0) / responseTimes.length : 0;
-            const errorLogs = logs.filter(l => l.status === "DEGRADED").length;
+            const responseTimes = logs
+                .filter((l) => l.responseTimeMs !== null)
+                .map((l) => l.responseTimeMs as number);
+            avgResponse =
+                responseTimes.length > 0
+                    ? responseTimes.reduce((a, b) => a + b, 0) / responseTimes.length
+                    : 0;
+            const errorLogs = logs.filter((l) => l.status === "DEGRADED").length;
             errorRate = (errorLogs / logs.length) * 100;
         }
 
@@ -447,12 +457,19 @@ export class SystemHealthService {
         );
     }
 
-    private calculateAggregates(logs: Array<{ status: SystemHealthStatus; responseTimeMs: number | null }>) {
-        const validResponses = logs.filter(l => l.responseTimeMs !== null).map(l => l.responseTimeMs as number);
-        const avgResponse = validResponses.length > 0 ? validResponses.reduce((a, b) => a + b, 0) / validResponses.length : 0;
-        
+    private calculateAggregates(
+        logs: Array<{ status: SystemHealthStatus; responseTimeMs: number | null }>,
+    ) {
+        const validResponses = logs
+            .filter((l) => l.responseTimeMs !== null)
+            .map((l) => l.responseTimeMs as number);
+        const avgResponse =
+            validResponses.length > 0
+                ? validResponses.reduce((a, b) => a + b, 0) / validResponses.length
+                : 0;
+
         // Uptime calculated as the percentage of checks that did not result in an OUTAGE
-        const outageCount = logs.filter(l => l.status === "OUTAGE").length;
+        const outageCount = logs.filter((l) => l.status === "OUTAGE").length;
         const uptime = logs.length > 0 ? ((logs.length - outageCount) / logs.length) * 100 : 100;
 
         return { avgResponse, uptime };

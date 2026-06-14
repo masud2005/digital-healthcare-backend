@@ -88,12 +88,18 @@ export const generateExtraLogs = () => {
     const roles = ["Admin", "Doctor", "Employee", "Patient"];
     const types = ["Login", "Data Export", "Record Edit", "Document Upload"];
     const ips = ["192.168.1.45", "10.0.0.12", "203.0.113.77", "172.16.254.1"];
-    const users = ["David Wilson", "Michael Roberts", "Jessica Martinez", "Dr. Michael Chen", "Sarah Johnson"];
+    const users = [
+        "David Wilson",
+        "Michael Roberts",
+        "Jessica Martinez",
+        "Dr. Michael Chen",
+        "Sarah Johnson",
+    ];
 
     // Generating ~150 logs to match active sessions/total activities metrics
     for (let i = 0; i < 150; i++) {
         const type = types[i % types.length];
-        const status = (type === "Login" && i % 7 === 0) ? "FAILED" : "SUCCESS";
+        const status = type === "Login" && i % 7 === 0 ? "FAILED" : "SUCCESS";
         extraLogs.push({
             userName: users[i % users.length],
             userRole: roles[i % roles.length],
@@ -101,7 +107,7 @@ export const generateExtraLogs = () => {
             activityType: type,
             event: type === "Data Export" ? "User exported CSV data" : `${type} action completed.`,
             ipAddress: ips[i % ips.length],
-            sessionDue: `${(i % 12) + 1}h ${(i % 60)}m`,
+            sessionDue: `${(i % 12) + 1}h ${i % 60}m`,
             status: status,
         });
     }

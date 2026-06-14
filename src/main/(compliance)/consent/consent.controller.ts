@@ -97,10 +97,7 @@ export class ConsentController {
     @ApiBearerAuth()
     @ApiOperation({ summary: "Submit patient consent (authenticates optionally)" })
     @ApiCreatedResponse({ type: ConsentResponseDto })
-    create(
-        @Body() payload: CreateConsentDto,
-        @CurrentUser() user?: AuthenticatedUser,
-    ) {
+    create(@Body() payload: CreateConsentDto, @CurrentUser() user?: AuthenticatedUser) {
         return this.consentService.create(payload, user);
     }
 

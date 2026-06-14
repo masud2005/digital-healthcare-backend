@@ -1,4 +1,9 @@
-import { BadRequestException, ConflictException, Injectable, NotFoundException } from "@nestjs/common";
+import {
+    BadRequestException,
+    ConflictException,
+    Injectable,
+    NotFoundException,
+} from "@nestjs/common";
 import { StorageService } from "@global/storage/storage.service";
 import { CreateQuestionDto } from "./dto/create-question.dto";
 import { QuestionQueryDto } from "./dto/question-query.dto";
@@ -119,7 +124,8 @@ export class QuestionService {
         if (payload.media !== undefined) data.media = payload.media?.trim();
         if (payload.questionText !== undefined) data.questionText = payload.questionText?.trim();
         if (payload.description !== undefined) data.description = payload.description?.trim();
-        if (payload.contentAlignment !== undefined) data.contentAlignment = payload.contentAlignment;
+        if (payload.contentAlignment !== undefined)
+            data.contentAlignment = payload.contentAlignment;
         if (payload.isRequired !== undefined) data.isRequired = payload.isRequired;
         if (payload.assessmentId !== undefined) data.assessmentId = payload.assessmentId;
         if (payload.parentOptionId !== undefined) data.parentOptionId = payload.parentOptionId;

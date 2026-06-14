@@ -129,8 +129,8 @@ export class AssessmentSubmissionRepository {
                     include: assessmentSubmissionInclude,
                 });
             } catch (error: any) {
-                const isUniqueViolation = error?.code === "P2002" &&
-                    error?.meta?.target?.includes("submissionCode");
+                const isUniqueViolation =
+                    error?.code === "P2002" && error?.meta?.target?.includes("submissionCode");
 
                 if (!isUniqueViolation || attempt === SUBMISSION_CODE_MAX_RETRIES - 1) {
                     throw error;

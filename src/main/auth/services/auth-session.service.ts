@@ -97,7 +97,9 @@ export class AuthSessionService {
             throw new UnauthorizedException("Missing session");
         }
 
-        const session = await this.authRepository.findActiveSessionById(sessionId).catch(() => null);
+        const session = await this.authRepository
+            .findActiveSessionById(sessionId)
+            .catch(() => null);
 
         await this.authRepository.revokeSessionById(sessionId, "LOGOUT");
 

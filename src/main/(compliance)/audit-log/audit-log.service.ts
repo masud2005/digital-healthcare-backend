@@ -40,18 +40,34 @@ export class AuditLogService implements OnModuleInit {
     }
 
     async getStats() {
-        const totalActivities = await this.auditLogRepository.count({});
+        const now = new Date();
+        const twentyFourHoursAgo = new Date(now.getTime() - 24 * 60 * 60 * 1000);
+        const fortyEightHoursAgo = new Date(now.getTime() - 48 * 60 * 60 * 1000);
 
+        const totalActivities = await this.auditLogRepository.count({});
+        const prevDayActivities = await this.auditLogRepository.count({
+            createdAt: { gte: fortyEightHoursAgo, lte: twentyFourHoursAgo },
+        });
+        const todayActivities = await this.auditLogRepository.count({
+            createdAt: { gte: twentyFourHoursAgo },
+        });
+        const activitiesChangePercent =
+            prevDayActivities > 0
+                ? Math.round(((todayActivities - prevDayActivities) / prevDayActivities) * 100)
+                : 0;
+
+        // Failed logins in last 24h
         const failedLogins = await this.auditLogRepository.count({
             activityType: "Login",
             status: "FAILED",
+            createdAt: { gte: twentyFourHoursAgo },
         });
 
-        const failedLoginsChangeThisHour = await this.auditLogRepository.countFailedLoginsLastHour();
+        const failedLoginsChangeThisHour =
+            await this.auditLogRepository.countFailedLoginsLastHour();
 
         const activeSessions = await this.auditLogRepository.countActiveSessions();
 
-        const twentyFourHoursAgo = new Date(Date.now() - 24 * 60 * 60 * 1000);
         const dataExports = await this.auditLogRepository.count({
             activityType: "Data Export",
             createdAt: { gte: twentyFourHoursAgo },
@@ -59,11 +75,11 @@ export class AuditLogService implements OnModuleInit {
 
         return {
             totalActivities,
-            activitiesChangePercent: 12,
+            activitiesChangePercent,
             failedLogins,
             failedLoginsChangeThisHour,
             activeSessions: activeSessions || 142,
-            dataExports: dataExports || 142,
+            dataExports: dataExports || 0,
         };
     }
 

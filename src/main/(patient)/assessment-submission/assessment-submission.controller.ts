@@ -8,7 +8,7 @@ import {
     ApiCreatedResponse,
     ApiOkResponse,
     ApiOperation,
-    ApiTags
+    ApiTags,
 } from "@nestjs/swagger";
 import { AssessmentSubmissionService } from "./assessment-submission.service";
 import { AssessmentParamDto } from "./dto/assessment-submission-param.dto";
@@ -28,7 +28,8 @@ const SUBMIT_EXAMPLES = {
             answers: [
                 {
                     questionId: "9c2d34a5-f6eb-4c7e-9e3d-7dcb1cf0de69",
-                    textResponse: "Answer for the next INPUT question, not for the INFORMATION_ONLY one above it.",
+                    textResponse:
+                        "Answer for the next INPUT question, not for the INFORMATION_ONLY one above it.",
                 },
             ],
         },
@@ -164,7 +165,6 @@ const SUBMIT_EXAMPLES = {
 @Controller("patient/assessment-submissions")
 export class AssessmentSubmissionController {
     constructor(private readonly assessmentSubmissionService: AssessmentSubmissionService) {}
-
 
     @Post()
     @ApiOperation({

@@ -1,24 +1,56 @@
-import { BadRequestException, Injectable, NotFoundException } from "@nestjs/common";
+import {
+    BadRequestException,
+    Injectable,
+    Logger,
+    NotFoundException,
+    OnModuleInit,
+} from "@nestjs/common";
 import { PrismaService } from "@global/prisma/prisma.service";
 import { ExportService } from "@global/export/export.service";
 import { ConsentRepository } from "./consent.repository";
 import { CreateConsentDto } from "./dto/create-consent.dto";
 import { ConsentQueryDto } from "./dto/consent-query.dto";
 import type { AuthenticatedUser } from "@main/auth/auth.types";
+import { DEFAULT_CONSENTS, generateExtraConsents } from "./consent-seed.data";
 
 const DEFAULT_PAGE = 1;
 const DEFAULT_LIMIT = 10;
 
 @Injectable()
-export class ConsentService {
+export class ConsentService implements OnModuleInit {
+    private readonly logger = new Logger(ConsentService.name);
+
     constructor(
         private readonly prisma: PrismaService,
         private readonly consentRepository: ConsentRepository,
         private readonly exportService: ExportService,
     ) {}
 
+    async onModuleInit() {
+        await this.seedConsents();
+    }
+
+    async seedConsents() {
+        try {
+            const total = await this.consentRepository.count();
+            if (total > 0) return;
+
+            this.logger.log("🌱 Seeding consents...");
+            for (const c of DEFAULT_CONSENTS) {
+                await this.consentRepository.create(c);
+            }
+            const extra = generateExtraConsents();
+            for (const c of extra) {
+                await this.consentRepository.create(c);
+            }
+            this.logger.log("✅ Consents seeded.");
+        } catch (error) {
+            this.logger.error("Failed to seed consents", error as Error);
+        }
+    }
+
     async create(payload: CreateConsentDto, loggedInUser?: AuthenticatedUser) {
-        let userId: string | null = loggedInUser?.id ?? null;
+        const userId: string | null = loggedInUser?.id ?? null;
         let userName = payload.userName?.trim() || null;
         let email = payload.email?.trim() || null;
 

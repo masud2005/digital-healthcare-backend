@@ -38,7 +38,13 @@ export class QuestionRepository {
         };
 
         const [data, total] = await this.prisma.$transaction([
-            this.prisma.question.findMany({ where, skip: (page - 1) * limit, take: limit, orderBy: { createdAt: "desc" }, include: this.questionInclude }),
+            this.prisma.question.findMany({
+                where,
+                skip: (page - 1) * limit,
+                take: limit,
+                orderBy: { createdAt: "desc" },
+                include: this.questionInclude,
+            }),
             this.prisma.question.count({ where }),
         ]);
 
@@ -58,7 +64,10 @@ export class QuestionRepository {
     }
 
     findAssessmentById(assessmentId: string) {
-        return this.prisma.assessment.findUnique({ where: { id: assessmentId }, select: { id: true } });
+        return this.prisma.assessment.findUnique({
+            where: { id: assessmentId },
+            select: { id: true },
+        });
     }
 
     private readonly questionInclude = {

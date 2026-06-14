@@ -28,7 +28,10 @@ import {
 } from "@nestjs/swagger";
 import "multer";
 import { AttachmentService } from "./attachment.service";
-import { AttachmentResponseDto, PaginatedAttachmentResponseDto } from "./dto/attachment-response.dto";
+import {
+    AttachmentResponseDto,
+    PaginatedAttachmentResponseDto,
+} from "./dto/attachment-response.dto";
 import { GetAttachmentsQueryDto } from "./dto/get-attachments-query.dto";
 import { ReplaceAttachmentDto } from "./dto/replace-attachment.dto";
 import { UploadAttachmentDto } from "./dto/upload-attachment.dto";
@@ -40,7 +43,7 @@ import { UploadAttachmentDto } from "./dto/upload-attachment.dto";
 export class AttachmentController {
     constructor(private readonly attachmentService: AttachmentService) {}
 
-    @Post('upload')
+    @Post("upload")
     @ApiOperation({ summary: "Upload single or multiple files with context" })
     @ApiConsumes("multipart/form-data")
     @ApiBody({
@@ -48,11 +51,11 @@ export class AttachmentController {
             type: "object",
             required: ["context", "files"],
             properties: {
-                context: { 
-                    type: "string", 
+                context: {
+                    type: "string",
                     enum: Object.values(attachmentContext),
                     description: "The context/purpose for which the file is being uploaded",
-                    example: "PRODUCT_IMAGE" 
+                    example: "PRODUCT_IMAGE",
                 },
                 files: {
                     type: "array",
@@ -72,13 +75,10 @@ export class AttachmentController {
         return this.attachmentService.upload(files, dto, user.id);
     }
 
-@Get()
+    @Get()
     @ApiOperation({ summary: "Get all attachments with pagination and context filter" })
     @ApiOkResponse({ type: PaginatedAttachmentResponseDto })
-    findAll(
-        @Query() query: GetAttachmentsQueryDto,
-        @CurrentUser() user: AuthenticatedUser,
-    ) {
+    findAll(@Query() query: GetAttachmentsQueryDto, @CurrentUser() user: AuthenticatedUser) {
         return this.attachmentService.findAll(query, user.id);
     }
 

@@ -13,7 +13,10 @@ export class CreateConsentDto {
     @IsEmail()
     email?: string;
 
-    @ApiProperty({ example: "DATA_PROCESSING", enum: ["DATA_PROCESSING", "MARKETING", "ANALYTICS", "AI_TRAINING"] })
+    @ApiProperty({
+        example: "DATA_PROCESSING",
+        enum: ["DATA_PROCESSING", "MARKETING", "ANALYTICS", "AI_TRAINING"],
+    })
     @IsEnum(["DATA_PROCESSING", "MARKETING", "ANALYTICS", "AI_TRAINING"])
     @IsNotEmpty()
     type: ConsentType;

@@ -1,18 +1,9 @@
 import { Controller, Get, Query, Res, Body, Post, Req } from "@nestjs/common";
-import {
-    ApiOkResponse,
-    ApiOperation,
-    ApiProduces,
-    ApiQuery,
-    ApiTags,
-} from "@nestjs/swagger";
+import { ApiOkResponse, ApiOperation, ApiProduces, ApiQuery, ApiTags } from "@nestjs/swagger";
 import type { Response } from "express";
 import { AuditLogService } from "./audit-log.service";
 import { AuditLogQueryDto } from "./dto/audit-log-query.dto";
-import {
-    AuditLogListResponseDto,
-    AuditLogStatsResponseDto,
-} from "./dto/audit-log-response.dto";
+import { AuditLogListResponseDto, AuditLogStatsResponseDto } from "./dto/audit-log-response.dto";
 
 @ApiTags("(Compliance) Audit Logs")
 @Controller("compliance/audit-logs")

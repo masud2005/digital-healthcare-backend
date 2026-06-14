@@ -14,7 +14,10 @@ export class ConsentQueryDto {
     @IsString()
     role?: string;
 
-    @ApiPropertyOptional({ example: "DATA_PROCESSING", enum: ["DATA_PROCESSING", "MARKETING", "ANALYTICS", "AI_TRAINING"] })
+    @ApiPropertyOptional({
+        example: "DATA_PROCESSING",
+        enum: ["DATA_PROCESSING", "MARKETING", "ANALYTICS", "AI_TRAINING"],
+    })
     @IsOptional()
     @IsEnum(["DATA_PROCESSING", "MARKETING", "ANALYTICS", "AI_TRAINING"])
     type?: ConsentType;

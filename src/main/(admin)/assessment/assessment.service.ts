@@ -258,8 +258,8 @@ export class AssessmentService {
             ...question,
             options: question.options.map((option) => ({
                 ...option,
-                subQuestions: (questionsByParentOptionId.get(option.id) ?? []).map((childQuestion) =>
-                    buildNode(childQuestion),
+                subQuestions: (questionsByParentOptionId.get(option.id) ?? []).map(
+                    (childQuestion) => buildNode(childQuestion),
                 ),
             })),
         });

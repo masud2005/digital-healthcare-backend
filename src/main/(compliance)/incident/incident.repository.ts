@@ -38,6 +38,10 @@ type IncidentFindAllParams = {
 export class IncidentRepository {
     constructor(private readonly prisma: PrismaService) {}
 
+    count(where?: Prisma.IncidentWhereInput) {
+        return this.prisma.incident.count({ where });
+    }
+
     create(data: IncidentCreateData) {
         return this.prisma.incident.create({ data });
     }

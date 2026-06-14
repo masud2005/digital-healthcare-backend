@@ -1,5 +1,10 @@
 import { StorageService } from "@global/storage/storage.service";
-import { BadRequestException, ForbiddenException, Injectable, NotFoundException } from "@nestjs/common";
+import {
+    BadRequestException,
+    ForbiddenException,
+    Injectable,
+    NotFoundException,
+} from "@nestjs/common";
 import type { QuestionType } from "@prisma/client";
 import {
     AssessmentSubmissionRecord,
@@ -37,8 +42,15 @@ export class AssessmentSubmissionService {
         return Promise.all(submissions.map((s) => this.mapBlueprint(s)));
     }
 
-    async updateSubmission(submissionId: string, userId: string, payload: UpdateAssessmentSubmissionDto) {
-        const submission = await this.assessmentSubmissionRepository.findSubmissionById(submissionId, userId);
+    async updateSubmission(
+        submissionId: string,
+        userId: string,
+        payload: UpdateAssessmentSubmissionDto,
+    ) {
+        const submission = await this.assessmentSubmissionRepository.findSubmissionById(
+            submissionId,
+            userId,
+        );
 
         if (!submission) {
             throw new NotFoundException("Submission not found");
@@ -50,7 +62,9 @@ export class AssessmentSubmissionService {
 
         const normalizedAnswers = this.normalizeAnswers(payload.answers);
         const questionIds = normalizedAnswers.map((a) => a.questionId);
-        const questions = await this.assessmentSubmissionRepository.findQuestionsByAssessment(submission.assessmentId);
+        const questions = await this.assessmentSubmissionRepository.findQuestionsByAssessment(
+            submission.assessmentId,
+        );
         const submittedQuestions = questions.filter((q) => questionIds.includes(q.id));
 
         if (submittedQuestions.length !== questionIds.length) {
@@ -60,7 +74,10 @@ export class AssessmentSubmissionService {
         const questionMap = new Map(questions.map((q) => [q.id, q]));
         this.validateAnswers(normalizedAnswers, questions, questionMap);
 
-        const updated = await this.assessmentSubmissionRepository.updateSubmission(submissionId, normalizedAnswers);
+        const updated = await this.assessmentSubmissionRepository.updateSubmission(
+            submissionId,
+            normalizedAnswers,
+        );
         return this.mapBlueprint(updated);
     }
 
@@ -85,8 +102,12 @@ export class AssessmentSubmissionService {
 
         const normalizedAnswers = this.normalizeAnswers(payload.answers);
         const questionIds = normalizedAnswers.map((answer) => answer.questionId);
-        const questions = await this.assessmentSubmissionRepository.findQuestionsByAssessment(payload.assessmentId);
-        const submittedQuestions = questions.filter((question) => questionIds.includes(question.id));
+        const questions = await this.assessmentSubmissionRepository.findQuestionsByAssessment(
+            payload.assessmentId,
+        );
+        const submittedQuestions = questions.filter((question) =>
+            questionIds.includes(question.id),
+        );
 
         if (submittedQuestions.length !== questionIds.length) {
             throw new BadRequestException("One or more questions are invalid for this assessment");
@@ -178,7 +199,9 @@ export class AssessmentSubmissionService {
             const question = questionMap.get(answer.questionId);
 
             if (!question) {
-                throw new BadRequestException("One or more questions are invalid for this assessment");
+                throw new BadRequestException(
+                    "One or more questions are invalid for this assessment",
+                );
             }
 
             this.validateQuestionApplicability(question, selectedOptionIds);
@@ -198,7 +221,10 @@ export class AssessmentSubmissionService {
         }
     }
 
-    private validateQuestionApplicability(question: SubmissionQuestion, selectedOptionIds: Set<string>) {
+    private validateQuestionApplicability(
+        question: SubmissionQuestion,
+        selectedOptionIds: Set<string>,
+    ) {
         if (question.parentOptionId && !selectedOptionIds.has(question.parentOptionId)) {
             throw new BadRequestException(
                 "Sub-question answers are allowed only when their parent option is selected",
@@ -228,11 +254,15 @@ export class AssessmentSubmissionService {
         }
 
         if (question.type === "SINGLE_CHOICE" && answer.selectedOptionIds.length !== 1) {
-            throw new BadRequestException("Single choice questions require exactly one selected option");
+            throw new BadRequestException(
+                "Single choice questions require exactly one selected option",
+            );
         }
 
         if (question.type === "MULTIPLE_CHOICE" && answer.selectedOptionIds.length === 0) {
-            throw new BadRequestException("Multiple choice questions require at least one selected option");
+            throw new BadRequestException(
+                "Multiple choice questions require at least one selected option",
+            );
         }
 
         if (question.type === "SINGLE_CHOICE" || question.type === "MULTIPLE_CHOICE") {
@@ -240,7 +270,9 @@ export class AssessmentSubmissionService {
 
             for (const selectedOptionId of answer.selectedOptionIds) {
                 if (!allowedOptionIds.has(selectedOptionId)) {
-                    throw new BadRequestException("One or more selected options are invalid for the question");
+                    throw new BadRequestException(
+                        "One or more selected options are invalid for the question",
+                    );
                 }
             }
         }
@@ -258,7 +290,9 @@ export class AssessmentSubmissionService {
         return Boolean(answer.textResponse) || answer.selectedOptionIds.length > 0;
     }
 
-    private normalizeAnswers(answers: CreateAssessmentSubmissionDto["answers"]): NormalizedAnswer[] {
+    private normalizeAnswers(
+        answers: CreateAssessmentSubmissionDto["answers"],
+    ): NormalizedAnswer[] {
         const seenQuestionIds = new Set<string>();
 
         return answers.map((answer) => {

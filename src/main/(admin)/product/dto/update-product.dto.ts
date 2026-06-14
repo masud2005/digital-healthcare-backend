@@ -1,6 +1,15 @@
 import { ApiPropertyOptional } from "@nestjs/swagger";
 import { Transform, Type } from "class-transformer";
-import { IsDecimal, IsInt, IsNotEmpty, IsOptional, IsString, IsUUID, Matches, Min } from "class-validator";
+import {
+    IsDecimal,
+    IsInt,
+    IsNotEmpty,
+    IsOptional,
+    IsString,
+    IsUUID,
+    Matches,
+    Min,
+} from "class-validator";
 
 export class UpdateProductDto {
     @ApiPropertyOptional({ example: "Blood Pressure Monitor" })

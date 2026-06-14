@@ -5,7 +5,10 @@ import { Type } from "class-transformer";
 import { IsBoolean, IsEnum, IsInt, IsOptional, IsString, Max, Min } from "class-validator";
 
 export class IncidentQueryDto {
-    @ApiPropertyOptional({ example: "INC-001", description: "Search by ID, type, person, or notes" })
+    @ApiPropertyOptional({
+        example: "INC-001",
+        description: "Search by ID, type, person, or notes",
+    })
     @IsOptional()
     @IsString()
     search?: string;

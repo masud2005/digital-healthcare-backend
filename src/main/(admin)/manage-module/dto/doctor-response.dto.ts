@@ -18,7 +18,10 @@ export class DoctorResponseDto {
     @ApiPropertyOptional({ example: "FNP-BC", nullable: true })
     roleTitle: string | null;
 
-    @ApiPropertyOptional({ example: "Licensed Colorado-Nurse Practitioner - Family", nullable: true })
+    @ApiPropertyOptional({
+        example: "Licensed Colorado-Nurse Practitioner - Family",
+        nullable: true,
+    })
     shortBio: string | null;
 
     @ApiProperty({ example: "runa.pradhannp@gmail.com" })

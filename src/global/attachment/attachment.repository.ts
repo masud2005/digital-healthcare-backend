@@ -30,14 +30,14 @@ export class AttachmentRepository {
         return this.prisma.attachment.createManyAndReturn({ data: records });
     }
 
-async findAll(params: {
+    async findAll(params: {
         skip?: number;
         take?: number;
         context?: AttachmentContext;
         uploadedById?: string;
     }) {
         const { skip, take, context, uploadedById } = params;
-        
+
         const where = {
             ...(context && { context }),
             ...(uploadedById && { uploadedById }),
@@ -77,4 +77,3 @@ async findAll(params: {
         return this.prisma.attachment.delete({ where: { id } });
     }
 }
-

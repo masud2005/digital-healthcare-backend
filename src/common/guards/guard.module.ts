@@ -5,8 +5,8 @@ import { RolesGuard } from "./roles.guard";
 
 @Global()
 @Module({
-	imports: [PrismaModule],
-	providers: [JwtAuthGuard, RolesGuard],
-	exports: [JwtAuthGuard, RolesGuard],
+    imports: [PrismaModule],
+    providers: [JwtAuthGuard, RolesGuard],
+    exports: [JwtAuthGuard, RolesGuard],
 })
 export class GuardModule {}

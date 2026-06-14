@@ -35,6 +35,10 @@ type ConsentFindAllParams = {
 export class ConsentRepository {
     constructor(private readonly prisma: PrismaService) {}
 
+    count(where?: Prisma.ConsentWhereInput) {
+        return this.prisma.consent.count({ where });
+    }
+
     create(data: ConsentCreateData) {
         return this.prisma.consent.create({ data });
     }

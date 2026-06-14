@@ -110,3 +110,9 @@ export const attachmentContext = [
     "CATEGORY_ICON",
 ] as const;
 export type AttachmentContext = (typeof attachmentContext)[number];
+
+export const providerLicenseStatus = ["ACTIVE", "EXPIRING_SOON", "EXPIRED", "PENDING"] as const;
+export type ProviderLicenseStatus = (typeof providerLicenseStatus)[number];
+
+export const providerLicenseSource = ["PRIMARY", "DEA", "STATE_BOARD"] as const;
+export type ProviderLicenseSource = (typeof providerLicenseSource)[number];

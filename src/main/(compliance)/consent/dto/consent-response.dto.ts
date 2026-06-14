@@ -11,7 +11,10 @@ export class ConsentResponseDto {
     @ApiPropertyOptional({ example: "jessica.m@email.com", nullable: true })
     email: string | null;
 
-    @ApiProperty({ example: "DATA_PROCESSING", enum: ["DATA_PROCESSING", "MARKETING", "ANALYTICS", "AI_TRAINING"] })
+    @ApiProperty({
+        example: "DATA_PROCESSING",
+        enum: ["DATA_PROCESSING", "MARKETING", "ANALYTICS", "AI_TRAINING"],
+    })
     type: ConsentType;
 
     @ApiProperty({ example: "ACCEPTED", enum: ["ACCEPTED", "REVOKED", "PENDING"] })

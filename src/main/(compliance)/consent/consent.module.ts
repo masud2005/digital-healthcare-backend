@@ -9,6 +9,6 @@ import { ConsentService } from "./consent.service";
     imports: [PrismaModule, ExportModule],
     controllers: [ConsentController],
     providers: [ConsentService, ConsentRepository],
-    exports: [ConsentService],
+    exports: [ConsentService, ConsentRepository],
 })
 export class ConsentModule {}

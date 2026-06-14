@@ -34,8 +34,12 @@ export class SystemHealthInterceptor implements NestInterceptor {
                     const isClientError = err?.status >= 400 && err?.status < 500;
                     const isSystemError = !isClientError;
 
-                    this.systemHealthService.recordHttpRequest(duration, isSystemError).catch(() => {});
-                    this.systemHealthService.recordServerStatus(!isSystemError, duration).catch(() => {});
+                    this.systemHealthService
+                        .recordHttpRequest(duration, isSystemError)
+                        .catch(() => {});
+                    this.systemHealthService
+                        .recordServerStatus(!isSystemError, duration)
+                        .catch(() => {});
                 },
             }),
         );

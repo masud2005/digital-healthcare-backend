@@ -1,0 +1,42 @@
+model ProviderLicense {
+  id String @id @default(uuid())
+
+  // Provider identity
+  doctorId    String?
+  doctorName  String
+  doctorEmail String?
+  avatarColor String? // For UI avatar initials fallback (e.g. "blue", "#4f46e5")
+
+  // Credential numbers
+  npiNumber String?
+  deaNumber String?
+
+  // License info
+  licenseNumber  String?
+  licenseType    String? // MD, NP, PA, DO, etc.
+  licenseStates  Json? // String[] — states where licensed, e.g. ["TX", "CA", "FL"]
+  licenseSource  ProviderLicenseSource @default(PRIMARY)
+  licenseStatus  ProviderLicenseStatus @default(ACTIVE)
+  licenseExpiresAt DateTime?
+
+  // Insurance info
+  insuranceProvider  String?
+  insuranceStatus    ProviderLicenseStatus @default(ACTIVE)
+  insuranceExpiresAt DateTime?
+
+  // Notes & metadata
+  notes    String?
+  metadata Json?
+  isActive Boolean @default(true)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([doctorId])
+  @@index([doctorName])
+  @@index([licenseStatus])
+  @@index([insuranceStatus])
+  @@index([licenseExpiresAt])
+  @@index([insuranceExpiresAt])
+  @@map("provider_licenses")
+}

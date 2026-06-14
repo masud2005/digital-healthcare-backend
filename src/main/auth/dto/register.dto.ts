@@ -12,9 +12,12 @@ export class RegisterDto {
     @IsEmail()
     email!: string;
 
-@ApiProperty({ example: "+880183414XXXX" })
+    @ApiProperty({ example: "+880183414XXXX" })
     @IsNotEmpty()
-    @IsPhoneNumber(undefined, { message: "Phone number must be a valid international number with country code (e.g., +88018XXXXXXXX)" })
+    @IsPhoneNumber(undefined, {
+        message:
+            "Phone number must be a valid international number with country code (e.g., +88018XXXXXXXX)",
+    })
     phone!: string;
 
     @ApiProperty({

@@ -47,7 +47,16 @@ export class CategoryRepository {
                 ...rest,
                 ...(iconId ? { icon: { connect: { id: iconId } } } : {}),
                 ...(paymentPlan
-                    ? { paymentPlan: { create: { price: paymentPlan.price, ...(paymentPlan.billingCycle ? { billingCycle: paymentPlan.billingCycle } : {}) } } }
+                    ? {
+                          paymentPlan: {
+                              create: {
+                                  price: paymentPlan.price,
+                                  ...(paymentPlan.billingCycle
+                                      ? { billingCycle: paymentPlan.billingCycle }
+                                      : {}),
+                              },
+                          },
+                      }
                     : {}),
             },
             include: this.categoryInclude,
@@ -109,8 +118,20 @@ export class CategoryRepository {
             ? {
                   paymentPlan: {
                       upsert: {
-                          create: { price: paymentPlan.price ?? 0, ...(paymentPlan.billingCycle ? { billingCycle: paymentPlan.billingCycle } : {}) },
-                          update: { ...(paymentPlan.price !== undefined ? { price: paymentPlan.price } : {}), ...(paymentPlan.billingCycle ? { billingCycle: paymentPlan.billingCycle } : {}) },
+                          create: {
+                              price: paymentPlan.price ?? 0,
+                              ...(paymentPlan.billingCycle
+                                  ? { billingCycle: paymentPlan.billingCycle }
+                                  : {}),
+                          },
+                          update: {
+                              ...(paymentPlan.price !== undefined
+                                  ? { price: paymentPlan.price }
+                                  : {}),
+                              ...(paymentPlan.billingCycle
+                                  ? { billingCycle: paymentPlan.billingCycle }
+                                  : {}),
+                          },
                       },
                   },
               }

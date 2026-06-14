@@ -120,6 +120,19 @@ enum OtpStatus {
   FAILED
 }
 
+enum ProviderLicenseSource {
+  PRIMARY
+  DEA
+  STATE_BOARD
+}
+
+enum ProviderLicenseStatus {
+  ACTIVE
+  EXPIRING_SOON
+  EXPIRED
+  PENDING
+}
+
 enum QuestionType {
   INFORMATION_ONLY
   SINGLE_CHOICE

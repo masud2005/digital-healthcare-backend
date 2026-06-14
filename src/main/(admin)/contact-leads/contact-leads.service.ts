@@ -147,10 +147,14 @@ export class ContactLeadsService {
                 to: lead.email,
                 subject: payload.subject,
                 text: payload.message,
-                attachments: file ? [{
-                    filename: file.originalname,
-                    content: file.buffer,
-                }] : undefined,
+                attachments: file
+                    ? [
+                          {
+                              filename: file.originalname,
+                              content: file.buffer,
+                          },
+                      ]
+                    : undefined,
             });
 
             return this.resolveAttachment(contactLead);
@@ -171,11 +175,15 @@ export class ContactLeadsService {
         }
     }
 
-    private async resolveAttachment<T extends { attachments: string | null; responseAttachments?: string | null }>(contactLead: T) {
+    private async resolveAttachment<
+        T extends { attachments: string | null; responseAttachments?: string | null },
+    >(contactLead: T) {
         return {
             ...contactLead,
             attachments: await this.storageService.resolveKey(contactLead.attachments),
-            responseAttachments: await this.storageService.resolveKey(contactLead.responseAttachments),
+            responseAttachments: await this.storageService.resolveKey(
+                contactLead.responseAttachments,
+            ),
         };
     }
 

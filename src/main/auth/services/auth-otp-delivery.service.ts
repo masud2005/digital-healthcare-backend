@@ -48,7 +48,7 @@ export class AuthOtpDeliveryService {
             throw new ServiceUnavailableException("SMS provider is not configured properly");
         }
 
-        const formattedPhone = phone.trim().replace(/\s+/g, '');
+        const formattedPhone = phone.trim().replace(/\s+/g, "");
 
         const body = new URLSearchParams({
             To: formattedPhone,

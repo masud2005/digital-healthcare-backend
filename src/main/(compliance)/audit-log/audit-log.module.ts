@@ -9,6 +9,6 @@ import { AuditLogService } from "./audit-log.service";
     imports: [PrismaModule, ExportModule],
     controllers: [AuditLogController],
     providers: [AuditLogService, AuditLogRepository],
-    exports: [AuditLogService],
+    exports: [AuditLogService, AuditLogRepository],
 })
 export class AuditLogModule {}
