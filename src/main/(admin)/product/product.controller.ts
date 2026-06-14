@@ -33,7 +33,6 @@ import { ProductService } from "./product.service";
 
 @ApiTags("(Admin) Product")
 @Controller("admin/products")
-@UseInterceptors(FilesInterceptor("images"))
 export class ProductController {
     constructor(
         private readonly productService: ProductService,
@@ -44,6 +43,7 @@ export class ProductController {
     @Post()
     @ApiOperation({ summary: "Create a product" })
     @ApiConsumes("multipart/form-data")
+    @UseInterceptors(FilesInterceptor("images"))
     @ApiCreatedResponse({ type: ProductResponseDto })
     async create(@Body() payload: CreateProductDto, @UploadedFiles() files: Express.Multer.File[]) {
         if (!files || files.length === 0) {
@@ -83,6 +83,7 @@ export class ProductController {
     @Patch(":id")
     @ApiOperation({ summary: "Update a product" })
     @ApiConsumes("multipart/form-data")
+    @UseInterceptors(FilesInterceptor("images"))
     @ApiOkResponse({ type: ProductResponseDto })
     async update(
         @Param() params: ProductParamDto,
