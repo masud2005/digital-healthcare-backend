@@ -7,15 +7,12 @@ import { ServiceCategoryService } from "./service-category.service";
 export class ServiceCategoryController {
     constructor(private readonly serviceCategoryService: ServiceCategoryService) {}
 
-
     @Get("categories-names")
     @ApiOperation({
         summary: "Get all service categories",
-        description:
-            "Returns all active categories"
+        description: "Returns all active categories",
     })
     @ApiOkResponse({ description: "List of all categories" })
-
     async getAllCategoriesName() {
         const categories = await this.serviceCategoryService.getAllCategoriesName();
         return {
