@@ -1,6 +1,12 @@
 import { StateComplianceStatus } from "@constant/enums";
 import { PrismaService } from "@global/prisma/prisma.service";
-import { BadRequestException, Injectable, Logger, NotFoundException, OnModuleInit } from "@nestjs/common";
+import {
+    BadRequestException,
+    Injectable,
+    Logger,
+    NotFoundException,
+    OnModuleInit,
+} from "@nestjs/common";
 import { slugify } from "@util/functions";
 import { CreateStateCoverageDto } from "./dto/create-state-coverage.dto";
 import { StateCoverageQueryDto } from "./dto/state-coverage-query.dto";
@@ -30,7 +36,9 @@ export class StateCoverageService implements OnModuleInit {
             if (count === 50) return;
 
             if (count > 0) {
-                this.logger.log("⚠️ State Coverage count is not 50. Clearing existing states and re-seeding...");
+                this.logger.log(
+                    "⚠️ State Coverage count is not 50. Clearing existing states and re-seeding...",
+                );
                 await this.prisma.stateCoverage.deleteMany();
             }
 
@@ -53,7 +61,9 @@ export class StateCoverageService implements OnModuleInit {
 
             // 1. Ensure all categories exist
             for (const name of serviceNames) {
-                const normalizedCatName = name.trim().includes(" ") ? slugify(name.trim()) : name.trim();
+                const normalizedCatName = name.trim().includes(" ")
+                    ? slugify(name.trim())
+                    : name.trim();
                 const category = await this.prisma.category.upsert({
                     where: { name: normalizedCatName },
                     update: {},
@@ -88,7 +98,9 @@ export class StateCoverageService implements OnModuleInit {
     }
 
     async create(payload: CreateStateCoverageDto) {
-        const existing = await this.stateCoverageRepository.findByStateCode(payload.stateCode.trim().toUpperCase());
+        const existing = await this.stateCoverageRepository.findByStateCode(
+            payload.stateCode.trim().toUpperCase(),
+        );
         if (existing) {
             throw new BadRequestException("State code already exists");
         }

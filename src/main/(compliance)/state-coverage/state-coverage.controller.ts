@@ -1,10 +1,5 @@
 import { Body, Controller, Delete, Get, HttpCode, Param, Put, Query } from "@nestjs/common";
-import {
-    ApiNoContentResponse,
-    ApiOkResponse,
-    ApiOperation,
-    ApiTags,
-} from "@nestjs/swagger";
+import { ApiNoContentResponse, ApiOkResponse, ApiOperation, ApiTags } from "@nestjs/swagger";
 import { StateCoverageParamDto } from "./dto/state-coverage-param.dto";
 import { StateCoverageQueryDto } from "./dto/state-coverage-query.dto";
 import {

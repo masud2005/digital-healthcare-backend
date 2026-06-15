@@ -9,9 +9,7 @@ export class ServiceCategoryRepository {
         return this.prisma.category.findMany({
             where: {
                 status: "ACTIVE",
-                ...(categoryName
-                    ? { name: { contains: categoryName, mode: "insensitive" } }
-                    : {}),
+                ...(categoryName ? { name: { contains: categoryName, mode: "insensitive" } } : {}),
             },
             select: {
                 id: true,

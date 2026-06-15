@@ -1,6 +1,7 @@
 import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
 import { Transform, Type } from "class-transformer";
 import {
+    IsArray,
     IsDecimal,
     IsInt,
     IsNotEmpty,
@@ -18,15 +19,14 @@ export class CreateProductDto {
     name: string;
 
     @ApiProperty({
-        type: "array",
-        items: {
-            type: "string",
-            format: "binary",
-        },
-        description: "Product images to upload",
+        type: [String],
+        example: ["7f4145d8-087e-4d33-82bd-0f65d3fbdb4f"],
+        description: "Array of pre-uploaded attachment IDs for product images",
     })
-    @IsOptional()
-    images: any;
+    @IsArray()
+    @IsString({ each: true })
+    @IsUUID("4", { each: true })
+    images: string[];
 
     @ApiProperty({ example: "49.99", description: "Decimal value" })
     @Transform(({ value }) => (value === null || value === undefined ? value : String(value)))

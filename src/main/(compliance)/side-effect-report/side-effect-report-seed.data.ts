@@ -23,7 +23,8 @@ export const DEFAULT_SIDE_EFFECT_REPORTS: SeedSideEffectReport[] = [
         serviceName: "Semaglutide",
         providerName: "Dr. Runa Pradhan",
         severity: "MILD",
-        description: "Experiencing mild nausea after taking the medication. It lasts for a few hours but is manageable.",
+        description:
+            "Experiencing mild nausea after taking the medication. It lasts for a few hours but is manageable.",
         status: "REVIEWED",
         detectedAt: new Date("2026-06-04T09:00:00Z"),
         attachmentCount: 0,
@@ -36,7 +37,8 @@ export const DEFAULT_SIDE_EFFECT_REPORTS: SeedSideEffectReport[] = [
         serviceName: "Phentermine",
         providerName: "Dr. Jeffrey Richker",
         severity: "SEVERE",
-        description: "Severe headaches and chest tightness. Need to discuss alternative medication options.",
+        description:
+            "Severe headaches and chest tightness. Need to discuss alternative medication options.",
         status: "REVIEWED",
         detectedAt: new Date("2026-06-04T08:45:00Z"),
         attachmentCount: 2,
@@ -49,7 +51,8 @@ export const DEFAULT_SIDE_EFFECT_REPORTS: SeedSideEffectReport[] = [
         serviceName: "Testosterone Cypionate",
         providerName: "Dr. Nicole Sheeder",
         severity: "LIFE_THREATENING",
-        description: "Sudden difficulty breathing and severe allergic reaction. Called emergency services.",
+        description:
+            "Sudden difficulty breathing and severe allergic reaction. Called emergency services.",
         status: "PENDING",
         detectedAt: new Date("2026-06-04T08:30:00Z"),
         attachmentCount: 3,

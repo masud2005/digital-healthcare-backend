@@ -1,4 +1,4 @@
-import { Injectable } from "@nestjs/common";
+import { BadRequestException, Injectable } from "@nestjs/common";
 import { PrismaService } from "@global/prisma/prisma.service";
 import type { Prisma } from "@prisma/client";
 
@@ -113,6 +113,40 @@ export class ProductRepository {
         return this.prisma.category.findUnique({
             where: { id: categoryId },
             select: { id: true },
+        });
+    }
+
+    async validateProductImages(imageIds: string[], productId?: string) {
+        const attachments = await this.prisma.attachment.findMany({
+            where: {
+                id: { in: imageIds },
+            },
+            select: {
+                id: true,
+                context: true,
+                productId: true,
+            },
+        });
+
+        if (attachments.length !== imageIds.length) {
+            throw new BadRequestException("One or more image attachments not found");
+        }
+
+        for (const attachment of attachments) {
+            if (attachment.context !== "PRODUCT_IMAGE") {
+                throw new BadRequestException(`Attachment ${attachment.id} is not a product image`);
+            }
+            if (attachment.productId && attachment.productId !== productId) {
+                throw new BadRequestException(
+                    `Attachment ${attachment.id} is already assigned to another product`,
+                );
+            }
+        }
+    }
+
+    deleteAttachment(id: string) {
+        return this.prisma.attachment.delete({
+            where: { id },
         });
     }
 

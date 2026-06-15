@@ -26,6 +26,10 @@ export class ProductService {
         await this.ensureNameIsAvailable(data.name);
         await this.ensureCategoryExists(data.categoryId);
 
+        if (data.images && data.images.length > 0) {
+            await this.productRepository.validateProductImages(data.images);
+        }
+
         try {
             const product = await this.productRepository.create(data);
             return this.resolveProductImages(product);
@@ -70,7 +74,11 @@ export class ProductService {
     }
 
     async update(id: string, payload: UpdateProductDto) {
-        await this.findOne(id);
+        const product = await this.productRepository.findById(id);
+        if (!product) {
+            throw new NotFoundException("Product not found");
+        }
+
         const data = this.normalizeUpdatePayload(payload);
 
         if (data.name) {
@@ -81,9 +89,29 @@ export class ProductService {
             await this.ensureCategoryExists(data.categoryId);
         }
 
+        if (data.images) {
+            await this.productRepository.validateProductImages(data.images, id);
+
+            const newImageIds = data.images;
+            const removedImages = product.images.filter((img) => !newImageIds.includes(img.id));
+
+            if (removedImages.length > 0) {
+                await Promise.all(
+                    removedImages.map(async (img) => {
+                        try {
+                            await this.storageService.deleteFile(img.fileUrl);
+                        } catch {
+                            // Log warning, don't crash
+                        }
+                        await this.productRepository.deleteAttachment(img.id);
+                    }),
+                );
+            }
+        }
+
         try {
-            const product = await this.productRepository.update(id, data);
-            return this.resolveProductImages(product);
+            const updatedProduct = await this.productRepository.update(id, data);
+            return this.resolveProductImages(updatedProduct);
         } catch (error) {
             this.throwKnownPrismaError(error);
             throw error;
@@ -91,7 +119,22 @@ export class ProductService {
     }
 
     async remove(id: string) {
-        await this.findOne(id);
+        const product = await this.productRepository.findById(id);
+        if (!product) {
+            throw new NotFoundException("Product not found");
+        }
+
+        if (product.images && product.images.length > 0) {
+            await Promise.all(
+                product.images.map(async (img) => {
+                    try {
+                        await this.storageService.deleteFile(img.fileUrl);
+                    } catch {
+                        // Log warning, don't crash
+                    }
+                }),
+            );
+        }
 
         try {
             return await this.productRepository.delete(id);
@@ -106,15 +149,28 @@ export class ProductService {
      */
     private async resolveProductImages<
         T extends {
-            images: Array<{ fileUrl: string }>;
+            images: Array<{
+                id: string;
+                fileName: string;
+                fileUrl: string;
+                fileType: string;
+                fileSize: number;
+                context: string;
+                uploadedById?: string | null;
+                createdAt: Date;
+                updatedAt: Date;
+            }>;
         },
     >(product: T) {
-        const resolvedUrls = await Promise.all(
-            product.images.map((img) => this.storageService.getSignedUrl(img.fileUrl)),
+        const resolvedImages = await Promise.all(
+            product.images.map(async (img) => ({
+                ...img,
+                fileUrl: await this.storageService.getSignedUrl(img.fileUrl),
+            })),
         );
         return {
             ...product,
-            images: resolvedUrls,
+            images: resolvedImages,
         };
     }
 
