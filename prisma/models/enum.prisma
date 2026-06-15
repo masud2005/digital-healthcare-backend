@@ -27,6 +27,7 @@ enum AttachmentContext {
   WEBSITE_SOCIAL_PREVIEW
   DOCTOR_AVATAR
   CONTACT_LEAD_ATTACHMENT
+  SIDE_EFFECT_REPORT_ATTACHMENT
 }
 
 enum AuthAttemptStatus {
@@ -146,6 +147,19 @@ enum QuestionType {
   SINGLE_CHOICE
   MULTIPLE_CHOICE
   INPUT
+}
+
+enum SideEffectSeverity {
+  MILD
+  MODERATE
+  SEVERE
+  LIFE_THREATENING
+}
+
+enum SideEffectStatus {
+  PENDING
+  REVIEWED
+  ESCALATED
 }
 
 enum SubmissionStatus {

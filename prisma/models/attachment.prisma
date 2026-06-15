@@ -27,10 +27,14 @@ model Attachment {
     contactLead          ContactLead?     @relation("ContactLeadAttachment")
     contactLeadResponse  ContactLead?     @relation("ContactLeadResponseAttachment")
 
+    sideEffectReportId String?           @map("side_effect_report_id")
+    sideEffectReport   SideEffectReport? @relation(fields: [sideEffectReportId], references: [id], onDelete: Cascade)
+
     createdAt DateTime @default(now())
     updatedAt DateTime @updatedAt
 
     @@index([context])
     @@index([uploadedById, context])
     @@index([productId])
+    @@index([sideEffectReportId])
 }

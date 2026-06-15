@@ -116,6 +116,7 @@ export const attachmentContext = [
     "WEBSITE_SOCIAL_PREVIEW",
     "DOCTOR_AVATAR",
     "CONTACT_LEAD_ATTACHMENT",
+    "SIDE_EFFECT_REPORT_ATTACHMENT",
 ] as const;
 export type AttachmentContext = (typeof attachmentContext)[number];
 
@@ -124,3 +125,9 @@ export type ProviderLicenseStatus = (typeof providerLicenseStatus)[number];
 
 export const providerLicenseSource = ["PRIMARY", "DEA", "STATE_BOARD"] as const;
 export type ProviderLicenseSource = (typeof providerLicenseSource)[number];
+
+export const sideEffectSeverity = ["MILD", "MODERATE", "SEVERE", "LIFE_THREATENING"] as const;
+export type SideEffectSeverity = (typeof sideEffectSeverity)[number];
+
+export const sideEffectStatus = ["PENDING", "REVIEWED", "ESCALATED"] as const;
+export type SideEffectStatus = (typeof sideEffectStatus)[number];
