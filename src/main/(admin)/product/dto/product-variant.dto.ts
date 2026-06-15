@@ -3,11 +3,6 @@ import { Transform, Type } from "class-transformer";
 import { IsDecimal, IsInt, IsNotEmpty, IsOptional, IsString, Matches, Min } from "class-validator";
 
 export class ProductVariantDto {
-    @ApiPropertyOptional({ example: "7f4145d8-087e-4d33-82bd-0f65d3fbdb4f" })
-    @IsOptional()
-    @IsString()
-    id?: string;
-
     @ApiProperty({ example: "10 ml" })
     @IsString()
     @IsNotEmpty()
@@ -19,9 +14,10 @@ export class ProductVariantDto {
     @Matches(/^\d+(\.\d+)?$/)
     price: string;
 
-    @ApiProperty({ example: 85 })
+    @ApiPropertyOptional({ example: 85 })
+    @IsOptional()
     @Type(() => Number)
     @IsInt()
     @Min(0)
-    stockQuantity: number;
+    stockQuantity?: number;
 }
