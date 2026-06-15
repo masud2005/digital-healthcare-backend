@@ -12,6 +12,7 @@ import { SideEffectReportQueryDto } from "./dto/side-effect-report-query.dto";
 import { UpdateSideEffectReportDto } from "./dto/update-side-effect-report.dto";
 import { SideEffectReportRepository } from "./side-effect-report.repository";
 import { DEFAULT_SIDE_EFFECT_REPORTS } from "./side-effect-report-seed.data";
+import { slugify } from "@util/functions";
 
 const DEFAULT_PAGE = 1;
 const DEFAULT_LIMIT = 10;
@@ -65,15 +66,14 @@ export class SideEffectReportService implements OnModuleInit {
                 // Ensure category exists
                 const catName = report.serviceName;
                 if (!categoriesMap.has(catName)) {
-                    const normalizedCatName = catName.trim().includes(" ")
-                        ? catName.trim().toLowerCase().replace(/\s+/g, "-")
-                        : catName.trim();
+                    const normalizedCatName = slugify(catName.trim());
 
                     const category = await this.prisma.category.upsert({
-                        where: { name: normalizedCatName },
+                        where: { slug: normalizedCatName },
                         update: {},
                         create: {
-                            name: normalizedCatName,
+                            name: catName.trim(),
+                            slug: normalizedCatName,
                             status: "ACTIVE",
                         },
                     });

@@ -43,14 +43,12 @@ export class StateCoverageService implements OnModuleInit {
                 "Sexual Health",
             ];
 
-            const normalizedNames = serviceNames.map((name) =>
-                name.trim().includes(" ") ? slugify(name.trim()) : name.trim(),
-            );
+            const normalizedNames = serviceNames.map((name) => slugify(name.trim()));
 
             // Clean up other categories not in our 5 categories list
             await this.prisma.category.deleteMany({
                 where: {
-                    name: {
+                    slug: {
                         notIn: normalizedNames,
                     },
                 },
@@ -58,14 +56,13 @@ export class StateCoverageService implements OnModuleInit {
 
             // 1. Ensure all categories exist
             for (const name of serviceNames) {
-                const normalizedCatName = name.trim().includes(" ")
-                    ? slugify(name.trim())
-                    : name.trim();
+                const normalizedCatName = slugify(name.trim());
                 const category = await this.prisma.category.upsert({
-                    where: { name: normalizedCatName },
+                    where: { slug: normalizedCatName },
                     update: {},
                     create: {
-                        name: normalizedCatName,
+                        name: name.trim(),
+                        slug: normalizedCatName,
                         status: "ACTIVE",
                     },
                 });

@@ -15,6 +15,7 @@ type PaymentPlanUpdateData = {
 
 type CategoryCreateData = {
     name: string;
+    slug: string;
     description?: string | null;
     status?: CategoryStatus;
     iconId?: string;
@@ -23,6 +24,7 @@ type CategoryCreateData = {
 
 type CategoryUpdateData = {
     name?: string;
+    slug?: string;
     description?: string | null;
     status?: CategoryStatus;
     iconId?: string | null;
@@ -99,8 +101,14 @@ export class CategoryRepository {
     }
 
     findByName(name: string) {
-        return this.prisma.category.findUnique({
+        return this.prisma.category.findFirst({
             where: { name },
+        });
+    }
+
+    findBySlug(slug: string) {
+        return this.prisma.category.findUnique({
+            where: { slug },
         });
     }
 

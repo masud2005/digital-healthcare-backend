@@ -1,6 +1,7 @@
 model Product {
   id            String           @id @default(uuid())
   name          String
+  slug          String           @unique
   images        Attachment[]
   price         Decimal?         @db.Decimal(10, 2)
   stockQuantity Int?             @default(0)
@@ -16,6 +17,7 @@ model Product {
 
   @@index([categoryId])
   @@index([name])
+  @@index([slug])
 }
 
 model ProductVariant {
