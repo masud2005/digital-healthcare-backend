@@ -7,6 +7,9 @@ export class ProductCategoryResponseDto {
 
     @ApiProperty({ example: "Cardiology" })
     name: string;
+
+    @ApiProperty({ example: "cardiology" })
+    slug: string;
 }
 
 export class ProductVariantResponseDto {
@@ -35,6 +38,9 @@ export class ProductResponseDto {
 
     @ApiProperty({ example: "Blood Pressure Monitor" })
     name: string;
+
+    @ApiProperty({ example: "blood-pressure-monitor" })
+    slug: string;
 
     @ApiProperty({ type: [AttachmentResponseDto] })
     images: AttachmentResponseDto[];

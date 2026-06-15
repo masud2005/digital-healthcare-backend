@@ -33,6 +33,42 @@ export class StateCoverageService implements OnModuleInit {
     async seedStateCoverages() {
         try {
             const count = await this.stateCoverageRepository.count();
+
+            const categoriesMap = new Map<string, string>();
+            const serviceNames = [
+                "Telemedicine",
+                "Weight Loss",
+                "Hormone Therapy",
+                "Anxiety & Depression",
+                "Sexual Health",
+            ];
+
+            const normalizedNames = serviceNames.map((name) => slugify(name.trim()));
+
+            // Clean up other categories not in our 5 categories list
+            await this.prisma.category.deleteMany({
+                where: {
+                    slug: {
+                        notIn: normalizedNames,
+                    },
+                },
+            });
+
+            // 1. Ensure all categories exist
+            for (const name of serviceNames) {
+                const normalizedCatName = slugify(name.trim());
+                const category = await this.prisma.category.upsert({
+                    where: { slug: normalizedCatName },
+                    update: {},
+                    create: {
+                        name: name.trim(),
+                        slug: normalizedCatName,
+                        status: "ACTIVE",
+                    },
+                });
+                categoriesMap.set(name, category.id);
+            }
+
             if (count === 50) return;
 
             if (count > 0) {
@@ -43,37 +79,6 @@ export class StateCoverageService implements OnModuleInit {
             }
 
             this.logger.log("🌱 Seeding State Coverage compliance data...");
-
-            const categoriesMap = new Map<string, string>();
-            const serviceNames = [
-                "Telemedicine",
-                "Weight Loss",
-                "Hormone Therapy",
-                "Anxiety & Depression",
-                "Sexual Health",
-                "Hair care",
-                "Skin Care",
-                "Sleep",
-                "Hair Loss",
-                "Controlled Substances",
-                "Hair Loss (Finasteride)",
-            ];
-
-            // 1. Ensure all categories exist
-            for (const name of serviceNames) {
-                const normalizedCatName = name.trim().includes(" ")
-                    ? slugify(name.trim())
-                    : name.trim();
-                const category = await this.prisma.category.upsert({
-                    where: { name: normalizedCatName },
-                    update: {},
-                    create: {
-                        name: normalizedCatName,
-                        status: "ACTIVE",
-                    },
-                });
-                categoriesMap.set(name, category.id);
-            }
 
             // 2. Create state coverages
             const seedData = getSeedStateCoverages();

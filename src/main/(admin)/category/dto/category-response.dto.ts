@@ -27,6 +27,9 @@ export class CategoryResponseDto {
     @ApiProperty({ example: "Cardiology" })
     name: string;
 
+    @ApiProperty({ example: "cardiology" })
+    slug: string;
+
     @ApiPropertyOptional({ example: "Heart and cardiovascular care", nullable: true })
     description: string | null;
 
