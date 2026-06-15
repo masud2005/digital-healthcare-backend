@@ -1,20 +1,20 @@
 model ContactLead {
   id String @id @default(uuid())
 
-  fullName            String
-  email               String
-  phone               String?
-  service             String? // will be all active service
-  message             String?   @db.Text
-  read                Boolean   @default(false)
-  responded           Boolean   @default(false)
-  attachmentId          String?     @unique @map("attachment_id")
-  attachment            Attachment? @relation("ContactLeadAttachment", fields: [attachmentId], references: [id], onDelete: Cascade)
-  responseSubject       String?
-  responseMessage       String?     @db.Text
-  responseAttachmentId  String?     @unique @map("response_attachment_id")
-  responseAttachment    Attachment? @relation("ContactLeadResponseAttachment", fields: [responseAttachmentId], references: [id], onDelete: Cascade)
-  respondedAt           DateTime?
-  createdAt           DateTime  @default(now())
-  updatedAt           DateTime  @updatedAt
+  fullName             String
+  email                String
+  phone                String?
+  service              String? // will be all active service
+  message              String?     @db.Text
+  read                 Boolean     @default(false)
+  responded            Boolean     @default(false)
+  attachmentId         String?     @unique @map("attachment_id")
+  attachment           Attachment? @relation("ContactLeadAttachment", fields: [attachmentId], references: [id], onDelete: Cascade)
+  responseSubject      String?
+  responseMessage      String?     @db.Text
+  responseAttachmentId String?     @unique @map("response_attachment_id")
+  responseAttachment   Attachment? @relation("ContactLeadResponseAttachment", fields: [responseAttachmentId], references: [id], onDelete: Cascade)
+  respondedAt          DateTime?
+  createdAt            DateTime    @default(now())
+  updatedAt            DateTime    @updatedAt
 }
