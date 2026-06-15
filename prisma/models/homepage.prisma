@@ -2,17 +2,17 @@ model HomePageContent {
   id String @id @default(cuid())
 
   // Hero Section
-  heroImageId       String?     @unique @map("hero_image_id")
-  heroImage         Attachment? @relation("HeroImage", fields: [heroImageId], references: [id], onDelete: Cascade)
-  heroBadgeImageId  String?     @unique @map("hero_badge_image_id")
-  heroBadgeImage    Attachment? @relation("HeroBadgeImage", fields: [heroBadgeImageId], references: [id], onDelete: Cascade)
-  heroBadgeText     String?     @map("hero_badge_text")
-  heroBadgeLink     String?     @map("hero_badge_link")
-  heroTitle         String?     @map("hero_title")
-  heroDescription   String?     @map("hero_description") @db.Text
-  heroButtonText    String?     @map("hero_button_text")
-  heroButtonLink    String?     @map("hero_button_link")
-  heroButtonNewTab  Boolean     @default(false) @map("hero_button_new_tab")
+  heroImageId      String?     @unique @map("hero_image_id")
+  heroImage        Attachment? @relation("HeroImage", fields: [heroImageId], references: [id], onDelete: Cascade)
+  heroBadgeImageId String?     @unique @map("hero_badge_image_id")
+  heroBadgeImage   Attachment? @relation("HeroBadgeImage", fields: [heroBadgeImageId], references: [id], onDelete: Cascade)
+  heroBadgeText    String?     @map("hero_badge_text")
+  heroBadgeLink    String?     @map("hero_badge_link")
+  heroTitle        String?     @map("hero_title")
+  heroDescription  String?     @map("hero_description") @db.Text
+  heroButtonText   String?     @map("hero_button_text")
+  heroButtonLink   String?     @map("hero_button_link")
+  heroButtonNewTab Boolean     @default(false) @map("hero_button_new_tab")
 
   // Banner Section
   bannerTitle       String? @map("banner_title")

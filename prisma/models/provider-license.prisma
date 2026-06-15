@@ -12,11 +12,11 @@ model ProviderLicense {
   deaNumber String?
 
   // License info
-  licenseNumber  String?
-  licenseType    String? // MD, NP, PA, DO, etc.
-  licenseStates  Json? // String[] — states where licensed, e.g. ["TX", "CA", "FL"]
-  licenseSource  ProviderLicenseSource @default(PRIMARY)
-  licenseStatus  ProviderLicenseStatus @default(ACTIVE)
+  licenseNumber    String?
+  licenseType      String? // MD, NP, PA, DO, etc.
+  licenseStates    Json? // String[] — states where licensed, e.g. ["TX", "CA", "FL"]
+  licenseSource    ProviderLicenseSource @default(PRIMARY)
+  licenseStatus    ProviderLicenseStatus @default(ACTIVE)
   licenseExpiresAt DateTime?
 
   // Insurance info

@@ -10,7 +10,9 @@ import {
     IsUUID,
     Matches,
     Min,
+    ValidateNested,
 } from "class-validator";
+import { ProductVariantDto } from "./product-variant.dto";
 
 export class UpdateProductDto {
     @ApiPropertyOptional({ example: "Blood Pressure Monitor" })
@@ -43,6 +45,13 @@ export class UpdateProductDto {
     @IsInt()
     @Min(0)
     stockQuantity?: number;
+
+    @ApiPropertyOptional({ type: [ProductVariantDto] })
+    @IsOptional()
+    @IsArray()
+    @ValidateNested({ each: true })
+    @Type(() => ProductVariantDto)
+    variants?: ProductVariantDto[];
 
     @ApiPropertyOptional({ example: "Digital upper-arm blood pressure monitor", nullable: true })
     @IsOptional()

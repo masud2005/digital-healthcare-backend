@@ -23,9 +23,20 @@ export class CartService {
             throw new NotFoundException("Product not found");
         }
 
-        if (product.stockQuantity < dto.quantity) {
+        let stockAvailable = product.stockQuantity ?? 0;
+        if (dto.size && product.variants && product.variants.length > 0) {
+            const variant = product.variants.find(
+                (v) => v.size.toLowerCase() === dto.size?.toLowerCase(),
+            );
+            if (!variant) {
+                throw new NotFoundException(`Product size variant "${dto.size}" not found`);
+            }
+            stockAvailable = variant.stockQuantity;
+        }
+
+        if (stockAvailable < dto.quantity) {
             throw new BadRequestException(
-                `Insufficient stock. Available: ${product.stockQuantity}`,
+                `Insufficient stock. Available: ${stockAvailable}`,
             );
         }
 
@@ -64,14 +75,29 @@ export class CartService {
             throw new NotFoundException("Cart item not found");
         }
 
-        if (dto.quantity !== undefined) {
-            const product = await this.cartRepository.findProduct(item.productId);
+        const targetQuantity = dto.quantity !== undefined ? dto.quantity : item.quantity;
+        const targetSize = dto.size !== undefined ? dto.size : item.size;
 
-            if (!product || product.stockQuantity < dto.quantity) {
-                throw new BadRequestException(
-                    `Insufficient stock. Available: ${product?.stockQuantity ?? 0}`,
-                );
+        const product = await this.cartRepository.findProduct(item.productId);
+        if (!product) {
+            throw new NotFoundException("Product not found");
+        }
+
+        let stockAvailable = product.stockQuantity ?? 0;
+        if (targetSize && product.variants && product.variants.length > 0) {
+            const variant = product.variants.find(
+                (v) => v.size.toLowerCase() === targetSize.toLowerCase(),
+            );
+            if (!variant) {
+                throw new NotFoundException(`Product size variant "${targetSize}" not found`);
             }
+            stockAvailable = variant.stockQuantity;
+        }
+
+        if (stockAvailable < targetQuantity) {
+            throw new BadRequestException(
+                `Insufficient stock. Available: ${stockAvailable}`,
+            );
         }
 
         const updated = await this.cartRepository.updateCartItem(cartItemId, {
@@ -114,7 +140,20 @@ export class CartService {
                     })),
                 );
 
-                const itemTotal = Number(item.product.price) * item.quantity;
+                let productPrice = item.product.price ? Number(item.product.price) : 0;
+                let stockQuantity = item.product.stockQuantity ?? 0;
+
+                if (item.size && item.product.variants && item.product.variants.length > 0) {
+                    const variant = item.product.variants.find(
+                        (v) => v.size.toLowerCase() === item.size?.toLowerCase(),
+                    );
+                    if (variant) {
+                        productPrice = Number(variant.price);
+                        stockQuantity = variant.stockQuantity;
+                    }
+                }
+
+                const itemTotal = productPrice * item.quantity;
                 totalPrice += itemTotal;
 
                 return {
@@ -125,8 +164,8 @@ export class CartService {
                     product: {
                         id: item.product.id,
                         name: item.product.name,
-                        price: item.product.price,
-                        stockQuantity: item.product.stockQuantity,
+                        price: String(productPrice),
+                        stockQuantity,
                         images: resolvedImages,
                     },
                     createdAt: item.createdAt,

@@ -1,40 +1,40 @@
 model Attachment {
-    id       String @id @default(uuid())
-    fileName String
-    fileUrl  String
-    fileType String
-    fileSize Int
-    context AttachmentContext
+  id       String            @id @default(uuid())
+  fileName String
+  fileUrl  String
+  fileType String
+  fileSize Int
+  context  AttachmentContext
 
-    // Optional relation to User who uploaded the attachment
-    uploadedById String?
-    uploadedBy   User?   @relation(fields: [uploadedById], references: [id])
+  // Optional relation to User who uploaded the attachment
+  uploadedById String?
+  uploadedBy   User?   @relation(fields: [uploadedById], references: [id])
 
-    // Back-relations
-    category     Category?
-    product      Product? @relation(fields: [productId], references: [id], onDelete: Cascade)
-    productId    String?
+  // Back-relations
+  category  Category?
+  product   Product?  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  productId String?
 
-    homePageContentHero  HomePageContent? @relation("HeroImage")
-    homePageContentBadge HomePageContent? @relation("HeroBadgeImage")
-    howItWorksStep       HowItWorksStep?  @relation("HowItWorksStepIcon")
-    whiteLogoSettings    SiteSettings?    @relation("WhiteLogo")
-    blackLogoSettings    SiteSettings?    @relation("BlackLogo")
-    faviconLightSettings SiteSettings?    @relation("FaviconLight")
-    faviconDarkSettings  SiteSettings?    @relation("FaviconDark")
-    socialPreviewSettings SiteSettings?   @relation("SocialPreview")
-    doctorProfile        DoctorProfile?   @relation("DoctorAvatar")
-    contactLead          ContactLead?     @relation("ContactLeadAttachment")
-    contactLeadResponse  ContactLead?     @relation("ContactLeadResponseAttachment")
+  homePageContentHero   HomePageContent? @relation("HeroImage")
+  homePageContentBadge  HomePageContent? @relation("HeroBadgeImage")
+  howItWorksStep        HowItWorksStep?  @relation("HowItWorksStepIcon")
+  whiteLogoSettings     SiteSettings?    @relation("WhiteLogo")
+  blackLogoSettings     SiteSettings?    @relation("BlackLogo")
+  faviconLightSettings  SiteSettings?    @relation("FaviconLight")
+  faviconDarkSettings   SiteSettings?    @relation("FaviconDark")
+  socialPreviewSettings SiteSettings?    @relation("SocialPreview")
+  doctorProfile         DoctorProfile?   @relation("DoctorAvatar")
+  contactLead           ContactLead?     @relation("ContactLeadAttachment")
+  contactLeadResponse   ContactLead?     @relation("ContactLeadResponseAttachment")
 
-    sideEffectReportId String?           @map("side_effect_report_id")
-    sideEffectReport   SideEffectReport? @relation(fields: [sideEffectReportId], references: [id], onDelete: Cascade)
+  sideEffectReportId String?           @map("side_effect_report_id")
+  sideEffectReport   SideEffectReport? @relation(fields: [sideEffectReportId], references: [id], onDelete: Cascade)
 
-    createdAt DateTime @default(now())
-    updatedAt DateTime @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
-    @@index([context])
-    @@index([uploadedById, context])
-    @@index([productId])
-    @@index([sideEffectReportId])
+  @@index([context])
+  @@index([uploadedById, context])
+  @@index([productId])
+  @@index([sideEffectReportId])
 }

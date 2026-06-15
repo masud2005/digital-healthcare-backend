@@ -9,9 +9,9 @@ model SideEffectReport {
   description String             @db.Text
   status      SideEffectStatus   @default(PENDING)
 
-  serviceId  String   @map("service_id")
-  service    Category @relation(fields: [serviceId], references: [id], onDelete: Cascade)
-  providerId String   @map("provider_id")
+  serviceId  String        @map("service_id")
+  service    Category      @relation(fields: [serviceId], references: [id], onDelete: Cascade)
+  providerId String        @map("provider_id")
   provider   DoctorProfile @relation(fields: [providerId], references: [id], onDelete: Cascade)
 
   attachments Attachment[]

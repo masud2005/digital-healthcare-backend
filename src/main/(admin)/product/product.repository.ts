@@ -5,19 +5,29 @@ import type { Prisma } from "@prisma/client";
 type ProductCreateData = {
     name: string;
     images: string[];
-    price: string;
-    stockQuantity?: number;
+    price?: string | null;
+    stockQuantity?: number | null;
     description?: string | null;
     categoryId: string;
+    variants?: Array<{
+        size: string;
+        price: string;
+        stockQuantity: number;
+    }>;
 };
 
 type ProductUpdateData = {
     name?: string;
     images?: string[];
-    price?: string;
-    stockQuantity?: number;
+    price?: string | null;
+    stockQuantity?: number | null;
     description?: string | null;
     categoryId?: string;
+    variants?: Array<{
+        size: string;
+        price: string;
+        stockQuantity: number;
+    }>;
 };
 
 type ProductFindAllParams = {
@@ -32,13 +42,20 @@ export class ProductRepository {
     constructor(private readonly prisma: PrismaService) {}
 
     create(data: ProductCreateData) {
-        const { images, ...rest } = data;
+        const { images, variants, ...rest } = data;
         return this.prisma.product.create({
             data: {
                 ...rest,
                 images: {
                     connect: images.map((id) => ({ id })),
                 },
+                ...(variants && variants.length > 0
+                    ? {
+                          variants: {
+                              create: variants,
+                          },
+                      }
+                    : {}),
             },
             include: this.productInclude,
         });
@@ -85,21 +102,36 @@ export class ProductRepository {
         });
     }
 
-    update(id: string, data: ProductUpdateData) {
-        const { images, ...rest } = data;
-        return this.prisma.product.update({
-            where: { id },
-            data: {
-                ...rest,
-                ...(images
-                    ? {
-                          images: {
-                              set: images.map((imgId) => ({ id: imgId })),
-                          },
-                      }
-                    : {}),
-            },
-            include: this.productInclude,
+    async update(id: string, data: ProductUpdateData) {
+        const { images, variants, ...rest } = data;
+        return this.prisma.$transaction(async (tx) => {
+            if (variants) {
+                await tx.productVariant.deleteMany({
+                    where: { productId: id },
+                });
+            }
+
+            return tx.product.update({
+                where: { id },
+                data: {
+                    ...rest,
+                    ...(images
+                        ? {
+                              images: {
+                                  set: images.map((imgId) => ({ id: imgId })),
+                              },
+                          }
+                        : {}),
+                    ...(variants && variants.length > 0
+                        ? {
+                              variants: {
+                                  create: variants,
+                              },
+                          }
+                        : {}),
+                },
+                include: this.productInclude,
+            });
         });
     }
 
@@ -158,5 +190,10 @@ export class ProductRepository {
             },
         },
         images: true,
+        variants: {
+            orderBy: {
+                createdAt: "asc",
+            },
+        },
     } satisfies Prisma.ProductInclude;
 }
