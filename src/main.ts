@@ -121,7 +121,7 @@ async function bootstrap() {
     });
 
     // dose-ignore
-    console.log("Server is running on port " + (process.env.PORT ?? 3031));
+    console.log("Server running at: " + (process.env.PORT ?? 3031));
     // dose-ignore
     await app.listen(process.env.PORT ?? 3031);
 }
