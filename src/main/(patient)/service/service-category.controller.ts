@@ -3,11 +3,30 @@ import { ApiOkResponse, ApiOperation, ApiQuery, ApiTags } from "@nestjs/swagger"
 import { ServiceCategoryService } from "./service-category.service";
 
 @ApiTags("(Patient) Service Category")
-@Controller("patient/service-category")
+@Controller("patient")
 export class ServiceCategoryController {
     constructor(private readonly serviceCategoryService: ServiceCategoryService) {}
 
-    @Get()
+
+    @Get("categories-names")
+    @ApiOperation({
+        summary: "Get all service categories",
+        description:
+            "Returns all active categories"
+    })
+    @ApiOkResponse({ description: "List of all categories" })
+
+    async getAllCategoriesName() {
+        const categories = await this.serviceCategoryService.getAllCategoriesName();
+        return {
+            success: true,
+            statusCode: 200,
+            message: "All Categories names retrieved successfully",
+            data: categories,
+        };
+    }
+
+    @Get("categories")
     @ApiOperation({
         summary: "Get service categories with assessments",
         description:
@@ -16,7 +35,13 @@ export class ServiceCategoryController {
     })
     @ApiQuery({ name: "name", required: false, description: "Filter by category name" })
     @ApiOkResponse({ description: "List of categories with assessments" })
-    getCategories(@Query("name") name?: string) {
-        return this.serviceCategoryService.getCategories(name);
+    async getCategories(@Query("name") name?: string) {
+        const categories = await this.serviceCategoryService.getCategories(name);
+        return {
+            success: true,
+            statusCode: 200,
+            message: "Categories retrieved successfully",
+            data: categories,
+        };
     }
 }

@@ -9,6 +9,10 @@ export class ServiceCategoryService {
         private readonly storageService: StorageService,
     ) {}
 
+    async getAllCategoriesName() {
+        return this.serviceCategoryRepository.findAllNames();
+    }
+
     async getCategories(categoryName?: string) {
         const categories = await this.serviceCategoryRepository.findAll(categoryName);
 

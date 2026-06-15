@@ -166,6 +166,7 @@ const SUBMIT_EXAMPLES = {
 export class AssessmentSubmissionController {
     constructor(private readonly assessmentSubmissionService: AssessmentSubmissionService) {}
 
+    @UseGuards(JwtAuthGuard)
     @Post()
     @ApiOperation({
         summary: "Submit an assessment",
@@ -184,10 +185,17 @@ export class AssessmentSubmissionController {
         examples: SUBMIT_EXAMPLES,
     })
     @ApiCreatedResponse({ type: AssessmentSubmissionResponseDto })
-    create(@Body() payload: CreateAssessmentSubmissionDto, @CurrentUser() user: AuthenticatedUser) {
-        return this.assessmentSubmissionService.create(user.id, payload);
+    async create(@Body() payload: CreateAssessmentSubmissionDto, @CurrentUser() user: AuthenticatedUser) {
+        const submission = await this.assessmentSubmissionService.create(user.id, payload);
+        return {
+            success: true,
+            statusCode: 201,
+            message: "Assessment submitted successfully",
+            data: submission,
+        };
     }
 
+    @UseGuards(JwtAuthGuard)
     @Get("my-assessment")
     @ApiOperation({
         summary: "Get my submitted assessments",
@@ -197,10 +205,17 @@ export class AssessmentSubmissionController {
             "isEditable is true only when status is DRAFT or REFIL_REQUESTED.",
     })
     @ApiOkResponse({ type: [MyAssessmentBlueprintDto] })
-    getMyAssessments(@CurrentUser() user: AuthenticatedUser) {
-        return this.assessmentSubmissionService.getMyAssessmentBlueprints(user.id);
+    async getMyAssessments(@CurrentUser() user: AuthenticatedUser) {
+        const assessments = await this.assessmentSubmissionService.getMyAssessmentBlueprints(user.id);
+        return {
+            success: true,
+            statusCode: 200,
+            message: "My assessments retrieved successfully",
+            data: assessments,
+        };
     }
 
+    @UseGuards(JwtAuthGuard)
     @Patch(":id")
     @ApiOperation({
         summary: "Update a submission (DRAFT or REFIL_REQUESTED only)",
@@ -215,11 +230,17 @@ export class AssessmentSubmissionController {
         examples: SUBMIT_EXAMPLES,
     })
     @ApiOkResponse({ type: MyAssessmentBlueprintDto })
-    updateSubmission(
+    async updateSubmission(
         @Param() params: AssessmentParamDto,
         @Body() payload: UpdateAssessmentSubmissionDto,
         @CurrentUser() user: AuthenticatedUser,
     ) {
-        return this.assessmentSubmissionService.updateSubmission(params.id, user.id, payload);
+        const submission = await this.assessmentSubmissionService.updateSubmission(params.id, user.id, payload);
+        return {
+            success: true,
+            statusCode: 200,
+            message: "Assessment submission updated successfully",
+            data: submission,
+        };
     }
 }

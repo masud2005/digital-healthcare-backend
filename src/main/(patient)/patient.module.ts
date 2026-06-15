@@ -3,6 +3,6 @@ import { AssessmentSubmissionModule } from "./assessment-submission/assessment-s
 import { ServiceCategoryModule } from "./service/service-category.module";
 
 @Module({
-    imports: [AssessmentSubmissionModule, ServiceCategoryModule],
+    imports: [ServiceCategoryModule, AssessmentSubmissionModule],
 })
 export class PatientModule {}

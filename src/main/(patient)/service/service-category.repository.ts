@@ -5,6 +5,16 @@ import { Injectable } from "@nestjs/common";
 export class ServiceCategoryRepository {
     constructor(private readonly prisma: PrismaService) {}
 
+    findAllNames() {
+        return this.prisma.category.findMany({
+            where: { status: "ACTIVE" },
+            select: {
+                id: true,
+                name: true,
+            },
+        });
+    }
+
     findAll(categoryName?: string) {
         return this.prisma.category.findMany({
             where: {
