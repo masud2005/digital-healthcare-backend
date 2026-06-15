@@ -12,6 +12,7 @@ model Category {
   products    Product[]
   assessments Assessment[]
   patients    User[]
+  sideEffectReports SideEffectReport[]
 
   createdAt   DateTime     @default(now())
   updatedAt   DateTime     @updatedAt

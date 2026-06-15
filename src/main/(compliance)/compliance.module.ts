@@ -5,6 +5,7 @@ import { AuditLogModule } from "./audit-log/audit-log.module";
 import { ConsentModule } from "./consent/consent.module";
 import { ProviderLicenseModule } from "./provider-license/provider-license.module";
 import { ComplianceDashboardModule } from "./compliance-dashboard/compliance-dashboard.module";
+import { SideEffectReportModule } from "./side-effect-report/side-effect-report.module";
 
 @Module({
     imports: [
@@ -14,6 +15,7 @@ import { ComplianceDashboardModule } from "./compliance-dashboard/compliance-das
         ConsentModule,
         ProviderLicenseModule,
         ComplianceDashboardModule,
+        SideEffectReportModule,
     ],
 })
 export class ComplianceModule {}
