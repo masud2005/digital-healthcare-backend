@@ -162,6 +162,12 @@ enum SideEffectStatus {
   ESCALATED
 }
 
+enum StateComplianceStatus {
+  COMPLIANT
+  RESTRICTED
+  COMING_SOON
+}
+
 enum SubmissionStatus {
   DRAFT
   PENDING
