@@ -1,154 +1,165 @@
-/*
-  Warnings:
+-- ============================================================
+-- Migration: 20260615020245_inti
+-- Converts all URL text columns to proper Attachment FK columns
+-- and extends the AttachmentContext enum.
+-- Uses IF NOT EXISTS / IF EXISTS guards to be fully idempotent.
+-- ============================================================
 
-  - You are about to drop the column `attachments` on the `ContactLead` table. All the data in the column will be lost.
-  - You are about to drop the column `responseAttachments` on the `ContactLead` table. All the data in the column will be lost.
-  - You are about to drop the column `avatar` on the `DoctorProfile` table. All the data in the column will be lost.
-  - You are about to drop the column `images` on the `Product` table. All the data in the column will be lost.
-  - You are about to drop the column `blackLogoUrl` on the `SiteSettings` table. All the data in the column will be lost.
-  - You are about to drop the column `faviconDarkUrl` on the `SiteSettings` table. All the data in the column will be lost.
-  - You are about to drop the column `faviconLightUrl` on the `SiteSettings` table. All the data in the column will be lost.
-  - You are about to drop the column `socialPreviewUrl` on the `SiteSettings` table. All the data in the column will be lost.
-  - You are about to drop the column `whiteLogoUrl` on the `SiteSettings` table. All the data in the column will be lost.
-  - You are about to drop the column `hero_badge_image_url` on the `homepage_content` table. All the data in the column will be lost.
-  - You are about to drop the column `hero_image_url` on the `homepage_content` table. All the data in the column will be lost.
-  - You are about to drop the column `icon_url` on the `how_it_works_steps` table. All the data in the column will be lost.
-  - A unique constraint covering the columns `[attachment_id]` on the table `ContactLead` will be added. If there are existing duplicate values, this will fail.
-  - A unique constraint covering the columns `[response_attachment_id]` on the table `ContactLead` will be added. If there are existing duplicate values, this will fail.
-  - A unique constraint covering the columns `[avatar_id]` on the table `DoctorProfile` will be added. If there are existing duplicate values, this will fail.
-  - A unique constraint covering the columns `[white_logo_id]` on the table `SiteSettings` will be added. If there are existing duplicate values, this will fail.
-  - A unique constraint covering the columns `[black_logo_id]` on the table `SiteSettings` will be added. If there are existing duplicate values, this will fail.
-  - A unique constraint covering the columns `[favicon_light_id]` on the table `SiteSettings` will be added. If there are existing duplicate values, this will fail.
-  - A unique constraint covering the columns `[favicon_dark_id]` on the table `SiteSettings` will be added. If there are existing duplicate values, this will fail.
-  - A unique constraint covering the columns `[social_preview_id]` on the table `SiteSettings` will be added. If there are existing duplicate values, this will fail.
-  - A unique constraint covering the columns `[hero_image_id]` on the table `homepage_content` will be added. If there are existing duplicate values, this will fail.
-  - A unique constraint covering the columns `[hero_badge_image_id]` on the table `homepage_content` will be added. If there are existing duplicate values, this will fail.
-  - A unique constraint covering the columns `[icon_id]` on the table `how_it_works_steps` will be added. If there are existing duplicate values, this will fail.
+-- --------------------------------------------------------
+-- 1. Extend AttachmentContext enum (IF NOT EXISTS safe)
+-- --------------------------------------------------------
+DO $$ BEGIN
+  ALTER TYPE "AttachmentContext" ADD VALUE 'HERO_IMAGE';
+EXCEPTION WHEN duplicate_object THEN NULL; END $$;
 
-*/
--- AlterEnum
--- This migration adds more than one value to an enum.
--- With PostgreSQL versions 11 and earlier, this is not possible
--- in a single migration. This can be worked around by creating
--- multiple migrations, each migration adding only one value to
--- the enum.
+DO $$ BEGIN
+  ALTER TYPE "AttachmentContext" ADD VALUE 'HERO_BADGE_IMAGE';
+EXCEPTION WHEN duplicate_object THEN NULL; END $$;
 
+DO $$ BEGIN
+  ALTER TYPE "AttachmentContext" ADD VALUE 'HOW_IT_WORKS_ICON';
+EXCEPTION WHEN duplicate_object THEN NULL; END $$;
 
-ALTER TYPE "AttachmentContext" ADD VALUE 'HERO_IMAGE';
-ALTER TYPE "AttachmentContext" ADD VALUE 'HERO_BADGE_IMAGE';
-ALTER TYPE "AttachmentContext" ADD VALUE 'HOW_IT_WORKS_ICON';
-ALTER TYPE "AttachmentContext" ADD VALUE 'WEBSITE_LOGO';
-ALTER TYPE "AttachmentContext" ADD VALUE 'WEBSITE_FAVICON';
-ALTER TYPE "AttachmentContext" ADD VALUE 'WEBSITE_SOCIAL_PREVIEW';
-ALTER TYPE "AttachmentContext" ADD VALUE 'DOCTOR_AVATAR';
-ALTER TYPE "AttachmentContext" ADD VALUE 'CONTACT_LEAD_ATTACHMENT';
+DO $$ BEGIN
+  ALTER TYPE "AttachmentContext" ADD VALUE 'WEBSITE_LOGO';
+EXCEPTION WHEN duplicate_object THEN NULL; END $$;
 
--- AlterTable
-ALTER TABLE "Attachment" ADD COLUMN     "productId" TEXT;
+DO $$ BEGIN
+  ALTER TYPE "AttachmentContext" ADD VALUE 'WEBSITE_FAVICON';
+EXCEPTION WHEN duplicate_object THEN NULL; END $$;
 
--- AlterTable
-ALTER TABLE "ContactLead" DROP COLUMN "attachments",
-DROP COLUMN "responseAttachments",
-ADD COLUMN     "attachment_id" TEXT,
-ADD COLUMN     "response_attachment_id" TEXT;
+DO $$ BEGIN
+  ALTER TYPE "AttachmentContext" ADD VALUE 'WEBSITE_SOCIAL_PREVIEW';
+EXCEPTION WHEN duplicate_object THEN NULL; END $$;
 
--- AlterTable
-ALTER TABLE "DoctorProfile" DROP COLUMN "avatar",
-ADD COLUMN     "avatar_id" TEXT;
+DO $$ BEGIN
+  ALTER TYPE "AttachmentContext" ADD VALUE 'DOCTOR_AVATAR';
+EXCEPTION WHEN duplicate_object THEN NULL; END $$;
 
--- AlterTable
-ALTER TABLE "Product" DROP COLUMN "images";
+DO $$ BEGIN
+  ALTER TYPE "AttachmentContext" ADD VALUE 'CONTACT_LEAD_ATTACHMENT';
+EXCEPTION WHEN duplicate_object THEN NULL; END $$;
 
--- AlterTable
-ALTER TABLE "SiteSettings" DROP COLUMN "blackLogoUrl",
-DROP COLUMN "faviconDarkUrl",
-DROP COLUMN "faviconLightUrl",
-DROP COLUMN "socialPreviewUrl",
-DROP COLUMN "whiteLogoUrl",
-ADD COLUMN     "black_logo_id" TEXT,
-ADD COLUMN     "favicon_dark_id" TEXT,
-ADD COLUMN     "favicon_light_id" TEXT,
-ADD COLUMN     "social_preview_id" TEXT,
-ADD COLUMN     "white_logo_id" TEXT;
+-- --------------------------------------------------------
+-- 2. Attachment: add productId column
+-- --------------------------------------------------------
+ALTER TABLE "Attachment" ADD COLUMN IF NOT EXISTS "productId" TEXT;
 
--- AlterTable
-ALTER TABLE "homepage_content" DROP COLUMN "hero_badge_image_url",
-DROP COLUMN "hero_image_url",
-ADD COLUMN     "hero_badge_image_id" TEXT,
-ADD COLUMN     "hero_image_id" TEXT;
+-- --------------------------------------------------------
+-- 3. ContactLead: drop old text cols, add FK cols
+-- --------------------------------------------------------
+ALTER TABLE "ContactLead" DROP COLUMN IF EXISTS "attachments";
+ALTER TABLE "ContactLead" DROP COLUMN IF EXISTS "responseAttachments";
+ALTER TABLE "ContactLead" ADD COLUMN IF NOT EXISTS "attachment_id" TEXT;
+ALTER TABLE "ContactLead" ADD COLUMN IF NOT EXISTS "response_attachment_id" TEXT;
 
--- AlterTable
-ALTER TABLE "how_it_works_steps" DROP COLUMN "icon_url",
-ADD COLUMN     "icon_id" TEXT;
+-- --------------------------------------------------------
+-- 4. DoctorProfile: drop old avatar text col, add FK col
+-- --------------------------------------------------------
+ALTER TABLE "DoctorProfile" DROP COLUMN IF EXISTS "avatar";
+ALTER TABLE "DoctorProfile" ADD COLUMN IF NOT EXISTS "avatar_id" TEXT;
 
--- CreateIndex
-CREATE INDEX "Attachment_productId_idx" ON "Attachment"("productId");
+-- --------------------------------------------------------
+-- 5. Product: drop old images text[] col
+-- --------------------------------------------------------
+ALTER TABLE "Product" DROP COLUMN IF EXISTS "images";
 
--- CreateIndex
-CREATE UNIQUE INDEX "ContactLead_attachment_id_key" ON "ContactLead"("attachment_id");
+-- --------------------------------------------------------
+-- 6. SiteSettings: drop old URL cols, add FK cols
+-- --------------------------------------------------------
+ALTER TABLE "SiteSettings" DROP COLUMN IF EXISTS "blackLogoUrl";
+ALTER TABLE "SiteSettings" DROP COLUMN IF EXISTS "faviconDarkUrl";
+ALTER TABLE "SiteSettings" DROP COLUMN IF EXISTS "faviconLightUrl";
+ALTER TABLE "SiteSettings" DROP COLUMN IF EXISTS "socialPreviewUrl";
+ALTER TABLE "SiteSettings" DROP COLUMN IF EXISTS "whiteLogoUrl";
+ALTER TABLE "SiteSettings" ADD COLUMN IF NOT EXISTS "black_logo_id" TEXT;
+ALTER TABLE "SiteSettings" ADD COLUMN IF NOT EXISTS "favicon_dark_id" TEXT;
+ALTER TABLE "SiteSettings" ADD COLUMN IF NOT EXISTS "favicon_light_id" TEXT;
+ALTER TABLE "SiteSettings" ADD COLUMN IF NOT EXISTS "social_preview_id" TEXT;
+ALTER TABLE "SiteSettings" ADD COLUMN IF NOT EXISTS "white_logo_id" TEXT;
 
--- CreateIndex
-CREATE UNIQUE INDEX "ContactLead_response_attachment_id_key" ON "ContactLead"("response_attachment_id");
+-- --------------------------------------------------------
+-- 7. homepage_content: drop old URL cols, add FK cols
+-- --------------------------------------------------------
+ALTER TABLE "homepage_content" DROP COLUMN IF EXISTS "hero_badge_image_url";
+ALTER TABLE "homepage_content" DROP COLUMN IF EXISTS "hero_image_url";
+ALTER TABLE "homepage_content" ADD COLUMN IF NOT EXISTS "hero_badge_image_id" TEXT;
+ALTER TABLE "homepage_content" ADD COLUMN IF NOT EXISTS "hero_image_id" TEXT;
 
--- CreateIndex
-CREATE UNIQUE INDEX "DoctorProfile_avatar_id_key" ON "DoctorProfile"("avatar_id");
+-- --------------------------------------------------------
+-- 8. how_it_works_steps: drop old icon_url col, add FK col
+-- --------------------------------------------------------
+ALTER TABLE "how_it_works_steps" DROP COLUMN IF EXISTS "icon_url";
+ALTER TABLE "how_it_works_steps" ADD COLUMN IF NOT EXISTS "icon_id" TEXT;
 
--- CreateIndex
-CREATE UNIQUE INDEX "SiteSettings_white_logo_id_key" ON "SiteSettings"("white_logo_id");
+-- --------------------------------------------------------
+-- 9. Indexes
+-- --------------------------------------------------------
+CREATE INDEX IF NOT EXISTS "Attachment_productId_idx" ON "Attachment"("productId");
 
--- CreateIndex
-CREATE UNIQUE INDEX "SiteSettings_black_logo_id_key" ON "SiteSettings"("black_logo_id");
+CREATE UNIQUE INDEX IF NOT EXISTS "ContactLead_attachment_id_key" ON "ContactLead"("attachment_id");
+CREATE UNIQUE INDEX IF NOT EXISTS "ContactLead_response_attachment_id_key" ON "ContactLead"("response_attachment_id");
 
--- CreateIndex
-CREATE UNIQUE INDEX "SiteSettings_favicon_light_id_key" ON "SiteSettings"("favicon_light_id");
+CREATE UNIQUE INDEX IF NOT EXISTS "DoctorProfile_avatar_id_key" ON "DoctorProfile"("avatar_id");
 
--- CreateIndex
-CREATE UNIQUE INDEX "SiteSettings_favicon_dark_id_key" ON "SiteSettings"("favicon_dark_id");
+CREATE UNIQUE INDEX IF NOT EXISTS "SiteSettings_white_logo_id_key"     ON "SiteSettings"("white_logo_id");
+CREATE UNIQUE INDEX IF NOT EXISTS "SiteSettings_black_logo_id_key"     ON "SiteSettings"("black_logo_id");
+CREATE UNIQUE INDEX IF NOT EXISTS "SiteSettings_favicon_light_id_key"  ON "SiteSettings"("favicon_light_id");
+CREATE UNIQUE INDEX IF NOT EXISTS "SiteSettings_favicon_dark_id_key"   ON "SiteSettings"("favicon_dark_id");
+CREATE UNIQUE INDEX IF NOT EXISTS "SiteSettings_social_preview_id_key" ON "SiteSettings"("social_preview_id");
 
--- CreateIndex
-CREATE UNIQUE INDEX "SiteSettings_social_preview_id_key" ON "SiteSettings"("social_preview_id");
+CREATE UNIQUE INDEX IF NOT EXISTS "homepage_content_hero_image_id_key"      ON "homepage_content"("hero_image_id");
+CREATE UNIQUE INDEX IF NOT EXISTS "homepage_content_hero_badge_image_id_key" ON "homepage_content"("hero_badge_image_id");
 
--- CreateIndex
-CREATE UNIQUE INDEX "homepage_content_hero_image_id_key" ON "homepage_content"("hero_image_id");
+CREATE UNIQUE INDEX IF NOT EXISTS "how_it_works_steps_icon_id_key" ON "how_it_works_steps"("icon_id");
 
--- CreateIndex
-CREATE UNIQUE INDEX "homepage_content_hero_badge_image_id_key" ON "homepage_content"("hero_badge_image_id");
+-- --------------------------------------------------------
+-- 10. Foreign Keys (drop first to avoid duplicate constraint errors)
+-- --------------------------------------------------------
+ALTER TABLE "Attachment" DROP CONSTRAINT IF EXISTS "Attachment_productId_fkey";
+ALTER TABLE "Attachment" ADD CONSTRAINT "Attachment_productId_fkey"
+  FOREIGN KEY ("productId") REFERENCES "Product"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
--- CreateIndex
-CREATE UNIQUE INDEX "how_it_works_steps_icon_id_key" ON "how_it_works_steps"("icon_id");
+ALTER TABLE "ContactLead" DROP CONSTRAINT IF EXISTS "ContactLead_attachment_id_fkey";
+ALTER TABLE "ContactLead" ADD CONSTRAINT "ContactLead_attachment_id_fkey"
+  FOREIGN KEY ("attachment_id") REFERENCES "Attachment"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
--- AddForeignKey
-ALTER TABLE "Attachment" ADD CONSTRAINT "Attachment_productId_fkey" FOREIGN KEY ("productId") REFERENCES "Product"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+ALTER TABLE "ContactLead" DROP CONSTRAINT IF EXISTS "ContactLead_response_attachment_id_fkey";
+ALTER TABLE "ContactLead" ADD CONSTRAINT "ContactLead_response_attachment_id_fkey"
+  FOREIGN KEY ("response_attachment_id") REFERENCES "Attachment"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
--- AddForeignKey
-ALTER TABLE "ContactLead" ADD CONSTRAINT "ContactLead_attachment_id_fkey" FOREIGN KEY ("attachment_id") REFERENCES "Attachment"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+ALTER TABLE "homepage_content" DROP CONSTRAINT IF EXISTS "homepage_content_hero_image_id_fkey";
+ALTER TABLE "homepage_content" ADD CONSTRAINT "homepage_content_hero_image_id_fkey"
+  FOREIGN KEY ("hero_image_id") REFERENCES "Attachment"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
--- AddForeignKey
-ALTER TABLE "ContactLead" ADD CONSTRAINT "ContactLead_response_attachment_id_fkey" FOREIGN KEY ("response_attachment_id") REFERENCES "Attachment"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+ALTER TABLE "homepage_content" DROP CONSTRAINT IF EXISTS "homepage_content_hero_badge_image_id_fkey";
+ALTER TABLE "homepage_content" ADD CONSTRAINT "homepage_content_hero_badge_image_id_fkey"
+  FOREIGN KEY ("hero_badge_image_id") REFERENCES "Attachment"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
--- AddForeignKey
-ALTER TABLE "homepage_content" ADD CONSTRAINT "homepage_content_hero_image_id_fkey" FOREIGN KEY ("hero_image_id") REFERENCES "Attachment"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+ALTER TABLE "how_it_works_steps" DROP CONSTRAINT IF EXISTS "how_it_works_steps_icon_id_fkey";
+ALTER TABLE "how_it_works_steps" ADD CONSTRAINT "how_it_works_steps_icon_id_fkey"
+  FOREIGN KEY ("icon_id") REFERENCES "Attachment"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
--- AddForeignKey
-ALTER TABLE "homepage_content" ADD CONSTRAINT "homepage_content_hero_badge_image_id_fkey" FOREIGN KEY ("hero_badge_image_id") REFERENCES "Attachment"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+ALTER TABLE "DoctorProfile" DROP CONSTRAINT IF EXISTS "DoctorProfile_avatar_id_fkey";
+ALTER TABLE "DoctorProfile" ADD CONSTRAINT "DoctorProfile_avatar_id_fkey"
+  FOREIGN KEY ("avatar_id") REFERENCES "Attachment"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
--- AddForeignKey
-ALTER TABLE "how_it_works_steps" ADD CONSTRAINT "how_it_works_steps_icon_id_fkey" FOREIGN KEY ("icon_id") REFERENCES "Attachment"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+ALTER TABLE "SiteSettings" DROP CONSTRAINT IF EXISTS "SiteSettings_white_logo_id_fkey";
+ALTER TABLE "SiteSettings" ADD CONSTRAINT "SiteSettings_white_logo_id_fkey"
+  FOREIGN KEY ("white_logo_id") REFERENCES "Attachment"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
--- AddForeignKey
-ALTER TABLE "DoctorProfile" ADD CONSTRAINT "DoctorProfile_avatar_id_fkey" FOREIGN KEY ("avatar_id") REFERENCES "Attachment"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+ALTER TABLE "SiteSettings" DROP CONSTRAINT IF EXISTS "SiteSettings_black_logo_id_fkey";
+ALTER TABLE "SiteSettings" ADD CONSTRAINT "SiteSettings_black_logo_id_fkey"
+  FOREIGN KEY ("black_logo_id") REFERENCES "Attachment"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
--- AddForeignKey
-ALTER TABLE "SiteSettings" ADD CONSTRAINT "SiteSettings_white_logo_id_fkey" FOREIGN KEY ("white_logo_id") REFERENCES "Attachment"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+ALTER TABLE "SiteSettings" DROP CONSTRAINT IF EXISTS "SiteSettings_favicon_light_id_fkey";
+ALTER TABLE "SiteSettings" ADD CONSTRAINT "SiteSettings_favicon_light_id_fkey"
+  FOREIGN KEY ("favicon_light_id") REFERENCES "Attachment"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
--- AddForeignKey
-ALTER TABLE "SiteSettings" ADD CONSTRAINT "SiteSettings_black_logo_id_fkey" FOREIGN KEY ("black_logo_id") REFERENCES "Attachment"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+ALTER TABLE "SiteSettings" DROP CONSTRAINT IF EXISTS "SiteSettings_favicon_dark_id_fkey";
+ALTER TABLE "SiteSettings" ADD CONSTRAINT "SiteSettings_favicon_dark_id_fkey"
+  FOREIGN KEY ("favicon_dark_id") REFERENCES "Attachment"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
--- AddForeignKey
-ALTER TABLE "SiteSettings" ADD CONSTRAINT "SiteSettings_favicon_light_id_fkey" FOREIGN KEY ("favicon_light_id") REFERENCES "Attachment"("id") ON DELETE CASCADE ON UPDATE CASCADE;
-
--- AddForeignKey
-ALTER TABLE "SiteSettings" ADD CONSTRAINT "SiteSettings_favicon_dark_id_fkey" FOREIGN KEY ("favicon_dark_id") REFERENCES "Attachment"("id") ON DELETE CASCADE ON UPDATE CASCADE;
-
--- AddForeignKey
-ALTER TABLE "SiteSettings" ADD CONSTRAINT "SiteSettings_social_preview_id_fkey" FOREIGN KEY ("social_preview_id") REFERENCES "Attachment"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+ALTER TABLE "SiteSettings" DROP CONSTRAINT IF EXISTS "SiteSettings_social_preview_id_fkey";
+ALTER TABLE "SiteSettings" ADD CONSTRAINT "SiteSettings_social_preview_id_fkey"
+  FOREIGN KEY ("social_preview_id") REFERENCES "Attachment"("id") ON DELETE CASCADE ON UPDATE CASCADE;
