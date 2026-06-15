@@ -159,7 +159,7 @@ const SUBMIT_EXAMPLES = {
     },
 };
 
-@ApiTags("Patient Assessment Submissions")
+@ApiTags("(Patient) Assessment Submissions")
 @ApiBearerAuth()
 @UseGuards(JwtAuthGuard)
 @Controller("patient/assessment-submissions")
