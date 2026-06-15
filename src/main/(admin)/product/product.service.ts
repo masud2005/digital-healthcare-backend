@@ -194,7 +194,7 @@ export class ProductService {
                   : null;
         const legacyStock =
             resolvedVariants.length > 0
-                ? resolvedVariants.reduce((sum, v) => sum + v.stockQuantity, 0)
+                ? resolvedVariants[0].stockQuantity
                 : (product.stockQuantity ?? 0);
 
         return {
@@ -218,7 +218,7 @@ export class ProductService {
                 ? payload.variants.map((v) => ({
                       size: v.size.trim(),
                       price: v.price.trim(),
-                      stockQuantity: v.stockQuantity,
+                      stockQuantity: v.stockQuantity ?? 0,
                   }))
                 : [],
         };
@@ -260,7 +260,7 @@ export class ProductService {
             data.variants = payload.variants.map((v) => ({
                 size: v.size.trim(),
                 price: v.price.trim(),
-                stockQuantity: v.stockQuantity,
+                stockQuantity: v.stockQuantity ?? 0,
             }));
         }
 

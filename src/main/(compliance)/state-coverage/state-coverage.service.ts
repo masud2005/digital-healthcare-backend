@@ -33,16 +33,6 @@ export class StateCoverageService implements OnModuleInit {
     async seedStateCoverages() {
         try {
             const count = await this.stateCoverageRepository.count();
-            if (count === 50) return;
-
-            if (count > 0) {
-                this.logger.log(
-                    "⚠️ State Coverage count is not 50. Clearing existing states and re-seeding...",
-                );
-                await this.prisma.stateCoverage.deleteMany();
-            }
-
-            this.logger.log("🌱 Seeding State Coverage compliance data...");
 
             const categoriesMap = new Map<string, string>();
             const serviceNames = [
@@ -51,13 +41,20 @@ export class StateCoverageService implements OnModuleInit {
                 "Hormone Therapy",
                 "Anxiety & Depression",
                 "Sexual Health",
-                "Hair care",
-                "Skin Care",
-                "Sleep",
-                "Hair Loss",
-                "Controlled Substances",
-                "Hair Loss (Finasteride)",
             ];
+
+            const normalizedNames = serviceNames.map((name) =>
+                name.trim().includes(" ") ? slugify(name.trim()) : name.trim(),
+            );
+
+            // Clean up other categories not in our 5 categories list
+            await this.prisma.category.deleteMany({
+                where: {
+                    name: {
+                        notIn: normalizedNames,
+                    },
+                },
+            });
 
             // 1. Ensure all categories exist
             for (const name of serviceNames) {
@@ -74,6 +71,17 @@ export class StateCoverageService implements OnModuleInit {
                 });
                 categoriesMap.set(name, category.id);
             }
+
+            if (count === 50) return;
+
+            if (count > 0) {
+                this.logger.log(
+                    "⚠️ State Coverage count is not 50. Clearing existing states and re-seeding...",
+                );
+                await this.prisma.stateCoverage.deleteMany();
+            }
+
+            this.logger.log("🌱 Seeding State Coverage compliance data...");
 
             // 2. Create state coverages
             const seedData = getSeedStateCoverages();
