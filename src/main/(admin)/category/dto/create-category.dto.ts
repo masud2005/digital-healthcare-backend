@@ -30,6 +30,11 @@ export class CreateCategoryDto {
     @IsNotEmpty()
     name: string;
 
+    @ApiPropertyOptional({ example: "cardiology" })
+    @IsOptional()
+    @IsString()
+    slug?: string;
+
     @ApiPropertyOptional({ example: "Heart and cardiovascular care" })
     @IsOptional()
     @IsString()

@@ -1,6 +1,7 @@
 model Category {
   id          String         @id @default(uuid())
-  name        String         @unique
+  name        String
+  slug        String         @unique
   description String?        @db.Text
   status      CategoryStatus @default(ACTIVE)
 
@@ -21,6 +22,7 @@ model Category {
 
   @@index([status])
   @@index([name])
+  @@index([slug])
 }
 
 model PaymentPlan {

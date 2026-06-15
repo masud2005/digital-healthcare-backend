@@ -4,6 +4,7 @@ import type { Prisma } from "@prisma/client";
 
 type ProductCreateData = {
     name: string;
+    slug: string;
     images: string[];
     price?: string | null;
     stockQuantity?: number | null;
@@ -18,6 +19,7 @@ type ProductCreateData = {
 
 type ProductUpdateData = {
     name?: string;
+    slug?: string;
     images?: string[];
     price?: string | null;
     stockQuantity?: number | null;
@@ -99,6 +101,12 @@ export class ProductRepository {
     findByName(name: string) {
         return this.prisma.product.findFirst({
             where: { name },
+        });
+    }
+
+    findBySlug(slug: string) {
+        return this.prisma.product.findUnique({
+            where: { slug },
         });
     }
 

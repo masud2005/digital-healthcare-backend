@@ -62,10 +62,11 @@ export class StateCoverageService implements OnModuleInit {
                     ? slugify(name.trim())
                     : name.trim();
                 const category = await this.prisma.category.upsert({
-                    where: { name: normalizedCatName },
+                    where: { slug: normalizedCatName },
                     update: {},
                     create: {
-                        name: normalizedCatName,
+                        name: name.trim(),
+                        slug: normalizedCatName,
                         status: "ACTIVE",
                     },
                 });

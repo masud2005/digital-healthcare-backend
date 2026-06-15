@@ -20,6 +20,11 @@ export class CreateProductDto {
     @IsNotEmpty()
     name: string;
 
+    @ApiPropertyOptional({ example: "blood-pressure-monitor" })
+    @IsOptional()
+    @IsString()
+    slug?: string;
+
     @ApiProperty({
         type: [String],
         example: ["7f4145d8-087e-4d33-82bd-0f65d3fbdb4f"],

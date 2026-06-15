@@ -70,10 +70,11 @@ export class SideEffectReportService implements OnModuleInit {
                         : catName.trim();
 
                     const category = await this.prisma.category.upsert({
-                        where: { name: normalizedCatName },
+                        where: { slug: normalizedCatName },
                         update: {},
                         create: {
-                            name: normalizedCatName,
+                            name: catName.trim(),
+                            slug: normalizedCatName,
                             status: "ACTIVE",
                         },
                     });

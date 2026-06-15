@@ -23,7 +23,7 @@ export class CategoryService {
 
     async create(payload: CreateCategoryDto) {
         const data = this.normalizeCreatePayload(payload);
-        await this.ensureNameIsAvailable(data.name);
+        await this.ensureSlugIsAvailable(data.slug);
 
         try {
             return await this.categoryRepository.create(data);
@@ -72,8 +72,8 @@ export class CategoryService {
         await this.findOne(id);
         const data = this.normalizeUpdatePayload(payload);
 
-        if (data.name) {
-            await this.ensureNameIsAvailable(data.name, id);
+        if (data.slug) {
+            await this.ensureSlugIsAvailable(data.slug, id);
         }
 
         try {
@@ -96,8 +96,11 @@ export class CategoryService {
     }
 
     private normalizeCreatePayload(payload: CreateCategoryDto) {
+        const name = payload.name.trim();
+        const slug = payload.slug ? slugify(payload.slug.trim()) : slugify(name);
         return {
-            name: this.normalizeName(payload.name),
+            name,
+            slug,
             description: this.parseDescription(payload.description),
             ...(payload.status ? { status: payload.status } : {}),
             ...(payload.iconId ? { iconId: payload.iconId } : {}),
@@ -108,6 +111,7 @@ export class CategoryService {
     private normalizeUpdatePayload(payload: UpdateCategoryDto) {
         const data: {
             name?: string;
+            slug?: string;
             description?: string | null;
             status?: CategoryStatus;
             iconId?: string | null;
@@ -115,7 +119,14 @@ export class CategoryService {
         } = {};
 
         if (payload.name !== undefined) {
-            data.name = this.normalizeName(payload.name);
+            data.name = payload.name.trim();
+            if (payload.slug === undefined) {
+                data.slug = slugify(data.name);
+            }
+        }
+
+        if (payload.slug !== undefined) {
+            data.slug = slugify(payload.slug.trim());
         }
 
         if (payload.description !== undefined) {
@@ -152,11 +163,6 @@ export class CategoryService {
         };
     }
 
-    private normalizeName(name: string) {
-        const trimmed = name.trim();
-        return trimmed.includes(" ") ? slugify(trimmed) : trimmed;
-    }
-
     private parseDescription(description: string | null | undefined) {
         if (description === null) {
             return null;
@@ -170,11 +176,11 @@ export class CategoryService {
         return trimmed.length > 0 ? trimmed : null;
     }
 
-    private async ensureNameIsAvailable(name: string, excludeId?: string) {
-        const existingCategory = await this.categoryRepository.findByName(name);
+    private async ensureSlugIsAvailable(slug: string, excludeId?: string) {
+        const existingCategory = await this.categoryRepository.findBySlug(slug);
 
         if (existingCategory && existingCategory.id !== excludeId) {
-            throw new ConflictException("Category name already exists");
+            throw new ConflictException("Category slug already exists");
         }
     }
 
@@ -182,7 +188,7 @@ export class CategoryService {
         const prismaError = error as { code?: string };
 
         if (prismaError.code === "P2002") {
-            throw new ConflictException("Category name already exists");
+            throw new ConflictException("Category slug already exists");
         }
 
         if (prismaError.code === "P2003") {

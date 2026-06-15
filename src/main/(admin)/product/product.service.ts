@@ -23,7 +23,7 @@ export class ProductService {
 
     async create(payload: CreateProductDto) {
         const data = this.normalizeCreatePayload(payload);
-        await this.ensureNameIsAvailable(data.name);
+        await this.ensureSlugIsAvailable(data.slug);
         await this.ensureCategoryExists(data.categoryId);
 
         if (data.images && data.images.length > 0) {
@@ -81,8 +81,8 @@ export class ProductService {
 
         const data = this.normalizeUpdatePayload(payload);
 
-        if (data.name) {
-            await this.ensureNameIsAvailable(data.name, id);
+        if (data.slug) {
+            await this.ensureSlugIsAvailable(data.slug, id);
         }
 
         if (data.categoryId) {
@@ -207,8 +207,11 @@ export class ProductService {
     }
 
     private normalizeCreatePayload(payload: CreateProductDto) {
+        const name = payload.name.trim();
+        const slug = payload.slug ? slugify(payload.slug.trim()) : slugify(name);
         return {
-            name: this.normalizeName(payload.name),
+            name,
+            slug,
             images: payload.images.map((img) => img.trim()),
             price: payload.price ? payload.price.trim() : null,
             stockQuantity: payload.stockQuantity ?? 0,
@@ -227,6 +230,7 @@ export class ProductService {
     private normalizeUpdatePayload(payload: UpdateProductDto) {
         const data: {
             name?: string;
+            slug?: string;
             images?: string[];
             price?: string | null;
             stockQuantity?: number;
@@ -240,7 +244,14 @@ export class ProductService {
         } = {};
 
         if (payload.name !== undefined) {
-            data.name = this.normalizeName(payload.name);
+            data.name = payload.name.trim();
+            if (payload.slug === undefined) {
+                data.slug = slugify(data.name);
+            }
+        }
+
+        if (payload.slug !== undefined) {
+            data.slug = slugify(payload.slug.trim());
         }
 
         if (payload.images !== undefined) {
@@ -279,11 +290,6 @@ export class ProductService {
         return data;
     }
 
-    private normalizeName(name: string) {
-        const trimmed = name.trim();
-        return trimmed.includes(" ") ? slugify(trimmed) : trimmed;
-    }
-
     private parseDescription(description: string | null | undefined) {
         if (description === null) {
             return null;
@@ -305,11 +311,11 @@ export class ProductService {
         }
     }
 
-    private async ensureNameIsAvailable(name: string, excludeId?: string) {
-        const existingProduct = await this.productRepository.findByName(name);
+    private async ensureSlugIsAvailable(slug: string, excludeId?: string) {
+        const existingProduct = await this.productRepository.findBySlug(slug);
 
         if (existingProduct && existingProduct.id !== excludeId) {
-            throw new ConflictException("Product name already exists");
+            throw new ConflictException("Product slug already exists");
         }
     }
 
@@ -317,7 +323,7 @@ export class ProductService {
         const prismaError = error as { code?: string };
 
         if (prismaError.code === "P2002") {
-            throw new ConflictException("Product name already exists");
+            throw new ConflictException("Product slug already exists");
         }
 
         if (prismaError.code === "P2003") {
