@@ -9,9 +9,9 @@ model Category {
   icon   Attachment? @relation(fields: [iconId], references: [id], onDelete: Cascade)
 
   // Relations
-  products    Product[]
-  assessments Assessment[]
-  patients    User[]
+  products          Product[]
+  assessments       Assessment[]
+  patients          User[]
   sideEffectReports SideEffectReport[]
   allowedStates     StateCoverage[]    @relation("StateAllowedCategories")
 

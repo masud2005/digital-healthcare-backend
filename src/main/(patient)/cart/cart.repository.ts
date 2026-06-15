@@ -21,6 +21,14 @@ const cartInclude = {
                             fileSize: true,
                         },
                     },
+                    variants: {
+                        select: {
+                            id: true,
+                            size: true,
+                            price: true,
+                            stockQuantity: true,
+                        },
+                    },
                 },
             },
         },
@@ -49,7 +57,18 @@ export class CartRepository {
     findProduct(productId: string) {
         return this.prisma.product.findUnique({
             where: { id: productId },
-            select: { id: true, stockQuantity: true },
+            select: {
+                id: true,
+                stockQuantity: true,
+                variants: {
+                    select: {
+                        id: true,
+                        size: true,
+                        price: true,
+                        stockQuantity: true,
+                    },
+                },
+            },
         });
     }
 

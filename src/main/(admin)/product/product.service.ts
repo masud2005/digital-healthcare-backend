@@ -149,6 +149,16 @@ export class ProductService {
      */
     private async resolveProductImages<
         T extends {
+            price?: any;
+            stockQuantity?: any;
+            variants?: Array<{
+                id: string;
+                size: string;
+                price: any;
+                stockQuantity: number;
+                createdAt: Date;
+                updatedAt: Date;
+            }>;
             images: Array<{
                 id: string;
                 fileName: string;
@@ -168,9 +178,31 @@ export class ProductService {
                 fileUrl: await this.storageService.getSignedUrl(img.fileUrl),
             })),
         );
+        const resolvedVariants = product.variants
+            ? product.variants.map((v) => ({
+                  ...v,
+                  price: String(v.price),
+              }))
+            : [];
+
+        // Legacy compatibility fields
+        const legacyPrice =
+            resolvedVariants.length > 0
+                ? resolvedVariants[0].price
+                : product.price
+                  ? String(product.price)
+                  : null;
+        const legacyStock =
+            resolvedVariants.length > 0
+                ? resolvedVariants.reduce((sum, v) => sum + v.stockQuantity, 0)
+                : (product.stockQuantity ?? 0);
+
         return {
             ...product,
+            price: legacyPrice,
+            stockQuantity: legacyStock,
             images: resolvedImages,
+            variants: resolvedVariants,
         };
     }
 
@@ -178,10 +210,17 @@ export class ProductService {
         return {
             name: this.normalizeName(payload.name),
             images: payload.images.map((img) => img.trim()),
-            price: payload.price.trim(),
-            stockQuantity: payload.stockQuantity,
+            price: payload.price ? payload.price.trim() : null,
+            stockQuantity: payload.stockQuantity ?? 0,
             description: this.parseDescription(payload.description),
             categoryId: payload.categoryId,
+            variants: payload.variants
+                ? payload.variants.map((v) => ({
+                      size: v.size.trim(),
+                      price: v.price.trim(),
+                      stockQuantity: v.stockQuantity,
+                  }))
+                : [],
         };
     }
 
@@ -189,10 +228,15 @@ export class ProductService {
         const data: {
             name?: string;
             images?: string[];
-            price?: string;
+            price?: string | null;
             stockQuantity?: number;
             description?: string | null;
             categoryId?: string;
+            variants?: Array<{
+                size: string;
+                price: string;
+                stockQuantity: number;
+            }>;
         } = {};
 
         if (payload.name !== undefined) {
@@ -205,11 +249,19 @@ export class ProductService {
         }
 
         if (payload.price !== undefined) {
-            data.price = payload.price.trim();
+            data.price = payload.price ? payload.price.trim() : null;
         }
 
         if (payload.stockQuantity !== undefined) {
             data.stockQuantity = payload.stockQuantity;
+        }
+
+        if (payload.variants !== undefined) {
+            data.variants = payload.variants.map((v) => ({
+                size: v.size.trim(),
+                price: v.price.trim(),
+                stockQuantity: v.stockQuantity,
+            }));
         }
 
         if (payload.description !== undefined) {

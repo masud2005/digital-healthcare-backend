@@ -1,10 +1,11 @@
 model Product {
-  id            String       @id @default(uuid())
+  id            String           @id @default(uuid())
   name          String
   images        Attachment[]
-  price         Decimal      @db.Decimal(10, 2)
-  stockQuantity Int          @default(0)
-  description   String?      @db.Text
+  price         Decimal?         @db.Decimal(10, 2)
+  stockQuantity Int?             @default(0)
+  description   String?          @db.Text
+  variants      ProductVariant[]
 
   categoryId String?
   category   Category?  @relation(fields: [categoryId], references: [id], onDelete: Cascade)
@@ -15,4 +16,18 @@ model Product {
 
   @@index([categoryId])
   @@index([name])
+}
+
+model ProductVariant {
+  id            String   @id @default(uuid())
+  productId     String
+  product       Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  size          String
+  price         Decimal  @db.Decimal(10, 2)
+  stockQuantity Int      @default(0)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  @@unique([productId, size])
+  @@index([productId])
 }
