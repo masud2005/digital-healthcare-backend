@@ -131,3 +131,6 @@ export type SideEffectSeverity = (typeof sideEffectSeverity)[number];
 
 export const sideEffectStatus = ["PENDING", "REVIEWED", "ESCALATED"] as const;
 export type SideEffectStatus = (typeof sideEffectStatus)[number];
+
+export const stateComplianceStatus = ["COMPLIANT", "RESTRICTED", "COMING_SOON"] as const;
+export type StateComplianceStatus = (typeof stateComplianceStatus)[number];

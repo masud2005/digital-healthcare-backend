@@ -1,4 +1,5 @@
 import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
+import { AttachmentResponseDto } from "@global/attachment/dto/attachment-response.dto";
 
 export class ProductCategoryResponseDto {
     @ApiProperty({ example: "7f4145d8-087e-4d33-82bd-0f65d3fbdb4f" })
@@ -15,8 +16,8 @@ export class ProductResponseDto {
     @ApiProperty({ example: "Blood Pressure Monitor" })
     name: string;
 
-    @ApiProperty({ type: [String], example: ["https://example.com/products/bp-monitor.png"] })
-    images: string[];
+    @ApiProperty({ type: [AttachmentResponseDto] })
+    images: AttachmentResponseDto[];
 
     @ApiProperty({ example: "49.99", description: "Decimal value serialized as a string" })
     price: string;

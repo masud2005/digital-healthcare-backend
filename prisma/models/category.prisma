@@ -13,6 +13,7 @@ model Category {
   assessments Assessment[]
   patients    User[]
   sideEffectReports SideEffectReport[]
+  allowedStates     StateCoverage[]    @relation("StateAllowedCategories")
 
   createdAt   DateTime     @default(now())
   updatedAt   DateTime     @updatedAt

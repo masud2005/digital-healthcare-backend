@@ -6,6 +6,7 @@ import { ConsentModule } from "./consent/consent.module";
 import { ProviderLicenseModule } from "./provider-license/provider-license.module";
 import { ComplianceDashboardModule } from "./compliance-dashboard/compliance-dashboard.module";
 import { SideEffectReportModule } from "./side-effect-report/side-effect-report.module";
+import { StateCoverageModule } from "./state-coverage/state-coverage.module";
 
 @Module({
     imports: [
@@ -16,6 +17,7 @@ import { SideEffectReportModule } from "./side-effect-report/side-effect-report.
         ProviderLicenseModule,
         ComplianceDashboardModule,
         SideEffectReportModule,
+        StateCoverageModule,
     ],
 })
 export class ComplianceModule {}

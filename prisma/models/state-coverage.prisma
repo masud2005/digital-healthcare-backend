@@ -1,0 +1,17 @@
+model StateCoverage {
+  id String @id @default(uuid())
+
+  stateCode    String                @unique
+  stateName    String
+  status       StateComplianceStatus @default(COMPLIANT)
+  isComingSoon Boolean               @default(false)
+
+  allowedCategories Category[] @relation("StateAllowedCategories")
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([status])
+  @@index([stateCode])
+  @@map("state_coverages")
+}

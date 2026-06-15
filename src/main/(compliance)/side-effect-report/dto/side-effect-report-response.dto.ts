@@ -1,5 +1,6 @@
 import { sideEffectSeverity, sideEffectStatus } from "@constant/enums";
 import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
+import { AttachmentResponseDto } from "@global/attachment/dto/attachment-response.dto";
 
 class CategoryMinResponseDto {
     @ApiProperty({ example: "b2dfc059-d890-4c12-92e1-456cb3c829e2" })
@@ -15,23 +16,6 @@ class DoctorProfileMinResponseDto {
 
     @ApiProperty({ example: "Dr. Runa Pradhan" })
     name: string;
-}
-
-class AttachmentResponseDto {
-    @ApiProperty({ example: "d9b23ab2-0d19-4781-a9f3-df461cf02a32" })
-    id: string;
-
-    @ApiProperty({ example: "photo.jpg" })
-    fileName: string;
-
-    @ApiProperty({ example: "http://localhost:9000/bucket/photo.jpg" })
-    fileUrl: string;
-
-    @ApiProperty({ example: "image/jpeg" })
-    fileType: string;
-
-    @ApiProperty({ example: 102400 })
-    fileSize: number;
 }
 
 export class SideEffectReportResponseDto {

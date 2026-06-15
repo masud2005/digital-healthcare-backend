@@ -17,7 +17,9 @@ export type SideEffectReportCreateData = {
     createdAt?: Date;
 };
 
-export type SideEffectReportUpdateData = Partial<Omit<SideEffectReportCreateData, "attachmentIds">> & {
+export type SideEffectReportUpdateData = Partial<
+    Omit<SideEffectReportCreateData, "attachmentIds">
+> & {
     attachmentIds?: string[];
 };
 

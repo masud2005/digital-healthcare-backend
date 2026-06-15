@@ -185,7 +185,10 @@ export class AssessmentSubmissionController {
         examples: SUBMIT_EXAMPLES,
     })
     @ApiCreatedResponse({ type: AssessmentSubmissionResponseDto })
-    async create(@Body() payload: CreateAssessmentSubmissionDto, @CurrentUser() user: AuthenticatedUser) {
+    async create(
+        @Body() payload: CreateAssessmentSubmissionDto,
+        @CurrentUser() user: AuthenticatedUser,
+    ) {
         const submission = await this.assessmentSubmissionService.create(user.id, payload);
         return {
             success: true,
@@ -206,7 +209,9 @@ export class AssessmentSubmissionController {
     })
     @ApiOkResponse({ type: [MyAssessmentBlueprintDto] })
     async getMyAssessments(@CurrentUser() user: AuthenticatedUser) {
-        const assessments = await this.assessmentSubmissionService.getMyAssessmentBlueprints(user.id);
+        const assessments = await this.assessmentSubmissionService.getMyAssessmentBlueprints(
+            user.id,
+        );
         return {
             success: true,
             statusCode: 200,
@@ -235,7 +240,11 @@ export class AssessmentSubmissionController {
         @Body() payload: UpdateAssessmentSubmissionDto,
         @CurrentUser() user: AuthenticatedUser,
     ) {
-        const submission = await this.assessmentSubmissionService.updateSubmission(params.id, user.id, payload);
+        const submission = await this.assessmentSubmissionService.updateSubmission(
+            params.id,
+            user.id,
+            payload,
+        );
         return {
             success: true,
             statusCode: 200,

@@ -1,4 +1,3 @@
-import { SideEffectStatus } from "@constant/enums";
 import { PrismaService } from "@global/prisma/prisma.service";
 import {
     BadRequestException,
@@ -33,7 +32,9 @@ export class SideEffectReportService implements OnModuleInit {
 
     private hashPassword(password: string) {
         const salt = randomBytes(16).toString("hex");
-        const derived = pbkdf2Sync(password, salt, PASSWORD_ITERATIONS, 32, "sha256").toString("hex");
+        const derived = pbkdf2Sync(password, salt, PASSWORD_ITERATIONS, 32, "sha256").toString(
+            "hex",
+        );
         return `${salt}:${derived}`;
     }
 
@@ -138,7 +139,10 @@ export class SideEffectReportService implements OnModuleInit {
                     for (let i = 1; i <= report.attachmentCount; i++) {
                         const fileExt = i === 1 ? "jpg" : i === 2 ? "png" : "pdf";
                         const fileName = `symptom_doc_${i}.${fileExt}`;
-                        const fileType = fileExt === "pdf" ? "application/pdf" : `image/${fileExt === "jpg" ? "jpeg" : "png"}`;
+                        const fileType =
+                            fileExt === "pdf"
+                                ? "application/pdf"
+                                : `image/${fileExt === "jpg" ? "jpeg" : "png"}`;
 
                         const attachment = await this.prisma.attachment.create({
                             data: {
@@ -155,7 +159,9 @@ export class SideEffectReportService implements OnModuleInit {
                 }
             }
 
-            this.logger.log(`✅ Seeded ${DEFAULT_SIDE_EFFECT_REPORTS.length} Side Effect Reports successfully.`);
+            this.logger.log(
+                `✅ Seeded ${DEFAULT_SIDE_EFFECT_REPORTS.length} Side Effect Reports successfully.`,
+            );
         } catch (error) {
             this.logger.error("Failed to seed side effect reports", error as Error);
         }
