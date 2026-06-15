@@ -4,7 +4,7 @@ import type { Prisma } from "@prisma/client";
 
 const cartInclude = {
     items: {
-        orderBy: { createdAt: "asc" },
+        orderBy: { createdAt: "asc" as const },
         include: {
             product: {
                 select: {
@@ -61,35 +61,13 @@ export class CartRepository {
                 id: true,
                 stockQuantity: true,
                 variants: {
-                    select: {
-                        id: true,
-                        size: true,
-                        price: true,
-                        stockQuantity: true,
-                    },
+                    select: { size: true, stockQuantity: true, price: true },
                 },
             },
         });
     }
 
-    findExistingCartItem(cartId: string, productId: string, size?: string) {
-        return this.prisma.cartItem.findUnique({
-            where: {
-                cartId_productId_size: {
-                    cartId,
-                    productId,
-                    size: size ?? "",
-                },
-            },
-        });
-    }
-
-    async upsertCartAndAddItem(
-        userId: string,
-        productId: string,
-        quantity: number,
-        size?: string,
-    ): Promise<CartRecord> {
+    async upsertCartAndAddItem(userId: string, productId: string): Promise<CartRecord> {
         const cart = await this.prisma.cart.upsert({
             where: { userId },
             create: { userId },
@@ -102,11 +80,11 @@ export class CartRepository {
                 cartId_productId_size: {
                     cartId: cart.id,
                     productId,
-                    size: size ?? "",
+                    size: "",
                 },
             },
-            create: { cartId: cart.id, productId, quantity, size: size ?? null },
-            update: { quantity: { increment: quantity } },
+            create: { cartId: cart.id, productId, quantity: 1, size: null },
+            update: { quantity: { increment: 1 } },
         });
 
         return this.prisma.cart.findUnique({
@@ -119,7 +97,7 @@ export class CartRepository {
         return this.prisma.cartItem.delete({ where: { id } });
     }
 
-    updateCartItem(id: string, data: { quantity?: number; size?: string }) {
+    updateCartItem(id: string, data: { quantity?: number; size?: string | null }) {
         return this.prisma.cartItem.update({ where: { id }, data });
     }
 }

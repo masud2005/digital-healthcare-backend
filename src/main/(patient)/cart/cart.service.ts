@@ -1,9 +1,5 @@
 import { StorageService } from "@global/storage/storage.service";
-import {
-    BadRequestException,
-    Injectable,
-    NotFoundException
-} from "@nestjs/common";
+import { BadRequestException, Injectable, NotFoundException } from "@nestjs/common";
 import type { CartRecord } from "./cart.repository";
 import { CartRepository } from "./cart.repository";
 import type { AddToCartDto, UpdateCartItemDto } from "./dto/cart.dto";
@@ -22,30 +18,22 @@ export class CartService {
             throw new NotFoundException("Product not found");
         }
 
-        let stockAvailable = product.stockQuantity ?? 0;
-        if (dto.size && product.variants && product.variants.length > 0) {
-            const variant = product.variants.find(
-                (v) => v.size.toLowerCase() === dto.size?.toLowerCase(),
-            );
-            if (!variant) {
-                throw new NotFoundException(`Product size variant "${dto.size}" not found`);
+        // Product has variants — size must be chosen via update
+        // Default add: use base stockQuantity if no variants, else check at least one variant has stock
+        const hasVariants = product.variants.length > 0;
+
+        if (hasVariants) {
+            const anyStock = product.variants.some((v) => v.stockQuantity > 0);
+            if (!anyStock) {
+                throw new BadRequestException("Product is out of stock");
             }
-            stockAvailable = variant.stockQuantity;
+        } else {
+            if ((product.stockQuantity ?? 0) < 1) {
+                throw new BadRequestException("Product is out of stock");
+            }
         }
 
-        if (stockAvailable < dto.quantity) {
-            throw new BadRequestException(
-                `Insufficient stock. Available: ${stockAvailable}`,
-            );
-        }
-
-        const cart = await this.cartRepository.upsertCartAndAddItem(
-            userId,
-            dto.productId,
-            dto.quantity,
-            dto.size,
-        );
-
+        const cart = await this.cartRepository.upsertCartAndAddItem(userId, dto.productId);
         return this.mapCart(cart);
     }
 
@@ -58,12 +46,11 @@ export class CartService {
         }
 
         await this.cartRepository.removeCartItem(cartItemId);
-
         return { message: "Item removed from cart" };
     }
 
     async updateCartItem(userId: string, cartItemId: string, dto: UpdateCartItemDto) {
-        if (!dto.quantity && !dto.size) {
+        if (dto.quantity === undefined && dto.size === undefined) {
             throw new BadRequestException("Provide quantity or size to update");
         }
 
@@ -74,37 +61,57 @@ export class CartService {
             throw new NotFoundException("Cart item not found");
         }
 
-        const targetQuantity = dto.quantity !== undefined ? dto.quantity : item.quantity;
-        const targetSize = dto.size !== undefined ? dto.size : item.size;
-
         const product = await this.cartRepository.findProduct(item.productId);
+
         if (!product) {
             throw new NotFoundException("Product not found");
         }
 
-        let stockAvailable = product.stockQuantity ?? 0;
-        if (targetSize && product.variants && product.variants.length > 0) {
-            const variant = product.variants.find(
-                (v) => v.size.toLowerCase() === targetSize.toLowerCase(),
-            );
-            if (!variant) {
-                throw new NotFoundException(`Product size variant "${targetSize}" not found`);
+        const hasVariants = product.variants.length > 0;
+        const targetSize = dto.size !== undefined ? dto.size : (item.size ?? undefined);
+        const targetQty = dto.quantity ?? 1;
+
+        if (hasVariants) {
+            if (!targetSize) {
+                const availableSizes = product.variants.map((v) => v.size).join(", ");
+                throw new BadRequestException(
+                    `Size is required for this product. Available sizes: ${availableSizes}`,
+                );
             }
-            stockAvailable = variant.stockQuantity;
+
+            const variant = product.variants.find((v) => v.size === targetSize);
+
+            if (!variant) {
+                const availableSizes = product.variants.map((v) => v.size).join(", ");
+                throw new BadRequestException(
+                    `Invalid size "${targetSize}". Available sizes: ${availableSizes}`,
+                );
+            }
+
+            if (variant.stockQuantity < targetQty) {
+                throw new BadRequestException(
+                    `Insufficient stock for size "${targetSize}". Available: ${variant.stockQuantity}`,
+                );
+            }
+        } else {
+            if (dto.size !== undefined) {
+                throw new BadRequestException("This product does not have size variants");
+            }
+
+            if ((product.stockQuantity ?? 0) < targetQty) {
+                throw new BadRequestException(
+                    `Insufficient stock. Available: ${product.stockQuantity ?? 0}`,
+                );
+            }
         }
 
-        if (stockAvailable < targetQuantity) {
-            throw new BadRequestException(
-                `Insufficient stock. Available: ${stockAvailable}`,
-            );
-        }
-
-        const updated = await this.cartRepository.updateCartItem(cartItemId, {
+        await this.cartRepository.updateCartItem(cartItemId, {
             ...(dto.quantity !== undefined ? { quantity: dto.quantity } : {}),
             ...(dto.size !== undefined ? { size: dto.size } : {}),
         });
 
-        return updated;
+        const updatedCart = await this.cartRepository.findCartByUserId(userId);
+        return this.mapCart(updatedCart!);
     }
 
     async getMyCarts(userId: string) {
@@ -139,32 +146,30 @@ export class CartService {
                     })),
                 );
 
-                let productPrice = item.product.price ? Number(item.product.price) : 0;
-                let stockQuantity = item.product.stockQuantity ?? 0;
+                // Use variant price if size is set and variant exists, otherwise base price
+                const activeVariant = item.size
+                    ? item.product.variants.find((v) => v.size === item.size)
+                    : null;
 
-                if (item.size && item.product.variants && item.product.variants.length > 0) {
-                    const variant = item.product.variants.find(
-                        (v) => v.size.toLowerCase() === item.size?.toLowerCase(),
-                    );
-                    if (variant) {
-                        productPrice = Number(variant.price);
-                        stockQuantity = variant.stockQuantity;
-                    }
-                }
+                const unitPrice = activeVariant
+                    ? Number(activeVariant.price)
+                    : Number(item.product.price ?? 0);
 
-                const itemTotal = productPrice * item.quantity;
+                const itemTotal = unitPrice * item.quantity;
                 totalPrice += itemTotal;
 
                 return {
                     id: item.id,
                     quantity: item.quantity,
                     size: item.size,
+                    unitPrice: unitPrice.toFixed(2),
                     itemTotal: itemTotal.toFixed(2),
                     product: {
                         id: item.product.id,
                         name: item.product.name,
-                        price: String(productPrice),
-                        stockQuantity,
+                        basePrice: item.product.price,
+                        stockQuantity: item.product.stockQuantity,
+                        variants: item.product.variants,
                         images: resolvedImages,
                     },
                     createdAt: item.createdAt,

@@ -14,7 +14,13 @@ export class CartController {
     constructor(private readonly cartService: CartService) {}
 
     @Post("add-cart")
-    @ApiOperation({ summary: "Add product to cart", description: "Validates stock before adding. If the same product+size already exists, quantity is incremented." })
+    @ApiOperation({
+        summary: "Add product to cart",
+        description:
+            "Adds a product with default quantity 1. " +
+            "If the same product already exists in cart, quantity is incremented by 1. " +
+            "Use PATCH /:id to set size or adjust quantity after adding.",
+    })
     @ApiOkResponse({ description: "Updated cart" })
     addToCart(@Body() dto: AddToCartDto, @CurrentUser() user: AuthenticatedUser) {
         return this.cartService.addToCart(user.id, dto);
@@ -30,9 +36,12 @@ export class CartController {
     @Patch(":id")
     @ApiOperation({
         summary: "Update cart item quantity and/or size",
-        description: "Pass quantity, size, or both. At least one field is required.",
+        description:
+            "Pass quantity, size, or both. At least one field is required. " +
+            "For products with variants, size must match an available variant. " +
+            "Stock is validated against the selected variant's stockQuantity.",
     })
-    @ApiOkResponse({ description: "Updated cart item" })
+    @ApiOkResponse({ description: "Updated cart" })
     updateCartItem(
         @Param() params: CartItemParamDto,
         @Body() dto: UpdateCartItemDto,
@@ -42,7 +51,12 @@ export class CartController {
     }
 
     @Get("my-carts")
-    @ApiOperation({ summary: "Get my cart with calculated total price" })
+    @ApiOperation({
+        summary: "Get my cart",
+        description:
+            "Returns cart with all items. Each item shows unitPrice (variant price if size is set), " +
+            "itemTotal, and overall totalPrice.",
+    })
     @ApiOkResponse({ description: "Cart with items and totalPrice" })
     getMyCarts(@CurrentUser() user: AuthenticatedUser) {
         return this.cartService.getMyCarts(user.id);
