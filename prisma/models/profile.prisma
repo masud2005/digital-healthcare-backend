@@ -15,6 +15,9 @@ model DoctorProfile {
   createdAt         DateTime  @default(now())
   updatedAt         DateTime  @updatedAt
   deletedAt         DateTime?
+
+  sideEffectReports SideEffectReport[]
+
   // @@index([status])
   // @@index([officeLocationId])
 

@@ -1,7 +1,7 @@
 model AssessmentSubmission {
   id             String           @id @default(uuid())
   submissionCode String           @unique
-  status         SubmissionStatus @default(PENDING)
+  status         SubmissionStatus @default(DRAFT)
   reviewedBy     String?
   reviewedAt     DateTime?
   doctorNotes    String?          @db.Text
