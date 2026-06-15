@@ -1,13 +1,14 @@
 model Product {
-  id            String   @id @default(uuid())
+  id            String       @id @default(uuid())
   name          String
   images        Attachment[]
-  price         Decimal  @db.Decimal(10, 2)
-  stockQuantity Int      @default(0)
-  description   String?  @db.Text
+  price         Decimal      @db.Decimal(10, 2)
+  stockQuantity Int          @default(0)
+  description   String?      @db.Text
 
   categoryId String?
-  category   Category? @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+  category   Category?  @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+  cartItems  CartItem[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
