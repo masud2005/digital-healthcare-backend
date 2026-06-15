@@ -1,9 +1,8 @@
 import { StorageService } from "@global/storage/storage.service";
 import {
     BadRequestException,
-    ForbiddenException,
     Injectable,
-    NotFoundException,
+    NotFoundException
 } from "@nestjs/common";
 import type { CartRecord } from "./cart.repository";
 import { CartRepository } from "./cart.repository";
