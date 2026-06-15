@@ -208,7 +208,7 @@ export class ProductService {
 
     private normalizeCreatePayload(payload: CreateProductDto) {
         const name = payload.name.trim();
-        const slug = payload.slug ? slugify(payload.slug.trim()) : slugify(name);
+        const slug = slugify(name);
         return {
             name,
             slug,
@@ -245,13 +245,7 @@ export class ProductService {
 
         if (payload.name !== undefined) {
             data.name = payload.name.trim();
-            if (payload.slug === undefined) {
-                data.slug = slugify(data.name);
-            }
-        }
-
-        if (payload.slug !== undefined) {
-            data.slug = slugify(payload.slug.trim());
+            data.slug = slugify(data.name);
         }
 
         if (payload.images !== undefined) {

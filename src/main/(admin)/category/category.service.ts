@@ -97,7 +97,7 @@ export class CategoryService {
 
     private normalizeCreatePayload(payload: CreateCategoryDto) {
         const name = payload.name.trim();
-        const slug = payload.slug ? slugify(payload.slug.trim()) : slugify(name);
+        const slug = slugify(name);
         return {
             name,
             slug,
@@ -120,13 +120,7 @@ export class CategoryService {
 
         if (payload.name !== undefined) {
             data.name = payload.name.trim();
-            if (payload.slug === undefined) {
-                data.slug = slugify(data.name);
-            }
-        }
-
-        if (payload.slug !== undefined) {
-            data.slug = slugify(payload.slug.trim());
+            data.slug = slugify(data.name);
         }
 
         if (payload.description !== undefined) {
