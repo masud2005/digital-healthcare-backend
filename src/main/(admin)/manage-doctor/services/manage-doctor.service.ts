@@ -27,7 +27,7 @@ export class ManageDoctorService {
         private readonly doctorMailService: DoctorMailService,
     ) {}
 
-    async create(payload: CreateDoctorDto & { avatarId?: string | null }) {
+    async create(payload: CreateDoctorDto) {
         this.doctorMailService.assertReady();
         const data = this.normalizeCreatePayload(payload);
         await this.ensureEmailIsAvailable(data.email);
@@ -104,7 +104,7 @@ export class ManageDoctorService {
         return this.mapDoctor(doctor, consultationCounts.get(doctor.userId) ?? 0);
     }
 
-    async update(id: string, payload: UpdateDoctorDto & { avatarId?: string | null }) {
+    async update(id: string, payload: UpdateDoctorDto) {
         const doctor = await this.findExistingDoctor(id);
         const data = this.normalizeUpdatePayload(payload);
 
@@ -183,12 +183,13 @@ export class ManageDoctorService {
         }
     }
 
-    private normalizeCreatePayload(payload: CreateDoctorDto & { avatarId?: string | null }) {
+    private normalizeCreatePayload(payload: CreateDoctorDto) {
         return {
             email: this.normalizeEmail(payload.email),
             password: payload.password.trim(),
             status: payload.status ?? "ACTIVE",
-            avatarId: payload.avatarId,
+            avatarId: payload.avatarId ?? null,
+            featured: payload.featured ?? false,
             name: this.normalizeRequiredString(payload.fullName, "Full name is required"),
             title: this.parseString(payload.roleTitle),
             bio: this.parseString(payload.shortBio),
@@ -196,12 +197,13 @@ export class ManageDoctorService {
         };
     }
 
-    private normalizeUpdatePayload(payload: UpdateDoctorDto & { avatarId?: string | null }) {
+    private normalizeUpdatePayload(payload: UpdateDoctorDto) {
         const data: {
             email?: string;
             password?: string;
             status?: UserStatus;
             avatarId?: string | null;
+            featured?: boolean;
             name?: string;
             title?: string | null;
             bio?: string | null;
@@ -222,6 +224,10 @@ export class ManageDoctorService {
 
         if (payload.avatarId !== undefined) {
             data.avatarId = payload.avatarId;
+        }
+
+        if (payload.featured !== undefined) {
+            data.featured = payload.featured;
         }
 
         if (payload.fullName !== undefined) {
@@ -311,6 +317,7 @@ export class ManageDoctorService {
             thumbnail: doctor.avatar?.fileUrl
                 ? await this.storageService.getSignedUrl(doctor.avatar.fileUrl)
                 : null,
+            featured: doctor.featured,
             roleTitle: doctor.title,
             shortBio: doctor.bio,
             email: doctor.user.email,
