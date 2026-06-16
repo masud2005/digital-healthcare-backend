@@ -18,23 +18,33 @@ export class CartService {
             throw new NotFoundException("Product not found");
         }
 
-        // Product has variants — size must be chosen via update
-        // Default add: use base stockQuantity if no variants, else check at least one variant has stock
         const hasVariants = product.variants.length > 0;
 
         if (hasVariants) {
-            const anyStock = product.variants.some((v) => v.stockQuantity > 0);
-            if (!anyStock) {
+            const firstAvailableVariant = product.variants.find((v) => v.stockQuantity > 0);
+
+            if (!firstAvailableVariant) {
                 throw new BadRequestException("Product is out of stock");
             }
+
+            const cart = await this.cartRepository.upsertCartAndAddItem(
+                userId,
+                dto.productId,
+                firstAvailableVariant.size,
+            );
+            return this.mapCart(cart, "Product added to cart");
         } else {
             if ((product.stockQuantity ?? 0) < 1) {
                 throw new BadRequestException("Product is out of stock");
             }
-        }
 
-        const cart = await this.cartRepository.upsertCartAndAddItem(userId, dto.productId);
-        return this.mapCart(cart);
+            const cart = await this.cartRepository.upsertCartAndAddItem(
+                userId,
+                dto.productId,
+                null,
+            );
+            return this.mapCart(cart, "Product added to cart");
+        }
     }
 
     async removeFromCart(userId: string, cartItemId: string) {
@@ -46,7 +56,12 @@ export class CartService {
         }
 
         await this.cartRepository.removeCartItem(cartItemId);
-        return { message: "Item removed from cart" };
+        return {
+            success: true,
+            statusCode: 200,
+            message: "Item removed from cart",
+            data: null,
+        };
     }
 
     async updateCartItem(userId: string, cartItemId: string, dto: UpdateCartItemDto) {
@@ -111,17 +126,22 @@ export class CartService {
         });
 
         const updatedCart = await this.cartRepository.findCartByUserId(userId);
-        return this.mapCart(updatedCart!);
+        return this.mapCart(updatedCart!, "Cart item updated");
     }
 
     async getMyCarts(userId: string) {
         const cart = await this.cartRepository.findCartByUserId(userId);
 
         if (!cart) {
-            return { id: null, items: [], totalPrice: "0.00" };
+            return {
+                success: true,
+                statusCode: 200,
+                message: "Cart fetched successfully",
+                data: { id: null, totalItem: 0, items: [], totalPrice: "0.00" },
+            };
         }
 
-        return this.mapCart(cart);
+        return this.mapCart(cart, "Cart fetched successfully");
     }
 
     private async getCartOrThrow(userId: string) {
@@ -134,7 +154,7 @@ export class CartService {
         return cart;
     }
 
-    private async mapCart(cart: CartRecord) {
+    private async mapCart(cart: CartRecord, message: string) {
         let totalPrice = 0;
 
         const items = await Promise.all(
@@ -146,7 +166,6 @@ export class CartService {
                     })),
                 );
 
-                // Use variant price if size is set and variant exists, otherwise base price
                 const activeVariant = item.size
                     ? item.product.variants.find((v) => v.size === item.size)
                     : null;
@@ -167,8 +186,7 @@ export class CartService {
                     product: {
                         id: item.product.id,
                         name: item.product.name,
-                        basePrice: item.product.price,
-                        stockQuantity: item.product.stockQuantity,
+                        description: item.product.description,
                         variants: item.product.variants,
                         images: resolvedImages,
                     },
@@ -179,11 +197,17 @@ export class CartService {
         );
 
         return {
-            id: cart.id,
-            items,
-            totalPrice: totalPrice.toFixed(2),
-            createdAt: cart.createdAt,
-            updatedAt: cart.updatedAt,
+            success: true,
+            statusCode: 200,
+            message,
+            data: {
+                id: cart.id,
+                totalItem: items.length,
+                totalPrice: totalPrice.toFixed(2),
+                items,
+                createdAt: cart.createdAt,
+                updatedAt: cart.updatedAt,
+            },
         };
     }
 }

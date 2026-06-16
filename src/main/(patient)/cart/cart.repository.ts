@@ -10,8 +10,8 @@ const cartInclude = {
                 select: {
                     id: true,
                     name: true,
+                    description: true,
                     price: true,
-                    stockQuantity: true,
                     images: {
                         select: {
                             id: true,
@@ -67,7 +67,7 @@ export class CartRepository {
         });
     }
 
-    async upsertCartAndAddItem(userId: string, productId: string): Promise<CartRecord> {
+    async upsertCartAndAddItem(userId: string, productId: string, defaultSize: string | null): Promise<CartRecord> {
         const cart = await this.prisma.cart.upsert({
             where: { userId },
             create: { userId },
@@ -75,17 +75,20 @@ export class CartRepository {
             select: { id: true },
         });
 
-        await this.prisma.cartItem.upsert({
-            where: {
-                cartId_productId_size: {
-                    cartId: cart.id,
-                    productId,
-                    size: "",
-                },
-            },
-            create: { cartId: cart.id, productId, quantity: 1, size: null },
-            update: { quantity: { increment: 1 } },
+        const existing = await this.prisma.cartItem.findFirst({
+            where: { cartId: cart.id, productId, size: defaultSize },
         });
+
+        if (existing) {
+            await this.prisma.cartItem.update({
+                where: { id: existing.id },
+                data: { quantity: { increment: 1 } },
+            });
+        } else {
+            await this.prisma.cartItem.create({
+                data: { cartId: cart.id, productId, quantity: 1, size: defaultSize },
+            });
+        }
 
         return this.prisma.cart.findUnique({
             where: { userId },
