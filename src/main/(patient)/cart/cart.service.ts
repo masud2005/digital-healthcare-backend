@@ -1,10 +1,5 @@
 import { StorageService } from "@global/storage/storage.service";
-import {
-    BadRequestException,
-    ForbiddenException,
-    Injectable,
-    NotFoundException,
-} from "@nestjs/common";
+import { BadRequestException, Injectable, NotFoundException } from "@nestjs/common";
 import type { CartRecord } from "./cart.repository";
 import { CartRepository } from "./cart.repository";
 import type { AddToCartDto, UpdateCartItemDto } from "./dto/cart.dto";
@@ -23,31 +18,33 @@ export class CartService {
             throw new NotFoundException("Product not found");
         }
 
-        let stockAvailable = product.stockQuantity ?? 0;
-        if (dto.size && product.variants && product.variants.length > 0) {
-            const variant = product.variants.find(
-                (v) => v.size.toLowerCase() === dto.size?.toLowerCase(),
-            );
-            if (!variant) {
-                throw new NotFoundException(`Product size variant "${dto.size}" not found`);
+        const hasVariants = product.variants.length > 0;
+
+        if (hasVariants) {
+            const firstAvailableVariant = product.variants.find((v) => v.stockQuantity > 0);
+
+            if (!firstAvailableVariant) {
+                throw new BadRequestException("Product is out of stock");
             }
-            stockAvailable = variant.stockQuantity;
-        }
 
-        if (stockAvailable < dto.quantity) {
-            throw new BadRequestException(
-                `Insufficient stock. Available: ${stockAvailable}`,
+            const cart = await this.cartRepository.upsertCartAndAddItem(
+                userId,
+                dto.productId,
+                firstAvailableVariant.size,
             );
+            return this.mapCart(cart, "Product added to cart");
+        } else {
+            if ((product.stockQuantity ?? 0) < 1) {
+                throw new BadRequestException("Product is out of stock");
+            }
+
+            const cart = await this.cartRepository.upsertCartAndAddItem(
+                userId,
+                dto.productId,
+                null,
+            );
+            return this.mapCart(cart, "Product added to cart");
         }
-
-        const cart = await this.cartRepository.upsertCartAndAddItem(
-            userId,
-            dto.productId,
-            dto.quantity,
-            dto.size,
-        );
-
-        return this.mapCart(cart);
     }
 
     async removeFromCart(userId: string, cartItemId: string) {
@@ -59,12 +56,16 @@ export class CartService {
         }
 
         await this.cartRepository.removeCartItem(cartItemId);
-
-        return { message: "Item removed from cart" };
+        return {
+            success: true,
+            statusCode: 200,
+            message: "Item removed from cart",
+            data: null,
+        };
     }
 
     async updateCartItem(userId: string, cartItemId: string, dto: UpdateCartItemDto) {
-        if (!dto.quantity && !dto.size) {
+        if (dto.quantity === undefined && dto.size === undefined) {
             throw new BadRequestException("Provide quantity or size to update");
         }
 
@@ -75,47 +76,72 @@ export class CartService {
             throw new NotFoundException("Cart item not found");
         }
 
-        const targetQuantity = dto.quantity !== undefined ? dto.quantity : item.quantity;
-        const targetSize = dto.size !== undefined ? dto.size : item.size;
-
         const product = await this.cartRepository.findProduct(item.productId);
+
         if (!product) {
             throw new NotFoundException("Product not found");
         }
 
-        let stockAvailable = product.stockQuantity ?? 0;
-        if (targetSize && product.variants && product.variants.length > 0) {
-            const variant = product.variants.find(
-                (v) => v.size.toLowerCase() === targetSize.toLowerCase(),
-            );
-            if (!variant) {
-                throw new NotFoundException(`Product size variant "${targetSize}" not found`);
+        const hasVariants = product.variants.length > 0;
+        const targetSize = dto.size !== undefined ? dto.size : (item.size ?? undefined);
+        const targetQty = dto.quantity ?? 1;
+
+        if (hasVariants) {
+            if (!targetSize) {
+                const availableSizes = product.variants.map((v) => v.size).join(", ");
+                throw new BadRequestException(
+                    `Size is required for this product. Available sizes: ${availableSizes}`,
+                );
             }
-            stockAvailable = variant.stockQuantity;
+
+            const variant = product.variants.find((v) => v.size === targetSize);
+
+            if (!variant) {
+                const availableSizes = product.variants.map((v) => v.size).join(", ");
+                throw new BadRequestException(
+                    `Invalid size "${targetSize}". Available sizes: ${availableSizes}`,
+                );
+            }
+
+            if (variant.stockQuantity < targetQty) {
+                throw new BadRequestException(
+                    `Insufficient stock for size "${targetSize}". Available: ${variant.stockQuantity}`,
+                );
+            }
+        } else {
+            if (dto.size !== undefined) {
+                throw new BadRequestException("This product does not have size variants");
+            }
+
+            if ((product.stockQuantity ?? 0) < targetQty) {
+                throw new BadRequestException(
+                    `Insufficient stock. Available: ${product.stockQuantity ?? 0}`,
+                );
+            }
         }
 
-        if (stockAvailable < targetQuantity) {
-            throw new BadRequestException(
-                `Insufficient stock. Available: ${stockAvailable}`,
-            );
-        }
-
-        const updated = await this.cartRepository.updateCartItem(cartItemId, {
+        await this.cartRepository.updateCartItem(cartItemId, {
             ...(dto.quantity !== undefined ? { quantity: dto.quantity } : {}),
             ...(dto.size !== undefined ? { size: dto.size } : {}),
         });
 
-        return updated;
+        const updatedCart = await this.cartRepository.findCartByUserId(userId);
+        return this.mapCart(updatedCart!, "Cart item updated");
     }
 
     async getMyCarts(userId: string) {
         const cart = await this.cartRepository.findCartByUserId(userId);
 
         if (!cart) {
-            return { id: null, items: [], totalPrice: "0.00" };
+            return {
+                success: true,
+                statusCode: 200,
+                message: "Cart fetched successfully",
+                data: { id: null, totalItem: 0, items: [], totalPrice: "0.00" },
+            };
         }
 
-        return this.mapCart(cart);
+        return this.mapCart(cart, "Cart fetched successfully");
     }
 
     private async getCartOrThrow(userId: string) {
@@ -128,7 +154,7 @@ export class CartService {
         return cart;
     }
 
-    private async mapCart(cart: CartRecord) {
+    private async mapCart(cart: CartRecord, message: string) {
         let totalPrice = 0;
 
         const items = await Promise.all(
@@ -140,32 +166,28 @@ export class CartService {
                     })),
                 );
 
-                let productPrice = item.product.price ? Number(item.product.price) : 0;
-                let stockQuantity = item.product.stockQuantity ?? 0;
+                const activeVariant = item.size
+                    ? item.product.variants.find((v) => v.size === item.size)
+                    : null;
 
-                if (item.size && item.product.variants && item.product.variants.length > 0) {
-                    const variant = item.product.variants.find(
-                        (v) => v.size.toLowerCase() === item.size?.toLowerCase(),
-                    );
-                    if (variant) {
-                        productPrice = Number(variant.price);
-                        stockQuantity = variant.stockQuantity;
-                    }
-                }
+                const unitPrice = activeVariant
+                    ? Number(activeVariant.price)
+                    : Number(item.product.price ?? 0);
 
-                const itemTotal = productPrice * item.quantity;
+                const itemTotal = unitPrice * item.quantity;
                 totalPrice += itemTotal;
 
                 return {
                     id: item.id,
                     quantity: item.quantity,
                     size: item.size,
+                    unitPrice: unitPrice.toFixed(2),
                     itemTotal: itemTotal.toFixed(2),
                     product: {
                         id: item.product.id,
                         name: item.product.name,
-                        price: String(productPrice),
-                        stockQuantity,
+                        description: item.product.description,
+                        variants: item.product.variants,
                         images: resolvedImages,
                     },
                     createdAt: item.createdAt,
@@ -175,11 +197,17 @@ export class CartService {
         );
 
         return {
-            id: cart.id,
-            items,
-            totalPrice: totalPrice.toFixed(2),
-            createdAt: cart.createdAt,
-            updatedAt: cart.updatedAt,
+            success: true,
+            statusCode: 200,
+            message,
+            data: {
+                id: cart.id,
+                totalItem: items.length,
+                totalPrice: totalPrice.toFixed(2),
+                items,
+                createdAt: cart.createdAt,
+                updatedAt: cart.updatedAt,
+            },
         };
     }
 }

@@ -5,6 +5,7 @@ import {
     Injectable,
     NotFoundException,
 } from "@nestjs/common";
+import { PrismaService } from "@global/prisma/prisma.service";
 import type { QuestionType } from "@prisma/client";
 import {
     AssessmentSubmissionRecord,
@@ -35,11 +36,25 @@ export class AssessmentSubmissionService {
     constructor(
         private readonly assessmentSubmissionRepository: AssessmentSubmissionRepository,
         private readonly storageService: StorageService,
+        private readonly prisma: PrismaService,
     ) {}
 
     async getMyAssessmentBlueprints(userId: string) {
         const submissions = await this.assessmentSubmissionRepository.findMySubmissions(userId);
         return Promise.all(submissions.map((s) => this.mapBlueprint(s)));
+    }
+
+    async getMyAssessmentBlueprint(submissionId: string, userId: string) {
+        const submission = await this.assessmentSubmissionRepository.findSubmissionById(
+            submissionId,
+            userId,
+        );
+
+        if (!submission) {
+            throw new NotFoundException("Submission not found");
+        }
+
+        return this.mapBlueprint(submission);
     }
 
     async updateSubmission(
@@ -72,7 +87,7 @@ export class AssessmentSubmissionService {
         }
 
         const questionMap = new Map(questions.map((q) => [q.id, q]));
-        this.validateAnswers(normalizedAnswers, questions, questionMap);
+        this.validateAnswers(normalizedAnswers, submittedQuestions, questionMap);
 
         const updated = await this.assessmentSubmissionRepository.updateSubmission(
             submissionId,
@@ -128,17 +143,26 @@ export class AssessmentSubmissionService {
     private async mapBlueprint(submission: BlueprintSubmissionRecord) {
         const { assessment } = submission;
 
+        // Build answer map: questionId → answer
         const answerMap = new Map(
             submission.answers.map((a) => [
                 a.questionId,
                 {
                     textResponse: a.textResponse,
-                    selectedOptionIds: a.selectedOptions.map((s) => s.optionId),
+                    selectedOptions: a.selectedOptions.map((s) => ({
+                        id: s.option.id,
+                        label: s.option.label,
+                    })),
                 },
             ]),
         );
 
         const thumbnail = await this.storageService.resolveKey(assessment.thumbnail);
+
+        // Build a map of all question options keyed by questionId for file-type detection
+        const questionOptionsMap = new Map(
+            assessment.questions.map((q) => [q.id, q.options]),
+        );
 
         const questionsByParentOptionId = new Map<string, typeof assessment.questions>();
         for (const q of assessment.questions) {
@@ -148,29 +172,64 @@ export class AssessmentSubmissionService {
             questionsByParentOptionId.set(q.parentOptionId, group);
         }
 
-        const buildQuestion = (q: (typeof assessment.questions)[number]): object => ({
+        const buildPatientAnswer = async (questionId: string) => {
+            const answer = answerMap.get(questionId);
+            if (!answer) return null;
+
+            const options = questionOptionsMap.get(questionId) ?? [];
+            const isFileInput = options.some(
+                (o) => o.inputType?.toLowerCase() === "file",
+            );
+
+            // Resolve attachment if textResponse holds a file attachment id
+            let resolvedFile: { id: string; fileUrl: string | null } | null = null;
+            if (isFileInput && answer.textResponse) {
+                const attachment = await this.prisma.attachment.findUnique({
+                    where: { id: answer.textResponse },
+                    select: { id: true, fileUrl: true, fileName: true, fileType: true },
+                });
+
+                if (attachment) {
+                    resolvedFile = {
+                        ...attachment,
+                        fileUrl: await this.storageService.resolveKey(attachment.fileUrl),
+                    };
+                }
+            }
+
+            return {
+                selectedOptions: answer.selectedOptions,
+                textResponse: isFileInput ? null : (answer.textResponse ?? null),
+                file: resolvedFile,
+            };
+        };
+
+        const buildQuestion = async (q: (typeof assessment.questions)[number]): Promise<object> => ({
             id: q.id,
             type: q.type,
             heading: q.heading ?? null,
             questionText: q.questionText ?? null,
             description: q.description ?? null,
-            options: q.options.map((opt) => ({
-                id: opt.id,
-                label: opt.label,
-                inputType: opt.inputType ?? null,
-                subQuestions: (questionsByParentOptionId.get(opt.id) ?? []).map(buildQuestion),
-            })),
-            patientAnswer: answerMap.get(q.id)
-                ? {
-                      selectedOptionIds: answerMap.get(q.id)!.selectedOptionIds,
-                      textResponse: answerMap.get(q.id)!.textResponse ?? null,
-                  }
-                : null,
+            options: await Promise.all(
+                q.options.map(async (opt) => ({
+                    id: opt.id,
+                    label: opt.label,
+                    inputType: opt.inputType ?? null,
+                    subQuestions: await Promise.all(
+                        (questionsByParentOptionId.get(opt.id) ?? []).map((child) =>
+                            buildQuestion(child),
+                        ),
+                    ),
+                })),
+            ),
+            patientAnswer: await buildPatientAnswer(q.id),
         });
 
-        const rootQuestions = assessment.questions
-            .filter((q) => !q.parentOptionId)
-            .map(buildQuestion);
+        const rootQuestions = await Promise.all(
+            assessment.questions
+                .filter((q) => !q.parentOptionId)
+                .map((q) => buildQuestion(q)),
+        );
 
         return {
             submissionId: submission.id,

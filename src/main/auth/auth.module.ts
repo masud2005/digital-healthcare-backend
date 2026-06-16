@@ -1,8 +1,8 @@
+import { MailModule } from "@global/mail/mail.module";
 import { PrismaModule } from "@global/prisma/prisma.module";
+import { SystemHealthModule } from "@main/(compliance)/system-healthar/system-health.module";
 import { Module } from "@nestjs/common";
 import { AuditLogModule } from "../(compliance)/audit-log/audit-log.module";
-import { SystemHealthModule } from "../(compliance)/system-health/system-health.module";
-import { MailModule } from "@global/mail/mail.module";
 import { AuthRepository } from "./auth.repository";
 import { AuthAccountController } from "./controllers/auth-account.controller";
 import { AuthOtpController } from "./controllers/auth-otp.controller";
@@ -14,9 +14,9 @@ import { AuthCleanupService } from "./services/auth-cleanup.service";
 import { AuthOtpDeliveryService } from "./services/auth-otp-delivery.service";
 import { AuthOtpService } from "./services/auth-otp.service";
 import { AuthPasswordService } from "./services/auth-password.service";
-import { AuthService } from "./services/auth.service";
 import { AuthSessionService } from "./services/auth-session.service";
 import { AuthSharedService } from "./services/auth-shared.service";
+import { AuthService } from "./services/auth.service";
 
 @Module({
     imports: [PrismaModule, SystemHealthModule, AuditLogModule, MailModule],

@@ -199,6 +199,31 @@ export class AssessmentSubmissionController {
     }
 
     @UseGuards(JwtAuthGuard)
+    @Get("my-assessment/:id")
+    @ApiOperation({
+        summary: "Get a single submission by id",
+        description:
+            "Returns the full question tree with the patient's saved answers (patientAnswer) " +
+            "for a specific submission. Only the owner can access it.",
+    })
+    @ApiOkResponse({ type: MyAssessmentBlueprintDto })
+    async getMyAssessment(
+        @Param() params: AssessmentParamDto,
+        @CurrentUser() user: AuthenticatedUser,
+    ) {
+        const assessment = await this.assessmentSubmissionService.getMyAssessmentBlueprint(
+            params.id,
+            user.id,
+        );
+        return {
+            success: true,
+            statusCode: 200,
+            message: "Assessment retrieved successfully",
+            data: assessment,
+        };
+    }
+
+    @UseGuards(JwtAuthGuard)
     @Get("my-assessment")
     @ApiOperation({
         summary: "Get my submitted assessments",
