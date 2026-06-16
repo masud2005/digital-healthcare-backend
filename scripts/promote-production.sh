@@ -1,5 +1,5 @@
-#!/usr/bin/env sh
-set -eu
+#!/usr/bin/env bash
+set -euo pipefail
 
 COMPOSE_FILE="${COMPOSE_FILE:-docker-compose.release.yaml}"
 LIVE_DOMAIN="${LIVE_DOMAIN:-prod.weightlossmdcherrycreek.com}"
@@ -85,7 +85,7 @@ while [ "$i" -le "$max" ]; do
     echo "Production storage route failed after switching to $NEXT_COLOR"
     docker compose -f "$COMPOSE_FILE" logs --tail=200 caddy
     docker compose -f "$COMPOSE_FILE" logs --tail=200 minio_live
-    sh scripts/rollback-production.sh
+    ./scripts/rollback-production.sh
     exit 1
   fi
 
@@ -110,5 +110,5 @@ while [ "$i" -le "$max" ]; do
 done
 
 echo "Public production health failed after switching to $NEXT_COLOR"
-sh scripts/rollback-production.sh
+./scripts/rollback-production.sh
 exit 1

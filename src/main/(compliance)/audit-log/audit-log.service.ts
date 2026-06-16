@@ -19,7 +19,7 @@ export class AuditLogService implements OnModuleInit {
     ) {}
 
     async onModuleInit() {
-        await this.seedAuditLogs();
+        // await this.seedAuditLogs();
     }
 
     async seedAuditLogs() {

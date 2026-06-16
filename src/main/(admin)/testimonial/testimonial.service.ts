@@ -25,7 +25,7 @@ export class TestimonialService implements OnModuleInit {
     ) {}
 
     async onModuleInit() {
-        await this.seedTestimonials();
+        // await this.seedTestimonials();
     }
 
     async seedTestimonials() {

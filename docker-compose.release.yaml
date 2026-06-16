@@ -205,6 +205,13 @@ services:
         networks:
             - doc_release
 
+    minio_mc:
+        image: minio/mc:latest
+        entrypoint: ["/bin/sh", "-c", "exit 0"]
+        restart: "no"
+        networks:
+            - doc_release
+
 volumes:
     caddy_data:
     caddy_config:

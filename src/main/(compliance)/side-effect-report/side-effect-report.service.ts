@@ -28,7 +28,7 @@ export class SideEffectReportService implements OnModuleInit {
     ) {}
 
     async onModuleInit() {
-        await this.seedSideEffectReports();
+        // await this.seedSideEffectReports();
     }
 
     private hashPassword(password: string) {

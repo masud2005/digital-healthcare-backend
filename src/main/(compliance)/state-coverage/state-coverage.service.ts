@@ -27,7 +27,7 @@ export class StateCoverageService implements OnModuleInit {
     ) {}
 
     async onModuleInit() {
-        await this.seedStateCoverages();
+        // await this.seedStateCoverages();
     }
 
     async seedStateCoverages() {

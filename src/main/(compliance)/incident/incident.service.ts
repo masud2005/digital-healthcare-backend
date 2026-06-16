@@ -24,7 +24,7 @@ export class IncidentService implements OnModuleInit {
     constructor(private readonly incidentRepository: IncidentRepository) {}
 
     async onModuleInit() {
-        await this.seedIncidents();
+        // await this.seedIncidents();
     }
 
     async seedIncidents() {
