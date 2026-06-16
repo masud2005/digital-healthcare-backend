@@ -9,8 +9,10 @@ import {
     Post,
     Query,
     Res,
+    UseGuards,
 } from "@nestjs/common";
 import {
+    ApiBearerAuth,
     ApiCreatedResponse,
     ApiNoContentResponse,
     ApiOkResponse,
@@ -30,6 +32,9 @@ import {
     ProviderLicenseResponseDto,
     ProviderLicenseStatsResponseDto,
 } from "./dto/provider-license-response.dto";
+import { OptionalJwtAuthGuard } from "@common/guards/optional-jwt-auth.guard";
+import { CurrentUser } from "@common/decorators/current-user.decorator";
+import type { AuthenticatedUser } from "@main/auth/auth.types";
 
 @ApiTags("(Compliance) Provider Licensing")
 @Controller("compliance/provider-licenses")
@@ -51,6 +56,8 @@ export class ProviderLicenseController {
     }
 
     @Get("export")
+    @UseGuards(OptionalJwtAuthGuard)
+    @ApiBearerAuth()
     @ApiOperation({ summary: "Export provider licenses as CSV" })
     @ApiProduces("text/csv")
     @ApiQuery({ name: "search", required: false })
@@ -63,8 +70,9 @@ export class ProviderLicenseController {
     async export(
         @Query() query: Omit<ProviderLicenseQueryDto, "page" | "limit">,
         @Res({ passthrough: false }) res: Response,
+        @CurrentUser() user?: AuthenticatedUser,
     ) {
-        const csvContent = await this.providerLicenseService.exportCsv(query);
+        const csvContent = await this.providerLicenseService.exportCsv(query, user);
 
         const timestamp = new Date().toISOString().replace(/[:.]/g, "-").slice(0, 19);
         const filename = `provider-licenses-${timestamp}.csv`;

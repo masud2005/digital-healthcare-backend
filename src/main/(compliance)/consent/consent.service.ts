@@ -12,6 +12,7 @@ import { CreateConsentDto } from "./dto/create-consent.dto";
 import { ConsentQueryDto } from "./dto/consent-query.dto";
 import type { AuthenticatedUser } from "@main/auth/auth.types";
 import { DEFAULT_CONSENTS, generateExtraConsents } from "./consent-seed.data";
+import { IncidentService } from "../incident/incident.service";
 
 const DEFAULT_PAGE = 1;
 const DEFAULT_LIMIT = 10;
@@ -24,6 +25,7 @@ export class ConsentService implements OnModuleInit {
         private readonly prisma: PrismaService,
         private readonly consentRepository: ConsentRepository,
         private readonly exportService: ExportService,
+        private readonly incidentService: IncidentService,
     ) {}
 
     async onModuleInit() {
@@ -130,7 +132,7 @@ export class ConsentService implements OnModuleInit {
         return this.consentRepository.delete(id);
     }
 
-    async exportCsv(query: Omit<ConsentQueryDto, "page" | "limit">): Promise<string> {
+    async exportCsv(query: Omit<ConsentQueryDto, "page" | "limit">, user?: AuthenticatedUser): Promise<string> {
         const { data } = await this.consentRepository.findAll({
             search: query.search?.trim(),
             role: query.role?.trim(),
@@ -139,6 +141,22 @@ export class ConsentService implements OnModuleInit {
             source: query.source,
             startDate: this.parseDate(query.startDate),
             endDate: this.parseDate(query.endDate),
+        });
+
+        // Trigger incident for PHI Export Event
+        const reportedBy = user ? `${user.email}` : "Jessica Martinez";
+        const userRole = user?.role ?? "EMPLOYEE";
+        await this.incidentService.triggerIncident({
+            type: "PHI Export Event",
+            severity: "HIGH",
+            reportedBy,
+            affectedSystem: "Export Module",
+            description: "Large PHI export detected — exceeds daily threshold",
+            status: "INVESTIGATING",
+            source: "SYSTEM_MONITORING",
+            metadata: { userRole },
+        }).catch((err) => {
+            this.logger.error("Failed to trigger PHI Export Event incident on export", err);
         });
 
         const headers = [
