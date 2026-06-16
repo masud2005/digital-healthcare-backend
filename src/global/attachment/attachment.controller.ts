@@ -1,5 +1,4 @@
 import { CurrentUser } from "@common/decorators/current-user.decorator";
-import { JwtAuthGuard } from "@common/guards/jwt-auth.guard";
 import { attachmentContext } from "@constant/enums";
 import type { AuthenticatedUser } from "@main/auth/auth.types";
 import {
@@ -13,18 +12,16 @@ import {
     Query,
     UploadedFile,
     UploadedFiles,
-    UseGuards,
-    UseInterceptors,
+    UseInterceptors
 } from "@nestjs/common";
 import { FileInterceptor, FilesInterceptor } from "@nestjs/platform-express";
 import {
-    ApiBearerAuth,
     ApiBody,
     ApiConsumes,
     ApiCreatedResponse,
     ApiOkResponse,
     ApiOperation,
-    ApiTags,
+    ApiTags
 } from "@nestjs/swagger";
 import "multer";
 import { AttachmentService } from "./attachment.service";
@@ -37,8 +34,6 @@ import { ReplaceAttachmentDto } from "./dto/replace-attachment.dto";
 import { UploadAttachmentDto } from "./dto/upload-attachment.dto";
 
 @ApiTags("Attachments")
-@ApiBearerAuth()
-@UseGuards(JwtAuthGuard)
 @Controller("attachments")
 export class AttachmentController {
     constructor(private readonly attachmentService: AttachmentService) {}
