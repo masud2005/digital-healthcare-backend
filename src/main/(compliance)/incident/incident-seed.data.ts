@@ -11,6 +11,7 @@ export const DEFAULT_INCIDENTS = [
         assignedTo: "Dr. Admin",
         description: "3 failed login attempts from unrecognized device",
         detectedAt: new Date("2026-06-04T09:14:32Z"),
+        metadata: { userRole: "UNKNOWN" },
         isActive: true,
     },
     {
@@ -24,6 +25,7 @@ export const DEFAULT_INCIDENTS = [
         assignedTo: "Sarah K",
         description: "Login from new location: Dallas, TX (usual: Boston, MA)",
         detectedAt: new Date("2026-06-04T08:45:00Z"),
+        metadata: { userRole: "DOCTOR" },
         isActive: true,
     },
     {
@@ -37,6 +39,7 @@ export const DEFAULT_INCIDENTS = [
         assignedTo: "Thomas R",
         description: "Large PHI export detected — exceeds daily threshold",
         detectedAt: new Date("2026-06-04T07:30:00Z"),
+        metadata: { userRole: "EMPLOYEE" },
         isActive: true,
     },
     {
@@ -51,6 +54,7 @@ export const DEFAULT_INCIDENTS = [
         description: "Bulk patient record download detected",
         detectedAt: new Date("2026-06-03T15:22:11Z"),
         resolvedAt: new Date("2026-06-03T17:00:00Z"),
+        metadata: { userRole: "EMPLOYEE" },
         isActive: true,
     },
     {
@@ -65,6 +69,7 @@ export const DEFAULT_INCIDENTS = [
         description: "5 failed login attempts — account temporarily locked",
         detectedAt: new Date("2026-06-03T14:00:00Z"),
         resolvedAt: new Date("2026-06-03T15:30:00Z"),
+        metadata: { userRole: "DOCTOR" },
         isActive: true,
     },
     {
@@ -78,6 +83,7 @@ export const DEFAULT_INCIDENTS = [
         assignedTo: "Support",
         description: "Multiple access attempts to restricted admin endpoint",
         detectedAt: new Date("2026-06-02T22:15:00Z"),
+        metadata: { userRole: "UNKNOWN" },
         isActive: true,
     },
     {
@@ -92,6 +98,7 @@ export const DEFAULT_INCIDENTS = [
         description: "Patient reported unrecognized login to their account",
         detectedAt: new Date("2026-06-02T11:05:00Z"),
         resolvedAt: new Date("2026-06-02T12:00:00Z"),
+        metadata: { userRole: "PATIENT" },
         isActive: true,
     },
     // Additional incidents for realistic totals
@@ -106,6 +113,9 @@ export const DEFAULT_INCIDENTS = [
         description: `Historical incident #${i + 8} — auto-resolved.`,
         detectedAt: new Date(Date.now() - (i + 8) * 24 * 60 * 60 * 1000),
         resolvedAt: new Date(Date.now() - (i + 7) * 24 * 60 * 60 * 1000),
+        metadata: {
+            userRole: (["ADMIN", "DOCTOR", "EMPLOYEE", "PATIENT"] as const)[i % 4],
+        },
         isActive: true,
     })),
 ];

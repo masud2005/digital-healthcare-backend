@@ -13,6 +13,8 @@ import { ContactLeadQueryDto } from "./dto/contact-lead-query.dto";
 import { CreateContactLeadDto } from "./dto/create-contact-lead.dto";
 import { UpdateContactLeadDto } from "./dto/update-contact-lead.dto";
 import { RespondContactLeadDto } from "./dto/respond-contact-lead.dto";
+import { IncidentService } from "../../(compliance)/incident/incident.service";
+import type { AuthenticatedUser } from "@main/auth/auth.types";
 
 const DEFAULT_PAGE = 1;
 const DEFAULT_LIMIT = 10;
@@ -25,6 +27,7 @@ export class ContactLeadsService {
         private readonly attachmentService: AttachmentService,
         private readonly mailService: MailService,
         private readonly exportService: ExportService,
+        private readonly incidentService: IncidentService,
     ) {}
 
     async create(payload: CreateContactLeadDto) {
@@ -63,13 +66,27 @@ export class ContactLeadsService {
         };
     }
 
-    async exportCsv(query: Omit<ContactLeadQueryDto, "page" | "limit">): Promise<string> {
+    async exportCsv(query: Omit<ContactLeadQueryDto, "page" | "limit">, user?: AuthenticatedUser): Promise<string> {
         const leads = await this.contactLeadsRepository.findMany({
             search: query.search?.trim(),
             service: query.service?.trim(),
             read: query.read,
             responded: query.responded,
         });
+
+        // Trigger incident for Bulk Data Download
+        const reportedBy = user ? `${user.email}` : "Billing Staff #7";
+        const userRole = user?.role ?? "EMPLOYEE";
+        await this.incidentService.triggerIncident({
+            type: "Bulk Data Download",
+            severity: "MEDIUM",
+            reportedBy,
+            affectedSystem: "Contact Leads Module",
+            description: "Bulk patient record download detected",
+            status: "RESOLVED",
+            source: "SYSTEM_MONITORING",
+            metadata: { userRole },
+        }).catch(() => {});
 
         const headers = [
             "ID",

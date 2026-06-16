@@ -1,16 +1,21 @@
 import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
 import { userStatus } from "@constant/enums";
-import { IsEmail, IsEnum, IsNotEmpty, IsOptional, IsString, MinLength } from "class-validator";
+import { IsBoolean, IsEmail, IsEnum, IsNotEmpty, IsOptional, IsString, IsUUID, MinLength } from "class-validator";
 import type { UserStatus } from "@constant/enums";
 
 export class CreateDoctorDto {
-    @ApiProperty({
-        type: "string",
-        format: "binary",
-        description: "Doctor thumbnail",
+    @ApiPropertyOptional({
+        example: "a1b2c3d4-...",
+        description: "Attachment ID from POST /attachments/upload with context DOCTOR_AVATAR",
     })
     @IsOptional()
-    thumbnail?: any;
+    @IsUUID()
+    avatarId?: string;
+
+    @ApiPropertyOptional({ example: true, description: "Whether the doctor is featured" })
+    @IsOptional()
+    @IsBoolean()
+    featured?: boolean;
 
     @ApiProperty({ example: "Dr. Runa Pradhan NP" })
     @IsString()

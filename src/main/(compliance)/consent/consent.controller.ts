@@ -54,7 +54,9 @@ export class ConsentController {
     }
 
     @Get("export")
-    @ApiOperation({ summary: "Export consent logs as CSV" })
+    @UseGuards(OptionalJwtAuthGuard)
+    @ApiBearerAuth()
+    @ApiOperation({ summary: "Export consents as CSV" })
     @ApiProduces("text/csv")
     @ApiQuery({ name: "search", required: false })
     @ApiQuery({ name: "role", required: false })
@@ -72,6 +74,7 @@ export class ConsentController {
         @Query("startDate") startDate?: string,
         @Query("endDate") endDate?: string,
         @Res({ passthrough: false }) res?: Response,
+        @CurrentUser() user?: AuthenticatedUser,
     ) {
         const csvContent = await this.consentService.exportCsv({
             search,
@@ -81,7 +84,7 @@ export class ConsentController {
             source,
             startDate,
             endDate,
-        });
+        }, user);
 
         const timestamp = new Date().toISOString().replace(/[:.]/g, "-").slice(0, 19);
         const filename = `consent-logs-${timestamp}.csv`;

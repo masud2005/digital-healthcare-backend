@@ -3,6 +3,9 @@ import { AuditLogRepository } from "./audit-log.repository";
 import { AuditLogQueryDto } from "./dto/audit-log-query.dto";
 import { DEFAULT_AUDIT_LOGS, generateExtraLogs } from "./audit-log-seed.data";
 import { ExportService } from "@global/export/export.service";
+import { IncidentService } from "../incident/incident.service";
+import { PrismaService } from "@global/prisma/prisma.service";
+import type { AuthenticatedUser } from "@main/auth/auth.types";
 
 @Injectable()
 export class AuditLogService implements OnModuleInit {
@@ -11,6 +14,8 @@ export class AuditLogService implements OnModuleInit {
     constructor(
         private readonly auditLogRepository: AuditLogRepository,
         private readonly exportService: ExportService,
+        private readonly incidentService: IncidentService,
+        private readonly prisma: PrismaService,
     ) {}
 
     async onModuleInit() {
@@ -87,8 +92,24 @@ export class AuditLogService implements OnModuleInit {
         return this.auditLogRepository.findMany(query);
     }
 
-    async exportLogsCsv(query: Partial<AuditLogQueryDto>): Promise<string> {
+    async exportLogsCsv(query: Partial<AuditLogQueryDto>, user?: AuthenticatedUser): Promise<string> {
         const logs = await this.auditLogRepository.findAll(query);
+
+        // Trigger incident for Bulk Data Download
+        const reportedBy = user ? `${user.email}` : "Billing Staff #7";
+        const userRole = user?.role ?? "EMPLOYEE";
+        await this.incidentService.triggerIncident({
+            type: "Bulk Data Download",
+            severity: "MEDIUM",
+            reportedBy,
+            affectedSystem: "Billing System",
+            description: "Bulk patient record download detected",
+            status: "RESOLVED",
+            source: "SYSTEM_MONITORING",
+            metadata: { userRole },
+        }).catch((err) => {
+            this.logger.error("Failed to trigger Bulk Data Download incident on export", err);
+        });
 
         // Build CSV content
         const headers = [
@@ -131,9 +152,94 @@ export class AuditLogService implements OnModuleInit {
         fileUrl?: string;
         status?: string;
     }) {
-        return this.auditLogRepository.create({
+        const log = await this.auditLogRepository.create({
             ...data,
             status: data.status || "SUCCESS",
         });
+
+        // Trigger incident checks if it's a failed login
+        if (log.activityType === "Login" && log.status === "FAILED") {
+            this.checkFailedLoginIncident(log).catch((err) => {
+                this.logger.error("Failed to run checkFailedLoginIncident", err);
+            });
+        }
+
+        return log;
+    }
+
+    private async checkFailedLoginIncident(log: any) {
+        const fifteenMinutesAgo = new Date(Date.now() - 15 * 60 * 1000);
+        const isKnownUser = log.userId !== null && log.userId !== undefined;
+
+        if (isKnownUser) {
+            const count = await this.auditLogRepository.count({
+                userId: log.userId,
+                activityType: "Login",
+                status: "FAILED",
+                createdAt: { gte: fifteenMinutesAgo },
+            });
+
+            if (count >= 5) {
+                const existingIncident = await this.prisma.incident.findFirst({
+                    where: {
+                        reportedBy: log.userName,
+                        type: "Multiple Failed Logins",
+                        detectedAt: { gte: fifteenMinutesAgo },
+                    },
+                });
+
+                if (!existingIncident) {
+                    await this.incidentService.triggerIncident({
+                        type: "Multiple Failed Logins",
+                        severity: "MEDIUM",
+                        reportedBy: log.userName,
+                        affectedSystem: "Authentication Service",
+                        description: "5 failed login attempts — account temporarily locked",
+                        status: "OPEN",
+                        source: "SECURITY_SCAN",
+                        metadata: { userRole: log.userRole.toUpperCase() },
+                    });
+
+                    // Temporarily suspend user account
+                    await this.prisma.user.update({
+                        where: { id: log.userId },
+                        data: { status: "SUSPENDED" },
+                    }).catch(() => {});
+                }
+            }
+        } else {
+            if (log.ipAddress) {
+                const count = await this.auditLogRepository.count({
+                    ipAddress: log.ipAddress,
+                    activityType: "Login",
+                    status: "FAILED",
+                    createdAt: { gte: fifteenMinutesAgo },
+                });
+
+                if (count >= 3) {
+                    const reportedByString = `Unknown (IP: ${log.ipAddress})`;
+                    const existingIncident = await this.prisma.incident.findFirst({
+                        where: {
+                            reportedBy: reportedByString,
+                            type: "Unauthorized Access Attempt",
+                            detectedAt: { gte: fifteenMinutesAgo },
+                        },
+                    });
+
+                    if (!existingIncident) {
+                        await this.incidentService.triggerIncident({
+                            type: "Unauthorized Access Attempt",
+                            severity: "CRITICAL",
+                            reportedBy: reportedByString,
+                            affectedSystem: "Authentication Service",
+                            description: "3 failed login attempts from unrecognized device",
+                            status: "OPEN",
+                            source: "SECURITY_SCAN",
+                            metadata: { userRole: "UNKNOWN" },
+                        });
+                    }
+                }
+            }
+        }
     }
 }

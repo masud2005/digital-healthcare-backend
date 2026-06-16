@@ -11,6 +11,8 @@ import { CreateProviderLicenseDto } from "./dto/create-provider-license.dto";
 import { UpdateProviderLicenseDto } from "./dto/update-provider-license.dto";
 import { ProviderLicenseQueryDto } from "./dto/provider-license-query.dto";
 import { DEFAULT_PROVIDER_LICENSES } from "./provider-license-seed.data";
+import { IncidentService } from "../incident/incident.service";
+import type { AuthenticatedUser } from "@main/auth/auth.types";
 
 const DEFAULT_PAGE = 1;
 const DEFAULT_LIMIT = 10;
@@ -22,6 +24,7 @@ export class ProviderLicenseService implements OnModuleInit {
     constructor(
         private readonly providerLicenseRepository: ProviderLicenseRepository,
         private readonly exportService: ExportService,
+        private readonly incidentService: IncidentService,
     ) {}
 
     async onModuleInit() {
@@ -151,7 +154,7 @@ export class ProviderLicenseService implements OnModuleInit {
         return this.providerLicenseRepository.delete(id);
     }
 
-    async exportCsv(query: Omit<ProviderLicenseQueryDto, "page" | "limit">): Promise<string> {
+    async exportCsv(query: Omit<ProviderLicenseQueryDto, "page" | "limit">, user?: AuthenticatedUser): Promise<string> {
         const { data } = await this.providerLicenseRepository.findAll({
             page: 1,
             limit: 10000,
@@ -162,6 +165,22 @@ export class ProviderLicenseService implements OnModuleInit {
             licenseState: query.licenseState?.trim().toUpperCase(),
             licenseType: query.licenseType?.trim(),
             isActive: query.isActive,
+        });
+
+        // Trigger incident for Bulk Data Download
+        const reportedBy = user ? `${user.email}` : "Billing Staff #7";
+        const userRole = user?.role ?? "EMPLOYEE";
+        await this.incidentService.triggerIncident({
+            type: "Bulk Data Download",
+            severity: "MEDIUM",
+            reportedBy,
+            affectedSystem: "Provider License Module",
+            description: "Bulk patient record download detected",
+            status: "RESOLVED",
+            source: "SYSTEM_MONITORING",
+            metadata: { userRole },
+        }).catch((err) => {
+            this.logger.error("Failed to trigger Bulk Data Download incident on export", err);
         });
 
         const headers = [
