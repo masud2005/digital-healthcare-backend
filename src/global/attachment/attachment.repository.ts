@@ -68,6 +68,7 @@ export class AttachmentRepository {
             fileType?: string;
             fileSize?: number;
             context?: AttachmentContext;
+            uploadedById?: string | null;
         },
     ) {
         return this.prisma.attachment.update({ where: { id }, data });
