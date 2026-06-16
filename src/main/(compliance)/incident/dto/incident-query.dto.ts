@@ -44,6 +44,16 @@ export class IncidentQueryDto {
     @IsString()
     detectedTo?: string;
 
+    @ApiPropertyOptional({ example: "DOCTOR", description: "Filter by role of user involved" })
+    @IsOptional()
+    @IsString()
+    role?: string;
+
+    @ApiPropertyOptional({ example: "Suspicious Login", description: "Filter by incident type" })
+    @IsOptional()
+    @IsString()
+    type?: string;
+
     @ApiPropertyOptional({ example: 1, type: Number })
     @IsOptional()
     @Type(() => Number)

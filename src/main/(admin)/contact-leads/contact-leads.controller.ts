@@ -12,9 +12,11 @@ import {
     Res,
     UploadedFile,
     UseInterceptors,
+    UseGuards,
 } from "@nestjs/common";
 import { FileInterceptor } from "@nestjs/platform-express";
 import {
+    ApiBearerAuth,
     ApiConsumes,
     ApiCreatedResponse,
     ApiNoContentResponse,
@@ -35,6 +37,9 @@ import {
 import { CreateContactLeadDto } from "./dto/create-contact-lead.dto";
 import { UpdateContactLeadDto } from "./dto/update-contact-lead.dto";
 import { RespondContactLeadDto } from "./dto/respond-contact-lead.dto";
+import { OptionalJwtAuthGuard } from "@common/guards/optional-jwt-auth.guard";
+import { CurrentUser } from "@common/decorators/current-user.decorator";
+import type { AuthenticatedUser } from "@main/auth/auth.types";
 
 @ApiTags("(Admin) Contact Leads")
 @Controller("admin/contact-leads")
@@ -75,6 +80,8 @@ export class ContactLeadsController {
     }
 
     @Get("export")
+    @UseGuards(OptionalJwtAuthGuard)
+    @ApiBearerAuth()
     @ApiOperation({ summary: "Export contact leads as CSV" })
     @ApiProduces("text/csv")
     @ApiQuery({ name: "search", required: false })
@@ -87,6 +94,7 @@ export class ContactLeadsController {
         @Query("read") read?: string,
         @Query("responded") responded?: string,
         @Res({ passthrough: false }) res?: Response,
+        @CurrentUser() user?: AuthenticatedUser,
     ) {
         const parseBool = (val?: string): boolean | undefined => {
             if (val === "true") return true;
@@ -99,7 +107,7 @@ export class ContactLeadsController {
             service,
             read: parseBool(read),
             responded: parseBool(responded),
-        });
+        }, user);
 
         const timestamp = new Date().toISOString().replace(/[:.]/g, "-").slice(0, 19);
         const filename = `contact-leads-${timestamp}.csv`;

@@ -1,9 +1,12 @@
-import { Controller, Get, Query, Res, Body, Post, Req } from "@nestjs/common";
-import { ApiOkResponse, ApiOperation, ApiProduces, ApiQuery, ApiTags } from "@nestjs/swagger";
+import { Controller, Get, Query, Res, Body, Post, Req, UseGuards } from "@nestjs/common";
+import { ApiBearerAuth, ApiOkResponse, ApiOperation, ApiProduces, ApiQuery, ApiTags } from "@nestjs/swagger";
 import type { Response } from "express";
 import { AuditLogService } from "./audit-log.service";
 import { AuditLogQueryDto } from "./dto/audit-log-query.dto";
 import { AuditLogListResponseDto, AuditLogStatsResponseDto } from "./dto/audit-log-response.dto";
+import { OptionalJwtAuthGuard } from "@common/guards/optional-jwt-auth.guard";
+import { CurrentUser } from "@common/decorators/current-user.decorator";
+import type { AuthenticatedUser } from "@main/auth/auth.types";
 
 @ApiTags("(Compliance) Audit Logs")
 @Controller("compliance/audit-logs")
@@ -25,6 +28,8 @@ export class AuditLogController {
     }
 
     @Get("export")
+    @UseGuards(OptionalJwtAuthGuard)
+    @ApiBearerAuth()
     @ApiOperation({ summary: "Export audit logs as CSV" })
     @ApiProduces("text/csv")
     @ApiQuery({ name: "search", required: false })
@@ -41,6 +46,7 @@ export class AuditLogController {
         @Query("startDate") startDate?: string,
         @Query("endDate") endDate?: string,
         @Res({ passthrough: false }) res?: Response,
+        @CurrentUser() user?: AuthenticatedUser,
     ) {
         const csvContent = await this.auditLogService.exportLogsCsv({
             search,
@@ -49,7 +55,7 @@ export class AuditLogController {
             status,
             startDate,
             endDate,
-        });
+        }, user);
 
         const timestamp = new Date().toISOString().replace(/[:.]/g, "-").slice(0, 19);
         const filename = `audit-logs-${timestamp}.csv`;
