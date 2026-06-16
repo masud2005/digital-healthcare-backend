@@ -1,5 +1,5 @@
+import { SystemHealthModule } from "@main/(compliance)/system-healthar/system-health.module";
 import { Module } from "@nestjs/common";
-import { SystemHealthModule } from "@main/(compliance)/system-health/system-health.module";
 import { MailService } from "./mail.service";
 
 @Module({

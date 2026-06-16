@@ -1,3 +1,4 @@
+import { SystemHealthService } from "@main/(compliance)/system-healthar/system-health.service";
 import {
     BadRequestException,
     ConflictException,
@@ -6,7 +7,6 @@ import {
     UnauthorizedException,
 } from "@nestjs/common";
 import { AuditLogService } from "../../(compliance)/audit-log/audit-log.service";
-import { SystemHealthService } from "../../(compliance)/system-health/system-health.service";
 import { AuthRepository } from "../auth.repository";
 import { LoginDto } from "../dto/login.dto";
 import { RegisterDto } from "../dto/register.dto";
