@@ -24,6 +24,7 @@ model Attachment {
   faviconDarkSettings   SiteSettings?    @relation("FaviconDark")
   socialPreviewSettings SiteSettings?    @relation("SocialPreview")
   doctorProfile         DoctorProfile?   @relation("DoctorAvatar")
+  patientProfile        PatientProfile?  @relation("PatientAvatar")
   contactLead           ContactLead?     @relation("ContactLeadAttachment")
   contactLeadResponse   ContactLead?     @relation("ContactLeadResponseAttachment")
 

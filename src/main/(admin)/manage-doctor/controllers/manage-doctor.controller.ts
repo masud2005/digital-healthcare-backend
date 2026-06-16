@@ -29,7 +29,7 @@ import { UpdateDoctorStatusDto } from "../dto/update-doctor-status.dto";
 import { UpdateDoctorDto } from "../dto/update-doctor.dto";
 import { ManageDoctorService } from "../services/manage-doctor.service";
 
-@ApiTags("Admin Doctors")
+@ApiTags("(Admin) Doctors")
 @Controller("admin/doctors")
 export class ManageDoctorController {
     constructor(private readonly manageDoctorService: ManageDoctorService) {}

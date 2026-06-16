@@ -19,10 +19,27 @@ model DoctorProfile {
 
   sideEffectReports SideEffectReport[]
 
-  // @@index([status])
-  // @@index([officeLocationId])
-
   @@index([name])
   @@index([userId])
   @@index([title])
+}
+
+model PatientProfile {
+  id          String       @id @default(uuid())
+  userId      String       @unique
+  user        User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  name        String
+  avatarId    String?      @unique @map("avatar_id")
+  avatar      Attachment?  @relation("PatientAvatar", fields: [avatarId], references: [id], onDelete: Cascade)
+  address     String?
+  city        String?
+  state       String?
+  zipCode     String?
+  bio         String?      @db.Text
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+  deletedAt   DateTime?
+
+  @@index([name])
+  @@index([userId])
 }
