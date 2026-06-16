@@ -4,14 +4,14 @@ import type { Prisma } from "@prisma/client";
 
 const cartInclude = {
     items: {
-        orderBy: { createdAt: "asc" },
+        orderBy: { createdAt: "asc" as const },
         include: {
             product: {
                 select: {
                     id: true,
                     name: true,
+                    description: true,
                     price: true,
-                    stockQuantity: true,
                     images: {
                         select: {
                             id: true,
@@ -61,35 +61,13 @@ export class CartRepository {
                 id: true,
                 stockQuantity: true,
                 variants: {
-                    select: {
-                        id: true,
-                        size: true,
-                        price: true,
-                        stockQuantity: true,
-                    },
+                    select: { size: true, stockQuantity: true, price: true },
                 },
             },
         });
     }
 
-    findExistingCartItem(cartId: string, productId: string, size?: string) {
-        return this.prisma.cartItem.findUnique({
-            where: {
-                cartId_productId_size: {
-                    cartId,
-                    productId,
-                    size: size ?? "",
-                },
-            },
-        });
-    }
-
-    async upsertCartAndAddItem(
-        userId: string,
-        productId: string,
-        quantity: number,
-        size?: string,
-    ): Promise<CartRecord> {
+    async upsertCartAndAddItem(userId: string, productId: string, defaultSize: string | null): Promise<CartRecord> {
         const cart = await this.prisma.cart.upsert({
             where: { userId },
             create: { userId },
@@ -97,17 +75,20 @@ export class CartRepository {
             select: { id: true },
         });
 
-        await this.prisma.cartItem.upsert({
-            where: {
-                cartId_productId_size: {
-                    cartId: cart.id,
-                    productId,
-                    size: size ?? "",
-                },
-            },
-            create: { cartId: cart.id, productId, quantity, size: size ?? null },
-            update: { quantity: { increment: quantity } },
+        const existing = await this.prisma.cartItem.findFirst({
+            where: { cartId: cart.id, productId, size: defaultSize },
         });
+
+        if (existing) {
+            await this.prisma.cartItem.update({
+                where: { id: existing.id },
+                data: { quantity: { increment: 1 } },
+            });
+        } else {
+            await this.prisma.cartItem.create({
+                data: { cartId: cart.id, productId, quantity: 1, size: defaultSize },
+            });
+        }
 
         return this.prisma.cart.findUnique({
             where: { userId },
@@ -119,7 +100,7 @@ export class CartRepository {
         return this.prisma.cartItem.delete({ where: { id } });
     }
 
-    updateCartItem(id: string, data: { quantity?: number; size?: string }) {
+    updateCartItem(id: string, data: { quantity?: number; size?: string | null }) {
         return this.prisma.cartItem.update({ where: { id }, data });
     }
 }
