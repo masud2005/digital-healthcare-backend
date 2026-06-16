@@ -7,6 +7,7 @@ type DoctorCreateData = {
     password: string;
     status: UserStatus;
     avatarId?: string | null;
+    featured?: boolean;
     name: string;
     title?: string | null;
     bio?: string | null;
@@ -18,6 +19,7 @@ type DoctorUpdateData = {
     password?: string;
     status?: UserStatus;
     avatarId?: string | null;
+    featured?: boolean;
     name?: string;
     title?: string | null;
     bio?: string | null;
@@ -77,6 +79,7 @@ export class ManageDoctorRepository {
                         create: {
                             name: data.name,
                             avatarId: data.avatarId,
+                            featured: data.featured,
                             title: data.title,
                             bio: data.bio,
                             officeLocation: data.officeLocation,
@@ -202,6 +205,7 @@ export class ManageDoctorRepository {
         const userData: { email?: string; password?: string; status?: UserStatus } = {};
         const profileData: {
             avatarId?: string | null;
+            featured?: boolean;
             name?: string;
             title?: string | null;
             bio?: string | null;
@@ -212,6 +216,7 @@ export class ManageDoctorRepository {
         if (data.password !== undefined) userData.password = data.password;
         if (data.status !== undefined) userData.status = data.status;
         if (data.avatarId !== undefined) profileData.avatarId = data.avatarId;
+        if (data.featured !== undefined) profileData.featured = data.featured;
         if (data.name !== undefined) profileData.name = data.name;
         if (data.title !== undefined) profileData.title = data.title;
         if (data.bio !== undefined) profileData.bio = data.bio;
