@@ -110,7 +110,7 @@ export class AttachmentService {
         };
     }
 
-    async replace(id: string, dto: ReplaceAttachmentDto, file?: Express.Multer.File) {
+    async replace(id: string, dto: ReplaceAttachmentDto, file?: Express.Multer.File, uploadedById?: string) {
         // Ensure attachment exists before updating
         const existing = await this.attachmentRepository.findById(id);
         if (!existing) throw new NotFoundException("Attachment not found");
@@ -134,6 +134,10 @@ export class AttachmentService {
         // If only the context needs updating
         if (dto.context) {
             data.context = dto.context as AttachmentContext;
+        }
+
+        if (uploadedById !== undefined) {
+            data.uploadedById = uploadedById;
         }
 
         if (Object.keys(data).length === 0) {
