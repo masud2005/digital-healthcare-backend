@@ -235,13 +235,13 @@ export class AssessmentService {
         return {
             ...rest,
             thumbnail: await this.storageService.resolveKey(rest.thumbnail),
-            questions: this.buildQuestionTree(questions),
+            questions: await this.buildQuestionTree(questions),
             totalQuestions: _count.questions,
             totalAssessments: _count.questions,
         };
     }
 
-    private buildQuestionTree(questions: AssessmentDetailRecord["questions"]) {
+    private async buildQuestionTree(questions: AssessmentDetailRecord["questions"]) {
         const questionsByParentOptionId = new Map<string, AssessmentDetailRecord["questions"]>();
 
         for (const question of questions) {
@@ -254,19 +254,26 @@ export class AssessmentService {
             questionsByParentOptionId.set(question.parentOptionId, groupedQuestions);
         }
 
-        const buildNode = (question: AssessmentDetailRecord["questions"][number]) => ({
+        const buildNode = async (question: AssessmentDetailRecord["questions"][number]): Promise<object> => ({
             ...question,
-            options: question.options.map((option) => ({
-                ...option,
-                subQuestions: (questionsByParentOptionId.get(option.id) ?? []).map(
-                    (childQuestion) => buildNode(childQuestion),
-                ),
-            })),
+            media: await this.storageService.resolveKey(question.media),
+            options: await Promise.all(
+                question.options.map(async (option) => ({
+                    ...option,
+                    subQuestions: await Promise.all(
+                        (questionsByParentOptionId.get(option.id) ?? []).map((childQuestion) =>
+                            buildNode(childQuestion),
+                        ),
+                    ),
+                })),
+            ),
         });
 
-        return questions
-            .filter((question) => !question.parentOptionId)
-            .map((question) => buildNode(question));
+        return Promise.all(
+            questions
+                .filter((question) => !question.parentOptionId)
+                .map((question) => buildNode(question)),
+        );
     }
 
     private async ensureCategoryExists(categoryId: string) {
