@@ -1,6 +1,6 @@
+import { SystemHealthService } from "@main/(compliance)/system-healthar/system-health.service";
 import { Injectable, Logger, OnModuleInit, ServiceUnavailableException } from "@nestjs/common";
 import nodemailer from "nodemailer";
-import { SystemHealthService } from "@main/(compliance)/system-health/system-health.service";
 
 @Injectable()
 export class MailService implements OnModuleInit {

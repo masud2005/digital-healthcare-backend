@@ -1,12 +1,12 @@
 import { Module } from "@nestjs/common";
-import { IncidentModule } from "./incident/incident.module";
-import { SystemHealthModule } from "./system-health/system-health.module";
 import { AuditLogModule } from "./audit-log/audit-log.module";
-import { ConsentModule } from "./consent/consent.module";
-import { ProviderLicenseModule } from "./provider-license/provider-license.module";
 import { ComplianceDashboardModule } from "./compliance-dashboard/compliance-dashboard.module";
+import { ConsentModule } from "./consent/consent.module";
+import { IncidentModule } from "./incident/incident.module";
+import { ProviderLicenseModule } from "./provider-license/provider-license.module";
 import { SideEffectReportModule } from "./side-effect-report/side-effect-report.module";
 import { StateCoverageModule } from "./state-coverage/state-coverage.module";
+import { SystemHealthModule } from "./system-healthar/system-health.module";
 
 @Module({
     imports: [
