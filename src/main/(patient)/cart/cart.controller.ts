@@ -6,7 +6,7 @@ import { ApiBearerAuth, ApiOkResponse, ApiOperation, ApiTags } from "@nestjs/swa
 import { CartService } from "./cart.service";
 import { AddToCartDto, CartItemParamDto, UpdateCartItemDto } from "./dto/cart.dto";
 
-@ApiTags("Patient Cart")
+@ApiTags("(Patient) Cart")
 @ApiBearerAuth()
 @UseGuards(JwtAuthGuard)
 @Controller("patient/cart")
