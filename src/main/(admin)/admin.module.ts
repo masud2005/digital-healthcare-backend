@@ -2,6 +2,7 @@ import { Module } from "@nestjs/common";
 import { AssessmentModule } from "./assessment/assessment.module";
 import { CategoryModule } from "./category/category.module";
 import { ContactLeadsModule } from "./contact-leads/contact-leads.module";
+import { DashboardModule } from "./dashboard/dashboard.module";
 import { DiscountModule } from "./discount/discount.module";
 import { HomePageModule } from "./homepage/homepage.module";
 import { ManageDoctorModule } from "./manage-doctor/manage-doctor.module";
@@ -18,6 +19,7 @@ import { WebsiteModule } from "./website/website.module";
         AssessmentModule,
         QuestionModule,
         WebsiteModule,
+        DashboardModule,
         ManageDoctorModule,
         PatientManageModule,
         ContactLeadsModule,
