@@ -1,5 +1,5 @@
-#!/usr/bin/env sh
-set -eu
+#!/usr/bin/env bash
+set -euo pipefail
 
 COMPOSE_FILE="${COMPOSE_FILE:-docker-compose.release.yaml}"
 PRE_IMAGE="${PRE_IMAGE:?set PRE_IMAGE}"
@@ -16,9 +16,12 @@ echo "Deploying prerelease image: $PRE_IMAGE"
 export APP_IMAGE="$PRE_IMAGE"
 export LIVE_UPSTREAM="$(cat "$RELEASE_DIR/live-upstream.txt" 2>/dev/null || printf '%s' 'app_live_blue:5056')"
 
+echo "Stopping existing prerelease container to release database connection locks..."
+docker compose -f "$COMPOSE_FILE" stop app_pre || true
+
 docker compose -f "$COMPOSE_FILE" up -d db_live db_pre
-sh scripts/clone-db-for-prerelease.sh
-sh scripts/clone-storage-for-prerelease.sh
+./scripts/clone-db-for-prerelease.sh
+./scripts/clone-storage-for-prerelease.sh
 
 export PRE_IMAGE
 docker compose -f "$COMPOSE_FILE" pull app_pre

@@ -11,8 +11,8 @@ import { slugify } from "@util/functions";
 import { CreateStateCoverageDto } from "./dto/create-state-coverage.dto";
 import { StateCoverageQueryDto } from "./dto/state-coverage-query.dto";
 import { UpdateStateRestrictionsDto } from "./dto/update-state-restrictions.dto";
-import { StateCoverageRepository } from "./state-coverage.repository";
 import { getSeedStateCoverages } from "./state-coverage-seed.data";
+import { StateCoverageRepository } from "./state-coverage.repository";
 
 const DEFAULT_PAGE = 1;
 const DEFAULT_LIMIT = 10;

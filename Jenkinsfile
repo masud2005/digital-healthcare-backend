@@ -224,7 +224,7 @@ pipeline {
               export PRE_IMAGE='$CANDIDATE_IMAGE'
               export PRE_DOMAIN='$PRE_DOMAIN'
               export RELEASE_DIR='$RELEASE_DIR'
-              sh scripts/deploy-prerelease.sh
+              ./scripts/deploy-prerelease.sh
             "
           '''
         }
@@ -255,7 +255,7 @@ pipeline {
               export COMPOSE_FILE='$COMPOSE_FILE'
               export LIVE_DOMAIN='$LIVE_DOMAIN'
               export RELEASE_DIR='$RELEASE_DIR'
-              sh scripts/promote-production.sh
+              ./scripts/promote-production.sh
             "
           '''
         }

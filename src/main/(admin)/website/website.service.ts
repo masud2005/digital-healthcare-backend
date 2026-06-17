@@ -16,7 +16,7 @@ export class WebsiteService implements OnModuleInit {
     ) {}
 
     async onModuleInit() {
-        await this.seedSettings();
+        // await this.seedSettings();
     }
 
     async seedSettings() {

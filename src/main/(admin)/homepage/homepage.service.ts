@@ -16,7 +16,7 @@ export class HomePageService implements OnModuleInit {
     ) {}
 
     async onModuleInit() {
-        await this.seedContent();
+        // await this.seedContent();
     }
 
     async seedContent() {

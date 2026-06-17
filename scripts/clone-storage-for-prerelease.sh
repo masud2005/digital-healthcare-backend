@@ -1,5 +1,13 @@
-#!/usr/bin/env sh
-set -eu
+#!/usr/bin/env bash
+set -euo pipefail
+
+# Source project environment variables if .env exists
+if [ -f .env ]; then
+  ENV_LINES=$(grep -v '^#' .env | xargs)
+  if [ -n "$ENV_LINES" ]; then
+    export $ENV_LINES
+  fi
+fi
 
 COMPOSE_FILE="${COMPOSE_FILE:-docker-compose.release.yaml}"
 MINIO_USER="${MINIO_ROOT_USER:-admin}"
@@ -19,12 +27,11 @@ until docker compose -f "$COMPOSE_FILE" exec -T minio_pre curl -fsS http://local
   sleep 1
 done
 
-docker run --rm --network doc-backend_doc_release \
-  --entrypoint /bin/sh \
+docker compose -f "$COMPOSE_FILE" run --rm \
   -e MINIO_USER="$MINIO_USER" \
   -e MINIO_PASS="$MINIO_PASS" \
   -e MINIO_BUCKET="$MINIO_BUCKET" \
-  minio/minio:latest -eu -c '
+  minio_mc -c '
     mc alias set live http://minio-storage-live:9000 "$MINIO_USER" "$MINIO_PASS"
     mc alias set pre http://minio-storage-pre:9000 "$MINIO_USER" "$MINIO_PASS"
 

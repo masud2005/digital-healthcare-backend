@@ -29,7 +29,7 @@ export class ConsentService implements OnModuleInit {
     ) {}
 
     async onModuleInit() {
-        await this.seedConsents();
+        // await this.seedConsents();
     }
 
     async seedConsents() {

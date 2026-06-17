@@ -28,7 +28,7 @@ export class ProviderLicenseService implements OnModuleInit {
     ) {}
 
     async onModuleInit() {
-        await this.seedProviderLicenses();
+        // await this.seedProviderLicenses();
     }
 
     async seedProviderLicenses() {
