@@ -1,0 +1,22 @@
+model ComplianceConfirmation {
+  id String @id @default(uuid())
+
+  agreedToTermsAndPrivacy                Boolean @default(false)
+  certifiedInfoAccurate                  Boolean @default(false)
+  understoodFalseInfoConsequences        Boolean @default(false)
+  understoodRecommendationsBasis         Boolean @default(false)
+  understoodAdditionalInfoMayBeRequested Boolean @default(false)
+
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  submissionId String               @unique
+  submission   AssessmentSubmission @relation(fields: [submissionId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([userId])
+  @@index([submissionId])
+  @@map("compliance_confirmations")
+}

@@ -1,5 +1,6 @@
 import { MailModule } from "@global/mail/mail.module";
 import { PrismaModule } from "@global/prisma/prisma.module";
+import { StorageModule } from "@global/storage/storage.module";
 import { SystemHealthModule } from "@main/(compliance)/system-healthar/system-health.module";
 import { Module } from "@nestjs/common";
 import { AuditLogModule } from "../(compliance)/audit-log/audit-log.module";
@@ -19,7 +20,7 @@ import { AuthSharedService } from "./services/auth-shared.service";
 import { AuthService } from "./services/auth.service";
 
 @Module({
-    imports: [PrismaModule, SystemHealthModule, AuditLogModule, MailModule],
+    imports: [PrismaModule, SystemHealthModule, AuditLogModule, MailModule, StorageModule],
     controllers: [
         AuthAccountController,
         AuthOtpController,
