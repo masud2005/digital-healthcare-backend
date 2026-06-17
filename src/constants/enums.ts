@@ -134,3 +134,51 @@ export type SideEffectStatus = (typeof sideEffectStatus)[number];
 
 export const stateComplianceStatus = ["COMPLIANT", "RESTRICTED", "COMING_SOON"] as const;
 export type StateComplianceStatus = (typeof stateComplianceStatus)[number];
+
+export const orderStatus = [
+    "PENDING",
+    "CONFIRMED",
+    "PROCESSING",
+    "SHIPPED",
+    "DELIVERED",
+    "CANCELLED",
+    "REFUNDED",
+] as const;
+export type OrderStatus = (typeof orderStatus)[number];
+
+export const paymentMethod = [
+    "CARD",
+    "BANK_TRANSFER",
+    "CLOVER",
+    "STRIPE",
+    "PAYPAL",
+    "WALLET",
+] as const;
+export type PaymentMethod = (typeof paymentMethod)[number];
+
+export const paymentStatus = [
+    "PENDING",
+    "COMPLETED",
+    "FAILED",
+    "REFUNDED",
+    "CANCELLED",
+    "PROCESSING",
+] as const;
+export type PaymentStatus = (typeof paymentStatus)[number];
+
+export const refundStatus = [
+    "PENDING",
+    "COMPLETED",
+    "FAILED",
+    "REJECTED",
+] as const;
+export type RefundStatus = (typeof refundStatus)[number];
+
+export const subscriptionStatus = [
+    "ACTIVE",
+    "CANCELLED",
+    "EXPIRED",
+    "PAST_DUE",
+    "TRIALING",
+] as const;
+export type SubscriptionStatus = (typeof subscriptionStatus)[number];

@@ -110,6 +110,16 @@ enum IncidentStatus {
   CLOSED
 }
 
+enum OrderStatus {
+  PENDING
+  CONFIRMED
+  PROCESSING
+  SHIPPED
+  DELIVERED
+  CANCELLED
+  REFUNDED
+}
+
 enum OtpChannel {
   EMAIL
   PHONE
@@ -127,6 +137,24 @@ enum OtpStatus {
   EXPIRED
   CANCELLED
   FAILED
+}
+
+enum PaymentMethod {
+  CARD
+  BANK_TRANSFER
+  CLOVER
+  STRIPE
+  PAYPAL
+  WALLET
+}
+
+enum PaymentStatus {
+  PENDING
+  COMPLETED
+  FAILED
+  REFUNDED
+  CANCELLED
+  PROCESSING
 }
 
 enum ProviderLicenseSource {
@@ -147,6 +175,13 @@ enum QuestionType {
   SINGLE_CHOICE
   MULTIPLE_CHOICE
   INPUT
+}
+
+enum RefundStatus {
+  PENDING
+  COMPLETED
+  FAILED
+  REJECTED
 }
 
 enum SideEffectSeverity {
@@ -175,6 +210,14 @@ enum SubmissionStatus {
   ACCEPTED
   REFIL_REQUESTED
   REJECTED
+}
+
+enum SubscriptionStatus {
+  ACTIVE
+  CANCELLED
+  EXPIRED
+  PAST_DUE
+  TRIALING
 }
 
 enum SystemHealthStatus {

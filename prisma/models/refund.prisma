@@ -1,0 +1,24 @@
+model Refund {
+  id              String       @id @default(uuid())
+  refundNumber    String       @unique // e.g. "REF-2026-00123"
+  amount          Decimal      @db.Decimal(10, 2)
+  reason          String?      @db.Text
+  status          RefundStatus @default(PENDING)
+  gatewayRefundId String? // ID from Clover
+
+  // Relations
+  paymentId String
+  payment   Payment @relation(fields: [paymentId], references: [id], onDelete: Cascade)
+
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([paymentId])
+  @@index([userId])
+  @@index([status])
+  @@index([refundNumber])
+  @@map("refunds")
+}

@@ -9,8 +9,9 @@ model Product {
   variants      ProductVariant[]
 
   categoryId String?
-  category   Category?  @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+  category   Category?   @relation(fields: [categoryId], references: [id], onDelete: Cascade)
   cartItems  CartItem[]
+  orderItems OrderItem[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -29,6 +30,8 @@ model ProductVariant {
   stockQuantity Int      @default(0)
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
+
+  orderItems OrderItem[]
 
   @@unique([productId, size])
   @@index([productId])

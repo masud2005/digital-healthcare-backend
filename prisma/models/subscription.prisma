@@ -1,0 +1,45 @@
+model Subscription {
+  id     String             @id @default(uuid())
+  status SubscriptionStatus @default(ACTIVE)
+
+  // Billing period
+  startDate          DateTime
+  endDate            DateTime?
+  nextBillingDate    DateTime?
+  currentPeriodStart DateTime?
+  currentPeriodEnd   DateTime?
+
+  // Trial
+  trialEndsAt DateTime?
+
+  // Auto-renewal toggle
+  isRecurring Boolean @default(true)
+
+  // Cancellation
+  cancelledAt  DateTime?
+  cancelReason String?
+
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  categoryId String
+  category   Category @relation(fields: [categoryId], references: [id], onDelete: Restrict)
+
+  paymentPlanId String
+  paymentPlan   PaymentPlan @relation(fields: [paymentPlanId], references: [id], onDelete: Restrict)
+
+  discountId String?
+  discount   Discount? @relation(fields: [discountId], references: [id], onDelete: SetNull)
+
+  payments Payment[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([userId])
+  @@index([categoryId])
+  @@index([status])
+  @@index([nextBillingDate])
+  @@index([currentPeriodEnd])
+  @@map("subscriptions")
+}

@@ -453,4 +453,65 @@ export class AuthRepository {
             .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
             .join(" ");
     }
+
+    findProfileByUserId(userId: string) {
+        return this.prisma.user.findUnique({
+            where: { id: userId },
+            include: {
+                userRoles: { select: { role: { select: { name: true } } } },
+                doctorProfile: { include: { avatar: { select: { fileUrl: true } } } },
+                adminProfile: { include: { avatar: { select: { fileUrl: true } } } },
+                patientProfile: { include: { avatar: { select: { fileUrl: true } } } },
+            },
+        });
+    }
+
+    upsertDoctorProfile(userId: string, data: {
+        name?: string;
+        bio?: string | null;
+        title?: string | null;
+        specialty?: string | null;
+        officeLocation?: string | null;
+        avatarId?: string | null;
+    }) {
+        return this.prisma.doctorProfile.upsert({
+            where: { userId },
+            update: data,
+            create: { userId, name: data.name ?? "", ...data },
+            include: { avatar: { select: { fileUrl: true } } },
+        });
+    }
+
+    upsertAdminProfile(userId: string, data: {
+        name?: string;
+        bio?: string | null;
+        title?: string | null;
+        specialty?: string | null;
+        officeLocation?: string | null;
+        avatarId?: string | null;
+    }) {
+        return this.prisma.adminProfile.upsert({
+            where: { userId },
+            update: data,
+            create: { userId, name: data.name ?? "", ...data },
+            include: { avatar: { select: { fileUrl: true } } },
+        });
+    }
+
+    upsertPatientProfile(userId: string, data: {
+        name?: string;
+        bio?: string | null;
+        address?: string | null;
+        city?: string | null;
+        state?: string | null;
+        zipCode?: string | null;
+        avatarId?: string | null;
+    }) {
+        return this.prisma.patientProfile.upsert({
+            where: { userId },
+            update: data,
+            create: { userId, name: data.name ?? "", ...data },
+            include: { avatar: { select: { fileUrl: true } } },
+        });
+    }
 }

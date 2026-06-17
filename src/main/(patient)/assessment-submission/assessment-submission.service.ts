@@ -97,9 +97,7 @@ export class AssessmentSubmissionService {
     }
 
     async create(userId: string, payload: CreateAssessmentSubmissionDto) {
-        const assessment = await this.assessmentSubmissionRepository.findAssessmentById(
-            payload.assessmentId,
-        );
+        const assessment = await this.assessmentSubmissionRepository.findAssessmentById(payload.assessmentId);
 
         if (!assessment) {
             throw new NotFoundException("Assessment not found");
