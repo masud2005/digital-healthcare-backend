@@ -1,34 +1,56 @@
 import { ApiPropertyOptional } from "@nestjs/swagger";
-import { IsOptional, IsString } from "class-validator";
+import { IsOptional, IsString, IsUUID } from "class-validator";
 
 export class UpdateProfileDto {
-    @ApiPropertyOptional({ example: "+1 234 567890" })
+    @ApiPropertyOptional({ example: "uuid", description: "Attachment ID from POST /attachments/upload" })
+    @IsOptional()
+    @IsUUID()
+    avatarId?: string;
+
+    @ApiPropertyOptional({ example: "John Doe" })
     @IsOptional()
     @IsString()
-    phoneNumber?: string;
+    name?: string;
 
-    @ApiPropertyOptional({ example: "4140 Parker Rd. Allentown" })
+    @ApiPropertyOptional({ example: "Some bio" })
     @IsOptional()
     @IsString()
-    addressLine1?: string;
+    bio?: string;
 
-    @ApiPropertyOptional({ example: "Suite 10" })
+    // Doctor / Admin only
+    @ApiPropertyOptional({ example: "FNP-BC" })
     @IsOptional()
     @IsString()
-    addressLine2?: string;
+    title?: string;
 
-    @ApiPropertyOptional({ example: "Allentown" })
+    @ApiPropertyOptional({ example: "Cardiology" })
+    @IsOptional()
+    @IsString()
+    specialty?: string;
+
+    @ApiPropertyOptional({ example: "Colorado Springs" })
+    @IsOptional()
+    @IsString()
+    officeLocation?: string;
+
+    // Patient only
+    @ApiPropertyOptional({ example: "123 Main St" })
+    @IsOptional()
+    @IsString()
+    address?: string;
+
+    @ApiPropertyOptional({ example: "Denver" })
     @IsOptional()
     @IsString()
     city?: string;
 
-    @ApiPropertyOptional({ example: "NM" })
+    @ApiPropertyOptional({ example: "CO" })
     @IsOptional()
     @IsString()
     state?: string;
 
-    @ApiPropertyOptional({ example: "31134" })
+    @ApiPropertyOptional({ example: "80201" })
     @IsOptional()
     @IsString()
-    zip?: string;
+    zipCode?: string;
 }
