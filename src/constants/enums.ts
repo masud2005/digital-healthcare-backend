@@ -166,12 +166,7 @@ export const paymentStatus = [
 ] as const;
 export type PaymentStatus = (typeof paymentStatus)[number];
 
-export const refundStatus = [
-    "PENDING",
-    "COMPLETED",
-    "FAILED",
-    "REJECTED",
-] as const;
+export const refundStatus = ["PENDING", "COMPLETED", "FAILED", "REJECTED"] as const;
 export type RefundStatus = (typeof refundStatus)[number];
 
 export const subscriptionStatus = [

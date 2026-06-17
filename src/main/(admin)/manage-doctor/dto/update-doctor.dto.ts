@@ -1,6 +1,14 @@
 import { ApiPropertyOptional } from "@nestjs/swagger";
 import { userStatus } from "@constant/enums";
-import { IsBoolean, IsEmail, IsEnum, IsOptional, IsString, IsUUID, MinLength } from "class-validator";
+import {
+    IsBoolean,
+    IsEmail,
+    IsEnum,
+    IsOptional,
+    IsString,
+    IsUUID,
+    MinLength,
+} from "class-validator";
 import type { UserStatus } from "@constant/enums";
 
 export class UpdateDoctorDto {

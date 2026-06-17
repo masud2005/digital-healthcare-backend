@@ -25,6 +25,7 @@ model User {
   attachments           Attachment[]
   auditLogs             AuditLog[]
   cart                  Cart?
+  userPreference        UserPreference?
 
   // Payment relations
   subscriptions Subscription[]

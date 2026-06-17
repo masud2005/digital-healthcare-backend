@@ -209,7 +209,18 @@ export class AuthAccountService {
 
         const role = user.userRoles?.[0]?.role?.name?.toUpperCase() ?? "PATIENT";
 
-        const { avatarId, name, bio, title, specialty, officeLocation, address, city, state, zipCode } = payload;
+        const {
+            avatarId,
+            name,
+            bio,
+            title,
+            specialty,
+            officeLocation,
+            address,
+            city,
+            state,
+            zipCode,
+        } = payload;
 
         let profile: any;
 
@@ -255,6 +266,69 @@ export class AuthAccountService {
                 ...profile,
                 avatar: avatarUrl,
             },
+        };
+    }
+
+    async getDeviceSessions(userId: string, currentSessionId: string) {
+        const activeSessions = await this.authRepository.findActiveSessionsByUserId(userId);
+
+        const devicesMap = new Map<string, any>();
+
+        for (const session of activeSessions) {
+            const isCurrentSession = session.id === currentSessionId;
+            // Determine device name based on platform or name
+            let deviceName = session.device?.name || "Unknown device";
+            if (session.device?.platform) {
+                deviceName = `${session.device.platform} device`;
+            }
+
+            if (!devicesMap.has(deviceName)) {
+                devicesMap.set(deviceName, {
+                    deviceName,
+                    isActiveNow: false,
+                    sessionCount: 0,
+                    sessions: [],
+                });
+            }
+
+            const deviceGroup = devicesMap.get(deviceName);
+            deviceGroup.sessionCount++;
+
+            if (isCurrentSession) {
+                deviceGroup.isActiveNow = true;
+            }
+
+            const sessionDueInMs = session.expiresAt.getTime() - Date.now();
+            const totalSeconds = Math.max(0, Math.floor(sessionDueInMs / 1000));
+            const hours = Math.floor(totalSeconds / 3600);
+            const minutes = Math.floor((totalSeconds % 3600) / 60);
+            const seconds = totalSeconds % 60;
+            let sessionDue = "";
+            if (hours > 0) sessionDue += `${hours}h `;
+            if (minutes > 0 || hours > 0) sessionDue += `${minutes}m `;
+            sessionDue += `${seconds}s`;
+
+            deviceGroup.sessions.push({
+                sessionId: session.id,
+                isCurrentSession,
+                lastLogin: session.lastUsedAt || session.createdAt,
+                ipAddress: session.ipAddress || "Unknown",
+                sessionDue: sessionDue.trim(),
+            });
+        }
+
+        // Sort so the active device is first
+        const devices = Array.from(devicesMap.values()).sort((a, b) => {
+            if (a.isActiveNow) return -1;
+            if (b.isActiveNow) return 1;
+            return 0;
+        });
+
+        return {
+            success: true,
+            statusCode: 200,
+            message: "Active sessions retrieved successfully",
+            data: devices,
         };
     }
 }
