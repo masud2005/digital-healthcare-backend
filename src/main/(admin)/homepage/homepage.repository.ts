@@ -8,7 +8,12 @@ export class HomePageRepository {
     findContent() {
         return this.prisma.homePageContent.findFirst({
             include: {
-                howItWorksSteps: { orderBy: { order: "asc" } },
+                heroImage: true,
+                heroBadgeImage: true,
+                howItWorksSteps: {
+                    include: { icon: true },
+                    orderBy: { order: "asc" },
+                },
                 faqs: { orderBy: { order: "asc" } },
             },
         });
@@ -18,7 +23,12 @@ export class HomePageRepository {
         return this.prisma.homePageContent.create({
             data,
             include: {
-                howItWorksSteps: { orderBy: { order: "asc" } },
+                heroImage: true,
+                heroBadgeImage: true,
+                howItWorksSteps: {
+                    include: { icon: true },
+                    orderBy: { order: "asc" },
+                },
                 faqs: { orderBy: { order: "asc" } },
             },
         });
@@ -102,7 +112,12 @@ export class HomePageRepository {
             return tx.homePageContent.findUnique({
                 where: { id },
                 include: {
-                    howItWorksSteps: { orderBy: { order: "asc" } },
+                    heroImage: true,
+                    heroBadgeImage: true,
+                    howItWorksSteps: {
+                        include: { icon: true },
+                        orderBy: { order: "asc" },
+                    },
                     faqs: { orderBy: { order: "asc" } },
                 },
             });

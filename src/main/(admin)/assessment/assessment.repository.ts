@@ -152,15 +152,21 @@ export class AssessmentRepository {
     }
 
     async findStats(): Promise<AssessmentStats> {
-        const [activeAssessments, draftAssessments, disabledAssessments, assessmentTaken, approvedAssessments, declinedAssessments] =
-            await this.prisma.$transaction([
-                this.prisma.assessment.count({ where: { status: "ACTIVE" } }),
-                this.prisma.assessment.count({ where: { status: "DRAFT" } }),
-                this.prisma.assessment.count({ where: { status: "DISABLED" } }),
-                this.prisma.assessmentSubmission.count(),
-                this.prisma.assessmentSubmission.count({ where: { status: "ACCEPTED" } }),
-                this.prisma.assessmentSubmission.count({ where: { status: "REJECTED" } }),
-            ]);
+        const [
+            activeAssessments,
+            draftAssessments,
+            disabledAssessments,
+            assessmentTaken,
+            approvedAssessments,
+            declinedAssessments,
+        ] = await this.prisma.$transaction([
+            this.prisma.assessment.count({ where: { status: "ACTIVE" } }),
+            this.prisma.assessment.count({ where: { status: "DRAFT" } }),
+            this.prisma.assessment.count({ where: { status: "DISABLED" } }),
+            this.prisma.assessmentSubmission.count(),
+            this.prisma.assessmentSubmission.count({ where: { status: "ACCEPTED" } }),
+            this.prisma.assessmentSubmission.count({ where: { status: "REJECTED" } }),
+        ]);
 
         return {
             activeAssessments,

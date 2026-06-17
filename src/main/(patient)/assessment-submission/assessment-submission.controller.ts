@@ -8,7 +8,7 @@ import {
     ApiCreatedResponse,
     ApiOkResponse,
     ApiOperation,
-    ApiTags
+    ApiTags,
 } from "@nestjs/swagger";
 import { AssessmentSubmissionService } from "./assessment-submission.service";
 import { AssessmentParamDto } from "./dto/assessment-submission-param.dto";
@@ -28,7 +28,8 @@ const SUBMIT_EXAMPLES = {
             answers: [
                 {
                     questionId: "9c2d34a5-f6eb-4c7e-9e3d-7dcb1cf0de69",
-                    textResponse: "Answer for the next INPUT question, not for the INFORMATION_ONLY one above it.",
+                    textResponse:
+                        "Answer for the next INPUT question, not for the INFORMATION_ONLY one above it.",
                 },
             ],
         },
@@ -158,14 +159,14 @@ const SUBMIT_EXAMPLES = {
     },
 };
 
-@ApiTags("Patient Assessment Submissions")
+@ApiTags("(Patient) Assessment Submissions")
 @ApiBearerAuth()
 @UseGuards(JwtAuthGuard)
 @Controller("patient/assessment-submissions")
 export class AssessmentSubmissionController {
     constructor(private readonly assessmentSubmissionService: AssessmentSubmissionService) {}
 
-
+    @UseGuards(JwtAuthGuard)
     @Post()
     @ApiOperation({
         summary: "Submit an assessment",
@@ -184,10 +185,45 @@ export class AssessmentSubmissionController {
         examples: SUBMIT_EXAMPLES,
     })
     @ApiCreatedResponse({ type: AssessmentSubmissionResponseDto })
-    create(@Body() payload: CreateAssessmentSubmissionDto, @CurrentUser() user: AuthenticatedUser) {
-        return this.assessmentSubmissionService.create(user.id, payload);
+    async create(
+        @Body() payload: CreateAssessmentSubmissionDto,
+        @CurrentUser() user: AuthenticatedUser,
+    ) {
+        const submission = await this.assessmentSubmissionService.create(user.id, payload);
+        return {
+            success: true,
+            statusCode: 201,
+            message: "Assessment submitted successfully",
+            data: submission,
+        };
     }
 
+    @UseGuards(JwtAuthGuard)
+    @Get("my-assessment/:id")
+    @ApiOperation({
+        summary: "Get a single submission by id",
+        description:
+            "Returns the full question tree with the patient's saved answers (patientAnswer) " +
+            "for a specific submission. Only the owner can access it.",
+    })
+    @ApiOkResponse({ type: MyAssessmentBlueprintDto })
+    async getMyAssessment(
+        @Param() params: AssessmentParamDto,
+        @CurrentUser() user: AuthenticatedUser,
+    ) {
+        const assessment = await this.assessmentSubmissionService.getMyAssessmentBlueprint(
+            params.id,
+            user.id,
+        );
+        return {
+            success: true,
+            statusCode: 200,
+            message: "Assessment retrieved successfully",
+            data: assessment,
+        };
+    }
+
+    @UseGuards(JwtAuthGuard)
     @Get("my-assessment")
     @ApiOperation({
         summary: "Get my submitted assessments",
@@ -197,10 +233,19 @@ export class AssessmentSubmissionController {
             "isEditable is true only when status is DRAFT or REFIL_REQUESTED.",
     })
     @ApiOkResponse({ type: [MyAssessmentBlueprintDto] })
-    getMyAssessments(@CurrentUser() user: AuthenticatedUser) {
-        return this.assessmentSubmissionService.getMyAssessmentBlueprints(user.id);
+    async getMyAssessments(@CurrentUser() user: AuthenticatedUser) {
+        const assessments = await this.assessmentSubmissionService.getMyAssessmentBlueprints(
+            user.id,
+        );
+        return {
+            success: true,
+            statusCode: 200,
+            message: "My assessments retrieved successfully",
+            data: assessments,
+        };
     }
 
+    @UseGuards(JwtAuthGuard)
     @Patch(":id")
     @ApiOperation({
         summary: "Update a submission (DRAFT or REFIL_REQUESTED only)",
@@ -215,11 +260,21 @@ export class AssessmentSubmissionController {
         examples: SUBMIT_EXAMPLES,
     })
     @ApiOkResponse({ type: MyAssessmentBlueprintDto })
-    updateSubmission(
+    async updateSubmission(
         @Param() params: AssessmentParamDto,
         @Body() payload: UpdateAssessmentSubmissionDto,
         @CurrentUser() user: AuthenticatedUser,
     ) {
-        return this.assessmentSubmissionService.updateSubmission(params.id, user.id, payload);
+        const submission = await this.assessmentSubmissionService.updateSubmission(
+            params.id,
+            user.id,
+            payload,
+        );
+        return {
+            success: true,
+            statusCode: 200,
+            message: "Assessment submission updated successfully",
+            data: submission,
+        };
     }
 }

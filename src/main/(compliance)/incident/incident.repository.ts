@@ -32,14 +32,26 @@ type IncidentFindAllParams = {
     detectedTo?: Date;
     page: number;
     limit: number;
+    role?: string;
+    type?: string;
 };
 
 @Injectable()
 export class IncidentRepository {
     constructor(private readonly prisma: PrismaService) {}
 
+    count(where?: Prisma.IncidentWhereInput) {
+        return this.prisma.incident.count({ where });
+    }
+
     create(data: IncidentCreateData) {
         return this.prisma.incident.create({ data });
+    }
+
+    findLatest() {
+        return this.prisma.incident.findFirst({
+            orderBy: { createdAt: "desc" },
+        });
     }
 
     async findAll(params: IncidentFindAllParams) {
@@ -121,6 +133,15 @@ export class IncidentRepository {
             ...(params.source ? { source: params.source } : {}),
             ...(params.isActive !== undefined ? { isActive: params.isActive } : {}),
             ...(detectedAtFilter ? { detectedAt: detectedAtFilter } : {}),
+            ...(params.type ? { type: { equals: params.type, mode: "insensitive" } } : {}),
+            ...(params.role
+                ? {
+                      metadata: {
+                          path: ["userRole"],
+                          equals: params.role.toUpperCase(),
+                      },
+                  }
+                : {}),
             ...(params.search
                 ? {
                       OR: [

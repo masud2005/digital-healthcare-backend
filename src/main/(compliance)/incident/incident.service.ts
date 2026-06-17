@@ -1,27 +1,44 @@
 import type { IncidentStatus } from "@constant/enums";
-import { BadRequestException, ConflictException, Injectable, NotFoundException } from "@nestjs/common";
+import {
+    BadRequestException,
+    ConflictException,
+    Injectable,
+    Logger,
+    NotFoundException,
+    OnModuleInit,
+} from "@nestjs/common";
 import type { Prisma } from "@prisma/client";
 import { CreateIncidentDto } from "./dto/create-incident.dto";
 import { IncidentQueryDto } from "./dto/incident-query.dto";
 import { UpdateIncidentDto } from "./dto/update-incident.dto";
+import { DEFAULT_INCIDENTS } from "./incident-seed.data";
 import { IncidentRepository } from "./incident.repository";
 
 const DEFAULT_PAGE = 1;
 const DEFAULT_LIMIT = 10;
 
 @Injectable()
-export class IncidentService {
+export class IncidentService implements OnModuleInit {
+    private readonly logger = new Logger(IncidentService.name);
+
     constructor(private readonly incidentRepository: IncidentRepository) {}
 
-    async create(payload: CreateIncidentDto) {
-        const data = this.normalizeCreatePayload(payload);
-        await this.ensureIncidentIdIsAvailable(data.incidentId);
+    async onModuleInit() {
+        await this.seedIncidents();
+    }
 
+    async seedIncidents() {
         try {
-            return await this.incidentRepository.create(data);
+            const total = await this.incidentRepository.count();
+            if (total > 0) return;
+
+            this.logger.log("🌱 Seeding incidents...");
+            for (const incident of DEFAULT_INCIDENTS) {
+                await this.incidentRepository.create(incident);
+            }
+            this.logger.log(`✅ Seeded ${DEFAULT_INCIDENTS.length} incidents.`);
         } catch (error) {
-            this.throwKnownPrismaError(error);
-            throw error;
+            this.logger.error("Failed to seed incidents", error as Error);
         }
     }
 
@@ -81,6 +98,8 @@ export class IncidentService {
             isActive: query.isActive,
             detectedFrom: this.parseQueryDate(query.detectedFrom, "detectedFrom"),
             detectedTo: this.parseQueryDate(query.detectedTo, "detectedTo"),
+            role: query.role,
+            type: query.type,
         });
 
         return {
@@ -92,6 +111,48 @@ export class IncidentService {
                 totalPages: Math.ceil(total / limit),
             },
         };
+    }
+
+    async getNextIncidentId(): Promise<string> {
+        const latest = await this.incidentRepository.findLatest();
+        if (!latest) {
+            return "INC-001";
+        }
+        const match = latest.incidentId.match(/INC-(\d+)/);
+        if (match) {
+            const nextNum = parseInt(match[1], 10) + 1;
+            return `INC-${String(nextNum).padStart(3, "0")}`;
+        }
+        return "INC-001";
+    }
+
+    async triggerIncident(payload: {
+        type: string;
+        severity: CreateIncidentDto["severity"];
+        reportedBy: string;
+        affectedSystem: string;
+        description: string;
+        status?: IncidentStatus;
+        source?: CreateIncidentDto["source"];
+        metadata?: any;
+    }) {
+        const incidentId = await this.getNextIncidentId();
+        try {
+            return await this.incidentRepository.create({
+                incidentId,
+                type: payload.type,
+                severity: payload.severity,
+                reportedBy: payload.reportedBy,
+                affectedSystem: payload.affectedSystem,
+                description: payload.description,
+                status: payload.status ?? "OPEN",
+                source: payload.source ?? "SYSTEM_MONITORING",
+                metadata: payload.metadata ?? {},
+                isActive: true,
+            });
+        } catch (error) {
+            this.logger.error(`Failed to trigger internal incident ${incidentId}`, error as Error);
+        }
     }
 
     async findOne(id: string) {
@@ -116,7 +177,11 @@ export class IncidentService {
             data.resolvedAt = existing.resolvedAt ?? new Date();
         }
 
-        if (data.status && !this.isResolvedStatus(data.status) && payload.resolvedAt === undefined) {
+        if (
+            data.status &&
+            !this.isResolvedStatus(data.status) &&
+            payload.resolvedAt === undefined
+        ) {
             data.resolvedAt = null;
         }
 

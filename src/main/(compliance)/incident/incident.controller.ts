@@ -1,12 +1,5 @@
-import { Body, Controller, Delete, Get, HttpCode, Param, Patch, Post, Query } from "@nestjs/common";
-import {
-    ApiCreatedResponse,
-    ApiNoContentResponse,
-    ApiOkResponse,
-    ApiOperation,
-    ApiTags,
-} from "@nestjs/swagger";
-import { CreateIncidentDto } from "./dto/create-incident.dto";
+import { Body, Controller, Delete, Get, HttpCode, Param, Patch, Query } from "@nestjs/common";
+import { ApiNoContentResponse, ApiOkResponse, ApiOperation, ApiTags } from "@nestjs/swagger";
 import { IncidentParamDto } from "./dto/incident-param.dto";
 import { IncidentQueryDto } from "./dto/incident-query.dto";
 import {
@@ -21,13 +14,6 @@ import { IncidentService } from "./incident.service";
 @Controller("compliance/incidents")
 export class IncidentController {
     constructor(private readonly incidentService: IncidentService) {}
-
-    @Post()
-    @ApiOperation({ summary: "Create an incident" })
-    @ApiCreatedResponse({ type: IncidentResponseDto })
-    create(@Body() payload: CreateIncidentDto) {
-        return this.incidentService.create(payload);
-    }
 
     @Get("overview")
     @ApiOperation({ summary: "Get incident management overview" })

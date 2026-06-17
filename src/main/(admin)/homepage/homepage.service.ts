@@ -1,5 +1,6 @@
 import { Injectable, Logger, OnModuleInit } from "@nestjs/common";
 import { StorageService } from "@global/storage/storage.service";
+import { AttachmentService } from "@global/attachment/attachment.service";
 import { HomePageRepository } from "./homepage.repository";
 import { UpdateHomePageContentDto } from "./dto/update-homepage.dto";
 import { DEFAULT_HOMEPAGE_CONTENT } from "./homepage-seed.data";
@@ -11,6 +12,7 @@ export class HomePageService implements OnModuleInit {
     constructor(
         private readonly homePageRepository: HomePageRepository,
         private readonly storageService: StorageService,
+        private readonly attachmentService: AttachmentService,
     ) {}
 
     async onModuleInit() {
@@ -45,12 +47,21 @@ export class HomePageService implements OnModuleInit {
 
         if (files) {
             if (files.heroImage?.[0]) {
-                const uploaded = await this.storageService.uploadFile(files.heroImage[0]);
-                updateData.heroImageUrl = uploaded.key;
+                const attachmentId = await this.uploadAttachment(files.heroImage[0], "HERO_IMAGE");
+                updateData.heroImageId = attachmentId;
+                if (content.heroImageId) {
+                    await this.attachmentService.remove(content.heroImageId).catch(() => {});
+                }
             }
             if (files.heroBadgeImage?.[0]) {
-                const uploaded = await this.storageService.uploadFile(files.heroBadgeImage[0]);
-                updateData.heroBadgeImageUrl = uploaded.key;
+                const attachmentId = await this.uploadAttachment(
+                    files.heroBadgeImage[0],
+                    "HERO_BADGE_IMAGE",
+                );
+                updateData.heroBadgeImageId = attachmentId;
+                if (content.heroBadgeImageId) {
+                    await this.attachmentService.remove(content.heroBadgeImageId).catch(() => {});
+                }
             }
         }
 
@@ -62,17 +73,56 @@ export class HomePageService implements OnModuleInit {
         return this.resolveImages(updated!);
     }
 
+    private async uploadAttachment(file: Express.Multer.File, context: any) {
+        const res = await this.attachmentService.upload([file], { context });
+        // The data property contains the created attachment record or records.
+        // In the upload method, single file upload returns:
+        // { success: true, message: ..., data: resolvedAttachment }
+        // where data is the attachment object itself.
+        if (Array.isArray(res.data)) {
+            return res.data[0].id;
+        }
+        return (res.data as any).id;
+    }
+
     private async resolveImages<
         T extends {
-            heroImageUrl?: string | null;
-            heroBadgeImageUrl?: string | null;
+            heroImageId?: string | null;
+            heroImage?: { fileUrl: string } | null;
+            heroBadgeImageId?: string | null;
+            heroBadgeImage?: { fileUrl: string } | null;
+            howItWorksSteps?: any[] | null;
         },
     >(content: T) {
         const [heroImageUrl, heroBadgeImageUrl] = await Promise.all([
-            this.storageService.resolveKey(content.heroImageUrl),
-            this.storageService.resolveKey(content.heroBadgeImageUrl),
+            content.heroImage?.fileUrl
+                ? this.storageService.getSignedUrl(content.heroImage.fileUrl)
+                : Promise.resolve(null),
+            content.heroBadgeImage?.fileUrl
+                ? this.storageService.getSignedUrl(content.heroBadgeImage.fileUrl)
+                : Promise.resolve(null),
         ]);
 
-        return { ...content, heroImageUrl, heroBadgeImageUrl };
+        let resolvedSteps = content.howItWorksSteps;
+        if (Array.isArray(resolvedSteps)) {
+            resolvedSteps = await Promise.all(
+                resolvedSteps.map(async (step) => {
+                    const iconUrl = step.icon?.fileUrl
+                        ? await this.storageService.getSignedUrl(step.icon.fileUrl)
+                        : null;
+                    return {
+                        ...step,
+                        iconUrl,
+                    };
+                }),
+            );
+        }
+
+        return {
+            ...content,
+            heroImageUrl,
+            heroBadgeImageUrl,
+            howItWorksSteps: resolvedSteps,
+        };
     }
 }

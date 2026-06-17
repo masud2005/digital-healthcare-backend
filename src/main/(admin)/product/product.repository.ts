@@ -1,23 +1,35 @@
-import { Injectable } from "@nestjs/common";
+import { BadRequestException, Injectable } from "@nestjs/common";
 import { PrismaService } from "@global/prisma/prisma.service";
 import type { Prisma } from "@prisma/client";
 
 type ProductCreateData = {
     name: string;
+    slug: string;
     images: string[];
-    price: string;
-    stockQuantity?: number;
+    price?: string | null;
+    stockQuantity?: number | null;
     description?: string | null;
     categoryId: string;
+    variants?: Array<{
+        size: string;
+        price: string;
+        stockQuantity: number;
+    }>;
 };
 
 type ProductUpdateData = {
     name?: string;
+    slug?: string;
     images?: string[];
-    price?: string;
-    stockQuantity?: number;
+    price?: string | null;
+    stockQuantity?: number | null;
     description?: string | null;
     categoryId?: string;
+    variants?: Array<{
+        size: string;
+        price: string;
+        stockQuantity: number;
+    }>;
 };
 
 type ProductFindAllParams = {
@@ -32,8 +44,21 @@ export class ProductRepository {
     constructor(private readonly prisma: PrismaService) {}
 
     create(data: ProductCreateData) {
+        const { images, variants, ...rest } = data;
         return this.prisma.product.create({
-            data,
+            data: {
+                ...rest,
+                images: {
+                    connect: images.map((id) => ({ id })),
+                },
+                ...(variants && variants.length > 0
+                    ? {
+                          variants: {
+                              create: variants,
+                          },
+                      }
+                    : {}),
+            },
             include: this.productInclude,
         });
     }
@@ -79,11 +104,42 @@ export class ProductRepository {
         });
     }
 
-    update(id: string, data: ProductUpdateData) {
-        return this.prisma.product.update({
-            where: { id },
-            data,
-            include: this.productInclude,
+    findBySlug(slug: string) {
+        return this.prisma.product.findUnique({
+            where: { slug },
+        });
+    }
+
+    async update(id: string, data: ProductUpdateData) {
+        const { images, variants, ...rest } = data;
+        return this.prisma.$transaction(async (tx) => {
+            if (variants) {
+                await tx.productVariant.deleteMany({
+                    where: { productId: id },
+                });
+            }
+
+            return tx.product.update({
+                where: { id },
+                data: {
+                    ...rest,
+                    ...(images
+                        ? {
+                              images: {
+                                  set: images.map((imgId) => ({ id: imgId })),
+                              },
+                          }
+                        : {}),
+                    ...(variants && variants.length > 0
+                        ? {
+                              variants: {
+                                  create: variants,
+                              },
+                          }
+                        : {}),
+                },
+                include: this.productInclude,
+            });
         });
     }
 
@@ -100,11 +156,51 @@ export class ProductRepository {
         });
     }
 
+    async validateProductImages(imageIds: string[], productId?: string) {
+        const attachments = await this.prisma.attachment.findMany({
+            where: {
+                id: { in: imageIds },
+            },
+            select: {
+                id: true,
+                context: true,
+                productId: true,
+            },
+        });
+
+        if (attachments.length !== imageIds.length) {
+            throw new BadRequestException("One or more image attachments not found");
+        }
+
+        for (const attachment of attachments) {
+            if (attachment.context !== "PRODUCT_IMAGE") {
+                throw new BadRequestException(`Attachment ${attachment.id} is not a product image`);
+            }
+            if (attachment.productId && attachment.productId !== productId) {
+                throw new BadRequestException(
+                    `Attachment ${attachment.id} is already assigned to another product`,
+                );
+            }
+        }
+    }
+
+    deleteAttachment(id: string) {
+        return this.prisma.attachment.delete({
+            where: { id },
+        });
+    }
+
     private readonly productInclude = {
         category: {
             select: {
                 id: true,
                 name: true,
+            },
+        },
+        images: true,
+        variants: {
+            orderBy: {
+                createdAt: "asc",
             },
         },
     } satisfies Prisma.ProductInclude;

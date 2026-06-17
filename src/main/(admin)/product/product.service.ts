@@ -23,8 +23,12 @@ export class ProductService {
 
     async create(payload: CreateProductDto) {
         const data = this.normalizeCreatePayload(payload);
-        await this.ensureNameIsAvailable(data.name);
+        await this.ensureSlugIsAvailable(data.slug);
         await this.ensureCategoryExists(data.categoryId);
+
+        if (data.images && data.images.length > 0) {
+            await this.productRepository.validateProductImages(data.images);
+        }
 
         try {
             const product = await this.productRepository.create(data);
@@ -70,20 +74,44 @@ export class ProductService {
     }
 
     async update(id: string, payload: UpdateProductDto) {
-        await this.findOne(id);
+        const product = await this.productRepository.findById(id);
+        if (!product) {
+            throw new NotFoundException("Product not found");
+        }
+
         const data = this.normalizeUpdatePayload(payload);
 
-        if (data.name) {
-            await this.ensureNameIsAvailable(data.name, id);
+        if (data.slug) {
+            await this.ensureSlugIsAvailable(data.slug, id);
         }
 
         if (data.categoryId) {
             await this.ensureCategoryExists(data.categoryId);
         }
 
+        if (data.images) {
+            await this.productRepository.validateProductImages(data.images, id);
+
+            const newImageIds = data.images;
+            const removedImages = product.images.filter((img) => !newImageIds.includes(img.id));
+
+            if (removedImages.length > 0) {
+                await Promise.all(
+                    removedImages.map(async (img) => {
+                        try {
+                            await this.storageService.deleteFile(img.fileUrl);
+                        } catch {
+                            // Log warning, don't crash
+                        }
+                        await this.productRepository.deleteAttachment(img.id);
+                    }),
+                );
+            }
+        }
+
         try {
-            const product = await this.productRepository.update(id, data);
-            return this.resolveProductImages(product);
+            const updatedProduct = await this.productRepository.update(id, data);
+            return this.resolveProductImages(updatedProduct);
         } catch (error) {
             this.throwKnownPrismaError(error);
             throw error;
@@ -91,7 +119,22 @@ export class ProductService {
     }
 
     async remove(id: string) {
-        await this.findOne(id);
+        const product = await this.productRepository.findById(id);
+        if (!product) {
+            throw new NotFoundException("Product not found");
+        }
+
+        if (product.images && product.images.length > 0) {
+            await Promise.all(
+                product.images.map(async (img) => {
+                    try {
+                        await this.storageService.deleteFile(img.fileUrl);
+                    } catch {
+                        // Log warning, don't crash
+                    }
+                }),
+            );
+        }
 
         try {
             return await this.productRepository.delete(id);
@@ -103,38 +146,106 @@ export class ProductService {
 
     /**
      * Replace stored image keys with fresh signed URLs.
-     * The database always holds raw keys; clients always receive live URLs.
      */
-    private async resolveProductImages<T extends { images: string[] }>(product: T) {
+    private async resolveProductImages<
+        T extends {
+            price?: any;
+            stockQuantity?: any;
+            variants?: Array<{
+                id: string;
+                size: string;
+                price: any;
+                stockQuantity: number;
+                createdAt: Date;
+                updatedAt: Date;
+            }>;
+            images: Array<{
+                id: string;
+                fileName: string;
+                fileUrl: string;
+                fileType: string;
+                fileSize: number;
+                context: string;
+                uploadedById?: string | null;
+                createdAt: Date;
+                updatedAt: Date;
+            }>;
+        },
+    >(product: T) {
+        const resolvedImages = await Promise.all(
+            product.images.map(async (img) => ({
+                ...img,
+                fileUrl: await this.storageService.getSignedUrl(img.fileUrl),
+            })),
+        );
+        const resolvedVariants = product.variants
+            ? product.variants.map((v) => ({
+                  ...v,
+                  price: String(v.price),
+              }))
+            : [];
+
+        // Legacy compatibility fields
+        const legacyPrice =
+            resolvedVariants.length > 0
+                ? resolvedVariants[0].price
+                : product.price
+                  ? String(product.price)
+                  : null;
+        const legacyStock =
+            resolvedVariants.length > 0
+                ? resolvedVariants[0].stockQuantity
+                : (product.stockQuantity ?? 0);
+
         return {
             ...product,
-            images: await this.storageService.resolveKeys(product.images),
+            price: legacyPrice,
+            stockQuantity: legacyStock,
+            images: resolvedImages,
+            variants: resolvedVariants,
         };
     }
 
     private normalizeCreatePayload(payload: CreateProductDto) {
+        const name = payload.name.trim();
+        const slug = slugify(name);
         return {
-            name: this.normalizeName(payload.name),
+            name,
+            slug,
             images: payload.images.map((img) => img.trim()),
-            price: payload.price.trim(),
-            stockQuantity: payload.stockQuantity,
+            price: payload.price ? payload.price.trim() : null,
+            stockQuantity: payload.stockQuantity ?? 0,
             description: this.parseDescription(payload.description),
             categoryId: payload.categoryId,
+            variants: payload.variants
+                ? payload.variants.map((v) => ({
+                      size: v.size.trim(),
+                      price: v.price.trim(),
+                      stockQuantity: v.stockQuantity ?? 0,
+                  }))
+                : [],
         };
     }
 
     private normalizeUpdatePayload(payload: UpdateProductDto) {
         const data: {
             name?: string;
+            slug?: string;
             images?: string[];
-            price?: string;
+            price?: string | null;
             stockQuantity?: number;
             description?: string | null;
             categoryId?: string;
+            variants?: Array<{
+                size: string;
+                price: string;
+                stockQuantity: number;
+            }>;
         } = {};
 
         if (payload.name !== undefined) {
-            data.name = this.normalizeName(payload.name);
+            data.name = payload.name.trim();
+            data.slug = slugify(data.name);
         }
 
         if (payload.images !== undefined) {
@@ -143,11 +254,19 @@ export class ProductService {
         }
 
         if (payload.price !== undefined) {
-            data.price = payload.price.trim();
+            data.price = payload.price ? payload.price.trim() : null;
         }
 
         if (payload.stockQuantity !== undefined) {
             data.stockQuantity = payload.stockQuantity;
+        }
+
+        if (payload.variants !== undefined) {
+            data.variants = payload.variants.map((v) => ({
+                size: v.size.trim(),
+                price: v.price.trim(),
+                stockQuantity: v.stockQuantity ?? 0,
+            }));
         }
 
         if (payload.description !== undefined) {
@@ -163,11 +282,6 @@ export class ProductService {
         }
 
         return data;
-    }
-
-    private normalizeName(name: string) {
-        const trimmed = name.trim();
-        return trimmed.includes(" ") ? slugify(trimmed) : trimmed;
     }
 
     private parseDescription(description: string | null | undefined) {
@@ -191,11 +305,11 @@ export class ProductService {
         }
     }
 
-    private async ensureNameIsAvailable(name: string, excludeId?: string) {
-        const existingProduct = await this.productRepository.findByName(name);
+    private async ensureSlugIsAvailable(slug: string, excludeId?: string) {
+        const existingProduct = await this.productRepository.findBySlug(slug);
 
         if (existingProduct && existingProduct.id !== excludeId) {
-            throw new ConflictException("Product name already exists");
+            throw new ConflictException("Product slug already exists");
         }
     }
 
@@ -203,7 +317,7 @@ export class ProductService {
         const prismaError = error as { code?: string };
 
         if (prismaError.code === "P2002") {
-            throw new ConflictException("Product name already exists");
+            throw new ConflictException("Product slug already exists");
         }
 
         if (prismaError.code === "P2003") {

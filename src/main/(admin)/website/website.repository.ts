@@ -11,6 +11,11 @@ export class WebsiteRepository {
             include: {
                 offices: true,
                 socialLinks: true,
+                whiteLogo: true,
+                blackLogo: true,
+                faviconLight: true,
+                faviconDark: true,
+                socialPreview: true,
             },
         });
     }
@@ -21,6 +26,11 @@ export class WebsiteRepository {
             include: {
                 offices: true,
                 socialLinks: true,
+                whiteLogo: true,
+                blackLogo: true,
+                faviconLight: true,
+                faviconDark: true,
+                socialPreview: true,
             },
         });
     }
@@ -117,6 +127,11 @@ export class WebsiteRepository {
                 include: {
                     offices: true,
                     socialLinks: true,
+                    whiteLogo: true,
+                    blackLogo: true,
+                    faviconLight: true,
+                    faviconDark: true,
+                    socialPreview: true,
                 },
             });
         });

@@ -3,12 +3,17 @@ model SiteSettings {
   title           String
   metaDescription String?
 
-  // Branding Assets (Stored as URLs or paths)
-  whiteLogoUrl     String?
-  blackLogoUrl     String?
-  faviconLightUrl  String?
-  faviconDarkUrl   String?
-  socialPreviewUrl String?
+  // Branding Assets (Stored as relations to Attachment)
+  whiteLogoId     String?     @unique @map("white_logo_id")
+  whiteLogo       Attachment? @relation("WhiteLogo", fields: [whiteLogoId], references: [id], onDelete: Cascade)
+  blackLogoId     String?     @unique @map("black_logo_id")
+  blackLogo       Attachment? @relation("BlackLogo", fields: [blackLogoId], references: [id], onDelete: Cascade)
+  faviconLightId  String?     @unique @map("favicon_light_id")
+  faviconLight    Attachment? @relation("FaviconLight", fields: [faviconLightId], references: [id], onDelete: Cascade)
+  faviconDarkId   String?     @unique @map("favicon_dark_id")
+  faviconDark     Attachment? @relation("FaviconDark", fields: [faviconDarkId], references: [id], onDelete: Cascade)
+  socialPreviewId String?     @unique @map("social_preview_id")
+  socialPreview   Attachment? @relation("SocialPreview", fields: [socialPreviewId], references: [id], onDelete: Cascade)
 
   // Contact Info
   phone      String?

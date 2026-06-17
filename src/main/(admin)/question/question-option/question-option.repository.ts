@@ -32,7 +32,12 @@ export class QuestionOptionRepository {
         };
 
         const [data, total] = await this.prisma.$transaction([
-            this.prisma.questionOption.findMany({ where, skip: (page - 1) * limit, take: limit, orderBy: { createdAt: "desc" } }),
+            this.prisma.questionOption.findMany({
+                where,
+                skip: (page - 1) * limit,
+                take: limit,
+                orderBy: { createdAt: "desc" },
+            }),
             this.prisma.questionOption.count({ where }),
         ]);
 

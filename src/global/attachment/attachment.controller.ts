@@ -1,5 +1,5 @@
 import { CurrentUser } from "@common/decorators/current-user.decorator";
-import { JwtAuthGuard } from "@common/guards/jwt-auth.guard";
+import { JwtAuthGuard, OptionalJwtAuthGuard } from "@common/guards";
 import { attachmentContext } from "@constant/enums";
 import type { AuthenticatedUser } from "@main/auth/auth.types";
 import {
@@ -14,7 +14,7 @@ import {
     UploadedFile,
     UploadedFiles,
     UseGuards,
-    UseInterceptors,
+    UseInterceptors
 } from "@nestjs/common";
 import { FileInterceptor, FilesInterceptor } from "@nestjs/platform-express";
 import {
@@ -24,35 +24,38 @@ import {
     ApiCreatedResponse,
     ApiOkResponse,
     ApiOperation,
-    ApiTags,
+    ApiTags
 } from "@nestjs/swagger";
 import "multer";
 import { AttachmentService } from "./attachment.service";
-import { AttachmentResponseDto, PaginatedAttachmentResponseDto } from "./dto/attachment-response.dto";
+import {
+    AttachmentResponseDto,
+    PaginatedAttachmentResponseDto,
+} from "./dto/attachment-response.dto";
 import { GetAttachmentsQueryDto } from "./dto/get-attachments-query.dto";
 import { ReplaceAttachmentDto } from "./dto/replace-attachment.dto";
 import { UploadAttachmentDto } from "./dto/upload-attachment.dto";
 
 @ApiTags("Attachments")
-@ApiBearerAuth()
-@UseGuards(JwtAuthGuard)
 @Controller("attachments")
 export class AttachmentController {
     constructor(private readonly attachmentService: AttachmentService) {}
 
-    @Post('upload')
-    @ApiOperation({ summary: "Upload single or multiple files with context" })
+    @Post("upload")
+    @UseGuards(OptionalJwtAuthGuard)
+    @ApiBearerAuth()
+    @ApiOperation({ summary: "Upload single or multiple files with context. Auth optional — if authenticated, uploadedById is stored." })
     @ApiConsumes("multipart/form-data")
     @ApiBody({
         schema: {
             type: "object",
             required: ["context", "files"],
             properties: {
-                context: { 
-                    type: "string", 
+                context: {
+                    type: "string",
                     enum: Object.values(attachmentContext),
                     description: "The context/purpose for which the file is being uploaded",
-                    example: "PRODUCT_IMAGE" 
+                    example: "PRODUCT_IMAGE",
                 },
                 files: {
                     type: "array",
@@ -63,25 +66,26 @@ export class AttachmentController {
         },
     })
     @ApiCreatedResponse({ type: [AttachmentResponseDto] })
-    @UseInterceptors(FilesInterceptor("files", 10)) // Max 10 files allowed at once
+    @UseInterceptors(FilesInterceptor("files", 10))
     upload(
         @UploadedFiles() files: Express.Multer.File[],
         @Body() dto: UploadAttachmentDto,
-        @CurrentUser() user: AuthenticatedUser,
+        @CurrentUser() user?: AuthenticatedUser,
     ) {
-        return this.attachmentService.upload(files, dto, user.id);
+        return this.attachmentService.upload(files, dto, user?.id);
     }
 
-@Get()
+    @ApiBearerAuth()
+    @UseGuards(JwtAuthGuard)
+    @Get()
     @ApiOperation({ summary: "Get all attachments with pagination and context filter" })
     @ApiOkResponse({ type: PaginatedAttachmentResponseDto })
-    findAll(
-        @Query() query: GetAttachmentsQueryDto,
-        @CurrentUser() user: AuthenticatedUser,
-    ) {
+    findAll(@Query() query: GetAttachmentsQueryDto, @CurrentUser() user: AuthenticatedUser) {
         return this.attachmentService.findAll(query, user.id);
     }
 
+    @ApiBearerAuth()
+    @UseGuards(JwtAuthGuard)
     @Get(":id")
     @ApiOperation({ summary: "Get attachment by id" })
     @ApiOkResponse({ type: AttachmentResponseDto })
@@ -90,7 +94,9 @@ export class AttachmentController {
     }
 
     @Patch(":id")
-    @ApiOperation({ summary: "Replace file or update context of an attachment" })
+    @UseGuards(OptionalJwtAuthGuard)
+    @ApiBearerAuth()
+    @ApiOperation({ summary: "Replace file or update context of an attachment. Auth optional — if authenticated, uploadedById is updated." })
     @ApiConsumes("multipart/form-data")
     @ApiBody({
         schema: {
@@ -107,8 +113,9 @@ export class AttachmentController {
         @Param("id") id: string,
         @Body() dto: ReplaceAttachmentDto,
         @UploadedFile() file?: Express.Multer.File,
+        @CurrentUser() user?: AuthenticatedUser,
     ) {
-        return this.attachmentService.replace(id, dto, file);
+        return this.attachmentService.replace(id, dto, file, user?.id);
     }
 
     @Delete(":id")

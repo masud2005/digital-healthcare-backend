@@ -15,6 +15,7 @@ type PaymentPlanUpdateData = {
 
 type CategoryCreateData = {
     name: string;
+    slug: string;
     description?: string | null;
     status?: CategoryStatus;
     iconId?: string;
@@ -23,6 +24,7 @@ type CategoryCreateData = {
 
 type CategoryUpdateData = {
     name?: string;
+    slug?: string;
     description?: string | null;
     status?: CategoryStatus;
     iconId?: string | null;
@@ -47,7 +49,16 @@ export class CategoryRepository {
                 ...rest,
                 ...(iconId ? { icon: { connect: { id: iconId } } } : {}),
                 ...(paymentPlan
-                    ? { paymentPlan: { create: { price: paymentPlan.price, ...(paymentPlan.billingCycle ? { billingCycle: paymentPlan.billingCycle } : {}) } } }
+                    ? {
+                          paymentPlan: {
+                              create: {
+                                  price: paymentPlan.price,
+                                  ...(paymentPlan.billingCycle
+                                      ? { billingCycle: paymentPlan.billingCycle }
+                                      : {}),
+                              },
+                          },
+                      }
                     : {}),
             },
             include: this.categoryInclude,
@@ -90,8 +101,14 @@ export class CategoryRepository {
     }
 
     findByName(name: string) {
-        return this.prisma.category.findUnique({
+        return this.prisma.category.findFirst({
             where: { name },
+        });
+    }
+
+    findBySlug(slug: string) {
+        return this.prisma.category.findUnique({
+            where: { slug },
         });
     }
 
@@ -109,8 +126,20 @@ export class CategoryRepository {
             ? {
                   paymentPlan: {
                       upsert: {
-                          create: { price: paymentPlan.price ?? 0, ...(paymentPlan.billingCycle ? { billingCycle: paymentPlan.billingCycle } : {}) },
-                          update: { ...(paymentPlan.price !== undefined ? { price: paymentPlan.price } : {}), ...(paymentPlan.billingCycle ? { billingCycle: paymentPlan.billingCycle } : {}) },
+                          create: {
+                              price: paymentPlan.price ?? 0,
+                              ...(paymentPlan.billingCycle
+                                  ? { billingCycle: paymentPlan.billingCycle }
+                                  : {}),
+                          },
+                          update: {
+                              ...(paymentPlan.price !== undefined
+                                  ? { price: paymentPlan.price }
+                                  : {}),
+                              ...(paymentPlan.billingCycle
+                                  ? { billingCycle: paymentPlan.billingCycle }
+                                  : {}),
+                          },
                       },
                   },
               }

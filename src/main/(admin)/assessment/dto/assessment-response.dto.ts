@@ -86,7 +86,10 @@ export class AssessmentResponseDto {
     @ApiProperty({ example: "Cardiac Risk Assessment" })
     title: string;
 
-    @ApiPropertyOptional({ example: "https://example.com/assessments/cardiac-risk.png", nullable: true })
+    @ApiPropertyOptional({
+        example: "https://example.com/assessments/cardiac-risk.png",
+        nullable: true,
+    })
     thumbnail: string | null;
 
     @ApiProperty({ example: "Evaluate cardiac risk factors and symptoms" })

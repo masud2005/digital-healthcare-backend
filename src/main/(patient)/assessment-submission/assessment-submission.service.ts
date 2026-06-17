@@ -1,5 +1,11 @@
 import { StorageService } from "@global/storage/storage.service";
-import { BadRequestException, ForbiddenException, Injectable, NotFoundException } from "@nestjs/common";
+import {
+    BadRequestException,
+    ForbiddenException,
+    Injectable,
+    NotFoundException,
+} from "@nestjs/common";
+import { PrismaService } from "@global/prisma/prisma.service";
 import type { QuestionType } from "@prisma/client";
 import {
     AssessmentSubmissionRecord,
@@ -30,6 +36,7 @@ export class AssessmentSubmissionService {
     constructor(
         private readonly assessmentSubmissionRepository: AssessmentSubmissionRepository,
         private readonly storageService: StorageService,
+        private readonly prisma: PrismaService,
     ) {}
 
     async getMyAssessmentBlueprints(userId: string) {
@@ -37,8 +44,28 @@ export class AssessmentSubmissionService {
         return Promise.all(submissions.map((s) => this.mapBlueprint(s)));
     }
 
-    async updateSubmission(submissionId: string, userId: string, payload: UpdateAssessmentSubmissionDto) {
-        const submission = await this.assessmentSubmissionRepository.findSubmissionById(submissionId, userId);
+    async getMyAssessmentBlueprint(submissionId: string, userId: string) {
+        const submission = await this.assessmentSubmissionRepository.findSubmissionById(
+            submissionId,
+            userId,
+        );
+
+        if (!submission) {
+            throw new NotFoundException("Submission not found");
+        }
+
+        return this.mapBlueprint(submission);
+    }
+
+    async updateSubmission(
+        submissionId: string,
+        userId: string,
+        payload: UpdateAssessmentSubmissionDto,
+    ) {
+        const submission = await this.assessmentSubmissionRepository.findSubmissionById(
+            submissionId,
+            userId,
+        );
 
         if (!submission) {
             throw new NotFoundException("Submission not found");
@@ -50,7 +77,9 @@ export class AssessmentSubmissionService {
 
         const normalizedAnswers = this.normalizeAnswers(payload.answers);
         const questionIds = normalizedAnswers.map((a) => a.questionId);
-        const questions = await this.assessmentSubmissionRepository.findQuestionsByAssessment(submission.assessmentId);
+        const questions = await this.assessmentSubmissionRepository.findQuestionsByAssessment(
+            submission.assessmentId,
+        );
         const submittedQuestions = questions.filter((q) => questionIds.includes(q.id));
 
         if (submittedQuestions.length !== questionIds.length) {
@@ -58,9 +87,12 @@ export class AssessmentSubmissionService {
         }
 
         const questionMap = new Map(questions.map((q) => [q.id, q]));
-        this.validateAnswers(normalizedAnswers, questions, questionMap);
+        this.validateAnswers(normalizedAnswers, submittedQuestions, questionMap);
 
-        const updated = await this.assessmentSubmissionRepository.updateSubmission(submissionId, normalizedAnswers);
+        const updated = await this.assessmentSubmissionRepository.updateSubmission(
+            submissionId,
+            normalizedAnswers,
+        );
         return this.mapBlueprint(updated);
     }
 
@@ -83,8 +115,12 @@ export class AssessmentSubmissionService {
 
         const normalizedAnswers = this.normalizeAnswers(payload.answers);
         const questionIds = normalizedAnswers.map((answer) => answer.questionId);
-        const questions = await this.assessmentSubmissionRepository.findQuestionsByAssessment(payload.assessmentId);
-        const submittedQuestions = questions.filter((question) => questionIds.includes(question.id));
+        const questions = await this.assessmentSubmissionRepository.findQuestionsByAssessment(
+            payload.assessmentId,
+        );
+        const submittedQuestions = questions.filter((question) =>
+            questionIds.includes(question.id),
+        );
 
         if (submittedQuestions.length !== questionIds.length) {
             throw new BadRequestException("One or more questions are invalid for this assessment");
@@ -105,17 +141,26 @@ export class AssessmentSubmissionService {
     private async mapBlueprint(submission: BlueprintSubmissionRecord) {
         const { assessment } = submission;
 
+        // Build answer map: questionId → answer
         const answerMap = new Map(
             submission.answers.map((a) => [
                 a.questionId,
                 {
                     textResponse: a.textResponse,
-                    selectedOptionIds: a.selectedOptions.map((s) => s.optionId),
+                    selectedOptions: a.selectedOptions.map((s) => ({
+                        id: s.option.id,
+                        label: s.option.label,
+                    })),
                 },
             ]),
         );
 
         const thumbnail = await this.storageService.resolveKey(assessment.thumbnail);
+
+        // Build a map of all question options keyed by questionId for file-type detection
+        const questionOptionsMap = new Map(
+            assessment.questions.map((q) => [q.id, q.options]),
+        );
 
         const questionsByParentOptionId = new Map<string, typeof assessment.questions>();
         for (const q of assessment.questions) {
@@ -125,29 +170,64 @@ export class AssessmentSubmissionService {
             questionsByParentOptionId.set(q.parentOptionId, group);
         }
 
-        const buildQuestion = (q: (typeof assessment.questions)[number]): object => ({
+        const buildPatientAnswer = async (questionId: string) => {
+            const answer = answerMap.get(questionId);
+            if (!answer) return null;
+
+            const options = questionOptionsMap.get(questionId) ?? [];
+            const isFileInput = options.some(
+                (o) => o.inputType?.toLowerCase() === "file",
+            );
+
+            // Resolve attachment if textResponse holds a file attachment id
+            let resolvedFile: { id: string; fileUrl: string | null } | null = null;
+            if (isFileInput && answer.textResponse) {
+                const attachment = await this.prisma.attachment.findUnique({
+                    where: { id: answer.textResponse },
+                    select: { id: true, fileUrl: true, fileName: true, fileType: true },
+                });
+
+                if (attachment) {
+                    resolvedFile = {
+                        ...attachment,
+                        fileUrl: await this.storageService.resolveKey(attachment.fileUrl),
+                    };
+                }
+            }
+
+            return {
+                selectedOptions: answer.selectedOptions,
+                textResponse: isFileInput ? null : (answer.textResponse ?? null),
+                file: resolvedFile,
+            };
+        };
+
+        const buildQuestion = async (q: (typeof assessment.questions)[number]): Promise<object> => ({
             id: q.id,
             type: q.type,
             heading: q.heading ?? null,
             questionText: q.questionText ?? null,
             description: q.description ?? null,
-            options: q.options.map((opt) => ({
-                id: opt.id,
-                label: opt.label,
-                inputType: opt.inputType ?? null,
-                subQuestions: (questionsByParentOptionId.get(opt.id) ?? []).map(buildQuestion),
-            })),
-            patientAnswer: answerMap.get(q.id)
-                ? {
-                      selectedOptionIds: answerMap.get(q.id)!.selectedOptionIds,
-                      textResponse: answerMap.get(q.id)!.textResponse ?? null,
-                  }
-                : null,
+            options: await Promise.all(
+                q.options.map(async (opt) => ({
+                    id: opt.id,
+                    label: opt.label,
+                    inputType: opt.inputType ?? null,
+                    subQuestions: await Promise.all(
+                        (questionsByParentOptionId.get(opt.id) ?? []).map((child) =>
+                            buildQuestion(child),
+                        ),
+                    ),
+                })),
+            ),
+            patientAnswer: await buildPatientAnswer(q.id),
         });
 
-        const rootQuestions = assessment.questions
-            .filter((q) => !q.parentOptionId)
-            .map(buildQuestion);
+        const rootQuestions = await Promise.all(
+            assessment.questions
+                .filter((q) => !q.parentOptionId)
+                .map((q) => buildQuestion(q)),
+        );
 
         return {
             submissionId: submission.id,
@@ -176,7 +256,9 @@ export class AssessmentSubmissionService {
             const question = questionMap.get(answer.questionId);
 
             if (!question) {
-                throw new BadRequestException("One or more questions are invalid for this assessment");
+                throw new BadRequestException(
+                    "One or more questions are invalid for this assessment",
+                );
             }
 
             this.validateQuestionApplicability(question, selectedOptionIds);
@@ -196,7 +278,10 @@ export class AssessmentSubmissionService {
         }
     }
 
-    private validateQuestionApplicability(question: SubmissionQuestion, selectedOptionIds: Set<string>) {
+    private validateQuestionApplicability(
+        question: SubmissionQuestion,
+        selectedOptionIds: Set<string>,
+    ) {
         if (question.parentOptionId && !selectedOptionIds.has(question.parentOptionId)) {
             throw new BadRequestException(
                 "Sub-question answers are allowed only when their parent option is selected",
@@ -226,11 +311,15 @@ export class AssessmentSubmissionService {
         }
 
         if (question.type === "SINGLE_CHOICE" && answer.selectedOptionIds.length !== 1) {
-            throw new BadRequestException("Single choice questions require exactly one selected option");
+            throw new BadRequestException(
+                "Single choice questions require exactly one selected option",
+            );
         }
 
         if (question.type === "MULTIPLE_CHOICE" && answer.selectedOptionIds.length === 0) {
-            throw new BadRequestException("Multiple choice questions require at least one selected option");
+            throw new BadRequestException(
+                "Multiple choice questions require at least one selected option",
+            );
         }
 
         if (question.type === "SINGLE_CHOICE" || question.type === "MULTIPLE_CHOICE") {
@@ -238,7 +327,9 @@ export class AssessmentSubmissionService {
 
             for (const selectedOptionId of answer.selectedOptionIds) {
                 if (!allowedOptionIds.has(selectedOptionId)) {
-                    throw new BadRequestException("One or more selected options are invalid for the question");
+                    throw new BadRequestException(
+                        "One or more selected options are invalid for the question",
+                    );
                 }
             }
         }
@@ -256,7 +347,9 @@ export class AssessmentSubmissionService {
         return Boolean(answer.textResponse) || answer.selectedOptionIds.length > 0;
     }
 
-    private normalizeAnswers(answers: CreateAssessmentSubmissionDto["answers"]): NormalizedAnswer[] {
+    private normalizeAnswers(
+        answers: CreateAssessmentSubmissionDto["answers"],
+    ): NormalizedAnswer[] {
         const seenQuestionIds = new Set<string>();
 
         return answers.map((answer) => {

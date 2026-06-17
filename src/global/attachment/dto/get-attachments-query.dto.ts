@@ -18,7 +18,10 @@ export class GetAttachmentsQueryDto {
     @Min(1)
     limit?: number;
 
-    @ApiPropertyOptional({ enum: attachmentContext, description: "Filter attachments by specific context" })
+    @ApiPropertyOptional({
+        enum: attachmentContext,
+        description: "Filter attachments by specific context",
+    })
     @IsOptional()
     @IsEnum(attachmentContext)
     context?: AttachmentContext;

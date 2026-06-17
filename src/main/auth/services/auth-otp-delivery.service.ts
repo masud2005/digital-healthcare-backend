@@ -1,8 +1,8 @@
+import { MailService } from "@global/mail/mail.service";
+import { SystemHealthService } from "@main/(compliance)/system-healthar/system-health.service";
 import { Injectable, Logger, ServiceUnavailableException } from "@nestjs/common";
 import { buildOtpEmail } from "../templates/auth-email-template";
 import { buildOtpSms } from "../templates/auth-sms-template";
-import { MailService } from "@global/mail/mail.service";
-import { SystemHealthService } from "../../(compliance)/system-health/system-health.service";
 
 @Injectable()
 export class AuthOtpDeliveryService {
@@ -48,7 +48,7 @@ export class AuthOtpDeliveryService {
             throw new ServiceUnavailableException("SMS provider is not configured properly");
         }
 
-        const formattedPhone = phone.trim().replace(/\s+/g, '');
+        const formattedPhone = phone.trim().replace(/\s+/g, "");
 
         const body = new URLSearchParams({
             To: formattedPhone,

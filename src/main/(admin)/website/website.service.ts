@@ -1,5 +1,6 @@
 import { Injectable, Logger, OnModuleInit } from "@nestjs/common";
 import { StorageService } from "@global/storage/storage.service";
+import { AttachmentService } from "@global/attachment/attachment.service";
 import { WebsiteRepository } from "./website.repository";
 import { UpdateWebsiteSettingsDto } from "./dto/update-website-settings.dto";
 import { DEFAULT_WEBSITE_SETTINGS } from "./website-seed.data";
@@ -11,6 +12,7 @@ export class WebsiteService implements OnModuleInit {
     constructor(
         private readonly websiteRepository: WebsiteRepository,
         private readonly storageService: StorageService,
+        private readonly attachmentService: AttachmentService,
     ) {}
 
     async onModuleInit() {
@@ -42,30 +44,59 @@ export class WebsiteService implements OnModuleInit {
     }
 
     async updateSettings(payload: UpdateWebsiteSettingsDto, files?: any) {
-        // getSettings() guarantees a record exists (creates one if missing)
         const settings = await this.getSettings();
         const updateData: any = { ...payload };
 
         if (files) {
             if (files.whiteLogo?.[0]) {
-                const uploaded = await this.storageService.uploadFile(files.whiteLogo[0]);
-                updateData.whiteLogoUrl = uploaded.key;
+                const attachmentId = await this.uploadAttachment(
+                    files.whiteLogo[0],
+                    "WEBSITE_LOGO",
+                );
+                updateData.whiteLogoId = attachmentId;
+                if (settings.whiteLogoId) {
+                    await this.attachmentService.remove(settings.whiteLogoId).catch(() => {});
+                }
             }
             if (files.blackLogo?.[0]) {
-                const uploaded = await this.storageService.uploadFile(files.blackLogo[0]);
-                updateData.blackLogoUrl = uploaded.key;
+                const attachmentId = await this.uploadAttachment(
+                    files.blackLogo[0],
+                    "WEBSITE_LOGO",
+                );
+                updateData.blackLogoId = attachmentId;
+                if (settings.blackLogoId) {
+                    await this.attachmentService.remove(settings.blackLogoId).catch(() => {});
+                }
             }
             if (files.faviconLight?.[0]) {
-                const uploaded = await this.storageService.uploadFile(files.faviconLight[0]);
-                updateData.faviconLightUrl = uploaded.key;
+                const attachmentId = await this.uploadAttachment(
+                    files.faviconLight[0],
+                    "WEBSITE_FAVICON",
+                );
+                updateData.faviconLightId = attachmentId;
+                if (settings.faviconLightId) {
+                    await this.attachmentService.remove(settings.faviconLightId).catch(() => {});
+                }
             }
             if (files.faviconDark?.[0]) {
-                const uploaded = await this.storageService.uploadFile(files.faviconDark[0]);
-                updateData.faviconDarkUrl = uploaded.key;
+                const attachmentId = await this.uploadAttachment(
+                    files.faviconDark[0],
+                    "WEBSITE_FAVICON",
+                );
+                updateData.faviconDarkId = attachmentId;
+                if (settings.faviconDarkId) {
+                    await this.attachmentService.remove(settings.faviconDarkId).catch(() => {});
+                }
             }
             if (files.socialPreview?.[0]) {
-                const uploaded = await this.storageService.uploadFile(files.socialPreview[0]);
-                updateData.socialPreviewUrl = uploaded.key;
+                const attachmentId = await this.uploadAttachment(
+                    files.socialPreview[0],
+                    "WEBSITE_SOCIAL_PREVIEW",
+                );
+                updateData.socialPreviewId = attachmentId;
+                if (settings.socialPreviewId) {
+                    await this.attachmentService.remove(settings.socialPreviewId).catch(() => {});
+                }
             }
         }
 
@@ -80,26 +111,45 @@ export class WebsiteService implements OnModuleInit {
         return this.resolveSettingsImages(updated!);
     }
 
-    /**
-     * Replace stored asset keys with fresh signed URLs.
-     * The DB always holds raw keys; callers always receive live URLs.
-     */
+    private async uploadAttachment(file: Express.Multer.File, context: any) {
+        const res = await this.attachmentService.upload([file], { context });
+        if (Array.isArray(res.data)) {
+            return res.data[0].id;
+        }
+        return (res.data as any).id;
+    }
+
     private async resolveSettingsImages<
         T extends {
-            whiteLogoUrl?: string | null;
-            blackLogoUrl?: string | null;
-            faviconLightUrl?: string | null;
-            faviconDarkUrl?: string | null;
-            socialPreviewUrl?: string | null;
+            whiteLogoId?: string | null;
+            whiteLogo?: { fileUrl: string } | null;
+            blackLogoId?: string | null;
+            blackLogo?: { fileUrl: string } | null;
+            faviconLightId?: string | null;
+            faviconLight?: { fileUrl: string } | null;
+            faviconDarkId?: string | null;
+            faviconDark?: { fileUrl: string } | null;
+            socialPreviewId?: string | null;
+            socialPreview?: { fileUrl: string } | null;
         },
     >(settings: T) {
         const [whiteLogoUrl, blackLogoUrl, faviconLightUrl, faviconDarkUrl, socialPreviewUrl] =
             await Promise.all([
-                this.storageService.resolveKey(settings.whiteLogoUrl),
-                this.storageService.resolveKey(settings.blackLogoUrl),
-                this.storageService.resolveKey(settings.faviconLightUrl),
-                this.storageService.resolveKey(settings.faviconDarkUrl),
-                this.storageService.resolveKey(settings.socialPreviewUrl),
+                settings.whiteLogo?.fileUrl
+                    ? this.storageService.getSignedUrl(settings.whiteLogo.fileUrl)
+                    : Promise.resolve(null),
+                settings.blackLogo?.fileUrl
+                    ? this.storageService.getSignedUrl(settings.blackLogo.fileUrl)
+                    : Promise.resolve(null),
+                settings.faviconLight?.fileUrl
+                    ? this.storageService.getSignedUrl(settings.faviconLight.fileUrl)
+                    : Promise.resolve(null),
+                settings.faviconDark?.fileUrl
+                    ? this.storageService.getSignedUrl(settings.faviconDark.fileUrl)
+                    : Promise.resolve(null),
+                settings.socialPreview?.fileUrl
+                    ? this.storageService.getSignedUrl(settings.socialPreview.fileUrl)
+                    : Promise.resolve(null),
             ]);
 
         return {

@@ -1,6 +1,6 @@
+import { SystemHealthService } from "@main/(compliance)/system-healthar/system-health.service";
 import { Injectable, Logger, OnModuleInit, ServiceUnavailableException } from "@nestjs/common";
 import nodemailer from "nodemailer";
-import { SystemHealthService } from "@main/(compliance)/system-health/system-health.service";
 
 @Injectable()
 export class MailService implements OnModuleInit {
@@ -59,7 +59,9 @@ export class MailService implements OnModuleInit {
     }) {
         if (!this.transporter) {
             if (process.env.MAIL_LOG_OTP_WHEN_UNCONFIGURED === "true") {
-                this.logger.warn(`SMTP is not configured. Email to ${options.to}: Subject: ${options.subject}`);
+                this.logger.warn(
+                    `SMTP is not configured. Email to ${options.to}: Subject: ${options.subject}`,
+                );
                 return;
             }
 

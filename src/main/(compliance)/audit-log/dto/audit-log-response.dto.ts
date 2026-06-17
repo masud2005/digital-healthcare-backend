@@ -58,18 +58,26 @@ export class AuditLogStatsResponseDto {
     dataExports: number;
 }
 
-export class AuditLogListResponseDto {
-    @ApiProperty({ type: [AuditLogItemResponseDto] })
-    data: AuditLogItemResponseDto[];
-
-    @ApiProperty({ example: 158 })
-    total: number;
-
+class AuditLogListMetaDto {
     @ApiProperty({ example: 1 })
     page: number;
 
     @ApiProperty({ example: 10 })
     limit: number;
+
+    @ApiProperty({ example: 158 })
+    total: number;
+
+    @ApiProperty({ example: 16 })
+    totalPages: number;
+}
+
+export class AuditLogListResponseDto {
+    @ApiProperty({ type: [AuditLogItemResponseDto] })
+    data: AuditLogItemResponseDto[];
+
+    @ApiProperty({ type: AuditLogListMetaDto })
+    meta: AuditLogListMetaDto;
 }
 
 export class AuditLogExportQueryDto {

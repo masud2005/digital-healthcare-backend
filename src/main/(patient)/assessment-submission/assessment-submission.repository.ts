@@ -70,8 +70,13 @@ const blueprintSubmissionInclude = {
     answers: {
         include: {
             selectedOptions: {
-                select: {
-                    optionId: true,
+                include: {
+                    option: {
+                        select: {
+                            id: true,
+                            label: true,
+                        },
+                    },
                 },
             },
         },
@@ -129,8 +134,8 @@ export class AssessmentSubmissionRepository {
                     include: assessmentSubmissionInclude,
                 });
             } catch (error: any) {
-                const isUniqueViolation = error?.code === "P2002" &&
-                    error?.meta?.target?.includes("submissionCode");
+                const isUniqueViolation =
+                    error?.code === "P2002" && error?.meta?.target?.includes("submissionCode");
 
                 if (!isUniqueViolation || attempt === SUBMISSION_CODE_MAX_RETRIES - 1) {
                     throw error;
@@ -227,25 +232,41 @@ export class AssessmentSubmissionRepository {
         }>,
     ) {
         return this.prisma.$transaction(async (tx) => {
-            await tx.submissionAnswer.deleteMany({ where: { submissionId: id } });
+            for (const answer of answers) {
+                const existing = await tx.submissionAnswer.findFirst({
+                    where: { submissionId: id, questionId: answer.questionId },
+                    select: { id: true },
+                });
 
-            return tx.assessmentSubmission.update({
-                where: { id },
-                data: {
-                    answers: {
-                        create: answers.map((answer) => ({
+                if (existing) {
+                    await tx.selectedOption.deleteMany({
+                        where: { submissionAnswerId: existing.id },
+                    });
+                    await tx.submissionAnswer.update({
+                        where: { id: existing.id },
+                        data: {
+                            textResponse: answer.textResponse ?? null,
+                            selectedOptions: answer.selectedOptionIds?.length
+                                ? { create: answer.selectedOptionIds.map((optionId) => ({ optionId })) }
+                                : undefined,
+                        },
+                    });
+                } else {
+                    await tx.submissionAnswer.create({
+                        data: {
+                            submissionId: id,
                             questionId: answer.questionId,
                             textResponse: answer.textResponse ?? null,
                             selectedOptions: answer.selectedOptionIds?.length
-                                ? {
-                                      create: answer.selectedOptionIds.map((optionId) => ({
-                                          optionId,
-                                      })),
-                                  }
+                                ? { create: answer.selectedOptionIds.map((optionId) => ({ optionId })) }
                                 : undefined,
-                        })),
-                    },
-                },
+                        },
+                    });
+                }
+            }
+
+            return tx.assessmentSubmission.findUniqueOrThrow({
+                where: { id },
                 include: blueprintSubmissionInclude,
             });
         });

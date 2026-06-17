@@ -20,12 +20,14 @@ model User {
   authSecurityEvents    AuthSecurityEvent[]
   userRoles             UserRole[]
   doctorProfile         DoctorProfile?
-  auditLogs             AuditLog[]
+  patientProfile        PatientProfile?
   attachments           Attachment[]
+  auditLogs             AuditLog[]
 
   createdAt DateTime  @default(now())
   updatedAt DateTime  @updatedAt
   deletedAt DateTime?
+  cart      Cart?
 
   @@index([status])
   @@index([categoryId])

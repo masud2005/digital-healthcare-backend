@@ -27,7 +27,14 @@ export type QuestionType = (typeof questionType)[number];
 export const alignment = ["LEFT", "CENTER", "RIGHT"] as const;
 export type Alignment = (typeof alignment)[number];
 
-export const submissionStatus = [ "DRAFT", "PENDING", "REVIEWED", "ACCEPTED", "REFIL_REQUESTED", "REJECTED"] as const;
+export const submissionStatus = [
+    "DRAFT",
+    "PENDING",
+    "REVIEWED",
+    "ACCEPTED",
+    "REFIL_REQUESTED",
+    "REJECTED",
+] as const;
 export type SubmissionStatus = (typeof submissionStatus)[number];
 
 export const otpPurpose = ["LOGIN", "REGISTER", "FORGOT_PASSWORD"] as const;
@@ -72,7 +79,12 @@ export type DiscountType = (typeof discountType)[number];
 export const incidentSeverity = ["CRITICAL", "HIGH", "MEDIUM", "LOW"] as const;
 export type IncidentSeverity = (typeof incidentSeverity)[number];
 
-export const incidentSource = ["SECURITY_SCAN", "SYSTEM_MONITORING", "USER_REPORT", "MANUAL"] as const;
+export const incidentSource = [
+    "SECURITY_SCAN",
+    "SYSTEM_MONITORING",
+    "USER_REPORT",
+    "MANUAL",
+] as const;
 export type IncidentSource = (typeof incidentSource)[number];
 
 export const incidentStatus = ["OPEN", "INVESTIGATING", "RESOLVED", "CLOSED"] as const;
@@ -81,5 +93,44 @@ export type IncidentStatus = (typeof incidentStatus)[number];
 export const systemHealthStatus = ["OPERATIONAL", "DEGRADED", "OUTAGE", "MAINTENANCE"] as const;
 export type SystemHealthStatus = (typeof systemHealthStatus)[number];
 
-export const attachmentContext = ["PROFILE_PICTURE", "CHAT_MESSAGE", "PRODUCT_IMAGE", "ASSESSMENT_FILE", "MEDICAL_REPORT", "CATEGORY_ICON"] as const;
+export const consentType = ["DATA_PROCESSING", "MARKETING", "ANALYTICS", "AI_TRAINING"] as const;
+export type ConsentType = (typeof consentType)[number];
+
+export const consentStatus = ["ACCEPTED", "REVOKED", "PENDING"] as const;
+export type ConsentStatus = (typeof consentStatus)[number];
+
+export const consentSource = ["WEB", "MOBILE"] as const;
+export type ConsentSource = (typeof consentSource)[number];
+export const attachmentContext = [
+    "PROFILE_PICTURE",
+    "CHAT_MESSAGE",
+    "PRODUCT_IMAGE",
+    "ASSESSMENT_FILE",
+    "MEDICAL_REPORT",
+    "CATEGORY_ICON",
+    "HERO_IMAGE",
+    "HERO_BADGE_IMAGE",
+    "HOW_IT_WORKS_ICON",
+    "WEBSITE_LOGO",
+    "WEBSITE_FAVICON",
+    "WEBSITE_SOCIAL_PREVIEW",
+    "DOCTOR_AVATAR",
+    "CONTACT_LEAD_ATTACHMENT",
+    "SIDE_EFFECT_REPORT_ATTACHMENT",
+] as const;
 export type AttachmentContext = (typeof attachmentContext)[number];
+
+export const providerLicenseStatus = ["ACTIVE", "EXPIRING_SOON", "EXPIRED", "PENDING"] as const;
+export type ProviderLicenseStatus = (typeof providerLicenseStatus)[number];
+
+export const providerLicenseSource = ["PRIMARY", "DEA", "STATE_BOARD"] as const;
+export type ProviderLicenseSource = (typeof providerLicenseSource)[number];
+
+export const sideEffectSeverity = ["MILD", "MODERATE", "SEVERE", "LIFE_THREATENING"] as const;
+export type SideEffectSeverity = (typeof sideEffectSeverity)[number];
+
+export const sideEffectStatus = ["PENDING", "REVIEWED", "ESCALATED"] as const;
+export type SideEffectStatus = (typeof sideEffectStatus)[number];
+
+export const stateComplianceStatus = ["COMPLIANT", "RESTRICTED", "COMING_SOON"] as const;
+export type StateComplianceStatus = (typeof stateComplianceStatus)[number];

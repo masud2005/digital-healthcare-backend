@@ -1,6 +1,7 @@
 model Category {
   id          String         @id @default(uuid())
-  name        String         @unique
+  name        String
+  slug        String         @unique
   description String?        @db.Text
   status      CategoryStatus @default(ACTIVE)
 
@@ -9,9 +10,11 @@ model Category {
   icon   Attachment? @relation(fields: [iconId], references: [id], onDelete: Cascade)
 
   // Relations
-  products    Product[]
-  assessments Assessment[]
-  patients    User[]
+  products          Product[]
+  assessments       Assessment[]
+  patients          User[]
+  sideEffectReports SideEffectReport[]
+  allowedStates     StateCoverage[]    @relation("StateAllowedCategories")
 
   createdAt   DateTime     @default(now())
   updatedAt   DateTime     @updatedAt
@@ -19,6 +22,7 @@ model Category {
 
   @@index([status])
   @@index([name])
+  @@index([slug])
 }
 
 model PaymentPlan {

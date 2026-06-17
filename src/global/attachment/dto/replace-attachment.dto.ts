@@ -3,10 +3,10 @@ import { ApiPropertyOptional } from "@nestjs/swagger";
 import { IsEnum, IsOptional } from "class-validator";
 
 export class ReplaceAttachmentDto {
-    @ApiPropertyOptional({ 
+    @ApiPropertyOptional({
         enum: attachmentContext,
         description: "Optional context update for the attachment",
-        example: "PROFILE_PICTURE"
+        example: "PROFILE_PICTURE",
     })
     @IsOptional()
     @IsEnum(attachmentContext)

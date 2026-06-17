@@ -19,6 +19,15 @@ enum AttachmentContext {
   ASSESSMENT_FILE
   MEDICAL_REPORT
   CATEGORY_ICON
+  HERO_IMAGE
+  HERO_BADGE_IMAGE
+  HOW_IT_WORKS_ICON
+  WEBSITE_LOGO
+  WEBSITE_FAVICON
+  WEBSITE_SOCIAL_PREVIEW
+  DOCTOR_AVATAR
+  CONTACT_LEAD_ATTACHMENT
+  SIDE_EFFECT_REPORT_ATTACHMENT
 }
 
 enum AuthAttemptStatus {
@@ -55,6 +64,24 @@ enum BillingCycle {
 enum CategoryStatus {
   ACTIVE
   DISABLED
+}
+
+enum ConsentSource {
+  WEB
+  MOBILE
+}
+
+enum ConsentStatus {
+  ACCEPTED
+  REVOKED
+  PENDING
+}
+
+enum ConsentType {
+  DATA_PROCESSING
+  MARKETING
+  ANALYTICS
+  AI_TRAINING
 }
 
 enum DiscountType {
@@ -102,11 +129,43 @@ enum OtpStatus {
   FAILED
 }
 
+enum ProviderLicenseSource {
+  PRIMARY
+  DEA
+  STATE_BOARD
+}
+
+enum ProviderLicenseStatus {
+  ACTIVE
+  EXPIRING_SOON
+  EXPIRED
+  PENDING
+}
+
 enum QuestionType {
   INFORMATION_ONLY
   SINGLE_CHOICE
   MULTIPLE_CHOICE
   INPUT
+}
+
+enum SideEffectSeverity {
+  MILD
+  MODERATE
+  SEVERE
+  LIFE_THREATENING
+}
+
+enum SideEffectStatus {
+  PENDING
+  REVIEWED
+  ESCALATED
+}
+
+enum StateComplianceStatus {
+  COMPLIANT
+  RESTRICTED
+  COMING_SOON
 }
 
 enum SubmissionStatus {

@@ -63,7 +63,15 @@ export class AuditLogRepository {
             this.prisma.auditLog.count({ where }),
         ]);
 
-        return { data, total, page, limit };
+        return {
+            data,
+            meta: {
+                total,
+                page,
+                limit,
+                totalPages: Math.ceil(total / limit),
+            },
+        };
     }
 
     async findAll(query: Partial<AuditLogQueryDto>) {
