@@ -148,6 +148,30 @@ export class AuthRepository {
         });
     }
 
+    toggleMfa(userId: string, mfaEnabled: boolean) {
+        return this.prisma.user.update({
+            where: { id: userId },
+            data: { mfaEnabled },
+            select: { id: true, mfaEnabled: true },
+        });
+    }
+
+    findPreference(userId: string) {
+        return this.prisma.userPreference.findUnique({ where: { userId } });
+    }
+
+    upsertPreference(userId: string, data: {
+        emailNotifications?: boolean;
+        smsNotifications?: boolean;
+        pushNotifications?: boolean;
+    }) {
+        return this.prisma.userPreference.upsert({
+            where: { userId },
+            create: { userId, ...data },
+            update: data,
+        });
+    }
+
     createFlowAttempt(data: {
         purpose: OtpPurpose;
         status?: AuthAttemptStatus;
