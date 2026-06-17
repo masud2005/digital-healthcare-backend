@@ -2,7 +2,10 @@ import { ApiPropertyOptional } from "@nestjs/swagger";
 import { IsOptional, IsString, IsUUID } from "class-validator";
 
 export class UpdateProfileDto {
-    @ApiPropertyOptional({ example: "uuid", description: "Attachment ID from POST /attachments/upload" })
+    @ApiPropertyOptional({
+        example: "uuid",
+        description: "Attachment ID from POST /attachments/upload",
+    })
     @IsOptional()
     @IsUUID()
     avatarId?: string;

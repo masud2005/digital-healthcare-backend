@@ -76,15 +76,18 @@ export class ConsentController {
         @Res({ passthrough: false }) res?: Response,
         @CurrentUser() user?: AuthenticatedUser,
     ) {
-        const csvContent = await this.consentService.exportCsv({
-            search,
-            role,
-            type,
-            status,
-            source,
-            startDate,
-            endDate,
-        }, user);
+        const csvContent = await this.consentService.exportCsv(
+            {
+                search,
+                role,
+                type,
+                status,
+                source,
+                startDate,
+                endDate,
+            },
+            user,
+        );
 
         const timestamp = new Date().toISOString().replace(/[:.]/g, "-").slice(0, 19);
         const filename = `consent-logs-${timestamp}.csv`;

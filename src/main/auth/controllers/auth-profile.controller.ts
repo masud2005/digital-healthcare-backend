@@ -1,4 +1,4 @@
-import { Body, Controller, Get, HttpStatus, Patch, UseGuards } from "@nestjs/common";
+import { Body, Controller, Get, Patch, Req, UseGuards } from "@nestjs/common";
 import { ApiBearerAuth, ApiOkResponse, ApiOperation, ApiTags } from "@nestjs/swagger";
 import { CurrentUser } from "@common/decorators/current-user.decorator";
 import { JwtAuthGuard } from "@common/guards/jwt-auth.guard";
@@ -27,5 +27,13 @@ export class AuthProfileController {
     @ApiOperation({ summary: "Update current authenticated user profile (role-based)" })
     updateProfile(@CurrentUser() user: AuthenticatedUser, @Body() payload: UpdateProfileDto) {
         return this.authAccountService.updateProfile(user.id, payload);
+    }
+
+    @Get("sessions")
+    @UseGuards(JwtAuthGuard)
+    @ApiBearerAuth()
+    @ApiOperation({ summary: "Get current authenticated user device sessions" })
+    getSessions(@Req() req: any) {
+        return this.authAccountService.getDeviceSessions(req.user.id, req.session.id);
     }
 }

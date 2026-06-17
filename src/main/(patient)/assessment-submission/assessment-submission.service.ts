@@ -97,7 +97,9 @@ export class AssessmentSubmissionService {
     }
 
     async create(userId: string, payload: CreateAssessmentSubmissionDto) {
-        const assessment = await this.assessmentSubmissionRepository.findAssessmentById(payload.assessmentId);
+        const assessment = await this.assessmentSubmissionRepository.findAssessmentById(
+            payload.assessmentId,
+        );
 
         if (!assessment) {
             throw new NotFoundException("Assessment not found");
@@ -158,9 +160,7 @@ export class AssessmentSubmissionService {
         const thumbnail = await this.storageService.resolveKey(assessment.thumbnail);
 
         // Build a map of all question options keyed by questionId for file-type detection
-        const questionOptionsMap = new Map(
-            assessment.questions.map((q) => [q.id, q.options]),
-        );
+        const questionOptionsMap = new Map(assessment.questions.map((q) => [q.id, q.options]));
 
         const questionsByParentOptionId = new Map<string, typeof assessment.questions>();
         for (const q of assessment.questions) {
@@ -175,9 +175,7 @@ export class AssessmentSubmissionService {
             if (!answer) return null;
 
             const options = questionOptionsMap.get(questionId) ?? [];
-            const isFileInput = options.some(
-                (o) => o.inputType?.toLowerCase() === "file",
-            );
+            const isFileInput = options.some((o) => o.inputType?.toLowerCase() === "file");
 
             // Resolve attachment if textResponse holds a file attachment id
             let resolvedFile: { id: string; fileUrl: string | null } | null = null;
@@ -202,7 +200,9 @@ export class AssessmentSubmissionService {
             };
         };
 
-        const buildQuestion = async (q: (typeof assessment.questions)[number]): Promise<object> => ({
+        const buildQuestion = async (
+            q: (typeof assessment.questions)[number],
+        ): Promise<object> => ({
             id: q.id,
             type: q.type,
             heading: q.heading ?? null,
@@ -224,9 +224,7 @@ export class AssessmentSubmissionService {
         });
 
         const rootQuestions = await Promise.all(
-            assessment.questions
-                .filter((q) => !q.parentOptionId)
-                .map((q) => buildQuestion(q)),
+            assessment.questions.filter((q) => !q.parentOptionId).map((q) => buildQuestion(q)),
         );
 
         return {

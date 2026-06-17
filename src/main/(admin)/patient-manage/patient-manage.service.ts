@@ -17,7 +17,9 @@ export class PatientManageService {
 
         const items = await Promise.all(
             data.map(async (submission) => {
-                const totalSubmissions = await this.repo.countSubmissionsByUserId(submission.userId);
+                const totalSubmissions = await this.repo.countSubmissionsByUserId(
+                    submission.userId,
+                );
                 const patientType = totalSubmissions <= 1 ? "New Patient" : "Repeat Patient";
                 const provider = submission.reviewedBy
                     ? await this.repo.findDoctorByUserId(submission.reviewedBy)
@@ -28,7 +30,9 @@ export class PatientManageService {
                     submissionCode: submission.submissionCode,
                     patientName: submission.user.patientProfile?.name ?? null,
                     patientImage: submission.user.patientProfile?.avatar?.fileUrl
-                        ? await this.storageService.resolveKey(submission.user.patientProfile.avatar.fileUrl)
+                        ? await this.storageService.resolveKey(
+                              submission.user.patientProfile.avatar.fileUrl,
+                          )
                         : null,
                     patientId: submission.user.id,
                     provider: provider?.name ?? null,

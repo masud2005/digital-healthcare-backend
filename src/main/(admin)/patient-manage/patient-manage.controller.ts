@@ -89,10 +89,7 @@ export class PatientManageController {
 
     @Patch("status/:id")
     @ApiOperation({ summary: "Update patient status (Deleted = soft delete)" })
-    async updateStatus(
-        @Param() params: PatientParamDto,
-        @Body() payload: UpdatePatientStatusDto,
-    ) {
+    async updateStatus(@Param() params: PatientParamDto, @Body() payload: UpdatePatientStatusDto) {
         const data = await this.patientManageService.updatePatientStatus(params.id, payload.status);
         return {
             success: true,
