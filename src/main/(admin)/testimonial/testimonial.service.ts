@@ -134,6 +134,7 @@ export class TestimonialService implements OnModuleInit {
             feedback: this.parseOptionalText(payload.feedback),
             rating: payload.rating,
             date: payload.date,
+            avatarId: payload.avatarId ?? null,
         };
     }
 
@@ -143,6 +144,7 @@ export class TestimonialService implements OnModuleInit {
             feedback?: string | null;
             rating?: number;
             date?: Date;
+            avatarId?: string | null;
         } = {};
 
         if (payload.clientName !== undefined) {
@@ -159,6 +161,10 @@ export class TestimonialService implements OnModuleInit {
 
         if (payload.date !== undefined) {
             data.date = payload.date;
+        }
+
+        if (payload.avatarId !== undefined) {
+            data.avatarId = payload.avatarId;
         }
 
         if (Object.keys(data).length === 0) {

@@ -24,4 +24,9 @@ export class CreateTestimonialDto {
     @Type(() => Date)
     @IsDate()
     date: Date;
+
+    @ApiPropertyOptional({ example: "7f4145d8-087e-4d33-82bd-0f65d3fbdb4f" })
+    @IsOptional()
+    @IsString()
+    avatarId?: string;
 }

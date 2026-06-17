@@ -1,3 +1,4 @@
+import { AttachmentResponseDto } from "@global/attachment/dto/attachment-response.dto";
 import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
 
 export class TestimonialResponseDto {
@@ -15,6 +16,12 @@ export class TestimonialResponseDto {
 
     @ApiProperty({ example: "2026-06-08T00:00:00.000Z" })
     date: Date;
+
+    @ApiPropertyOptional({ example: "7f4145d8-087e-4d33-82bd-0f65d3fbdb4f", nullable: true })
+    avatarId: string | null;
+
+    @ApiPropertyOptional({ type: AttachmentResponseDto, nullable: true })
+    avatar: AttachmentResponseDto | null;
 
     @ApiProperty({ example: "2026-06-08T00:00:00.000Z" })
     createdAt: Date;
