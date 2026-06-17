@@ -91,6 +91,7 @@ export class TestimonialService implements OnModuleInit {
             page,
             limit,
             search: query.search?.trim(),
+            isPublished: query.isPublished,
             minRating: query.minRating,
             maxRating: query.maxRating,
             fromDate: this.parseQueryDate(query.fromDate, "fromDate"),
@@ -134,6 +135,8 @@ export class TestimonialService implements OnModuleInit {
             feedback: this.parseOptionalText(payload.feedback),
             rating: payload.rating,
             date: payload.date,
+            avatarId: payload.avatarId ?? null,
+            isPublished: payload.isPublished ?? true,
         };
     }
 
@@ -143,6 +146,8 @@ export class TestimonialService implements OnModuleInit {
             feedback?: string | null;
             rating?: number;
             date?: Date;
+            avatarId?: string | null;
+            isPublished?: boolean;
         } = {};
 
         if (payload.clientName !== undefined) {
@@ -159,6 +164,14 @@ export class TestimonialService implements OnModuleInit {
 
         if (payload.date !== undefined) {
             data.date = payload.date;
+        }
+
+        if (payload.avatarId !== undefined) {
+            data.avatarId = payload.avatarId;
+        }
+
+        if (payload.isPublished !== undefined) {
+            data.isPublished = payload.isPublished;
         }
 
         if (Object.keys(data).length === 0) {
