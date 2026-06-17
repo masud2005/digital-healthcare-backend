@@ -1,6 +1,3 @@
--- CreateSchema
-CREATE SCHEMA IF NOT EXISTS "public";
-
 -- CreateEnum
 CREATE TYPE "Alignment" AS ENUM ('LEFT', 'CENTER', 'RIGHT');
 
@@ -17,7 +14,7 @@ CREATE TYPE "AuthAttemptStatus" AS ENUM ('STARTED', 'OTP_SENT', 'VERIFIED', 'FAI
 CREATE TYPE "AuthSecurityEventType" AS ENUM ('REGISTER_STARTED', 'LOGIN_STARTED', 'OTP_SENT', 'OTP_RESENT', 'OTP_VERIFY_FAILED', 'OTP_VERIFIED', 'SESSION_CREATED', 'SESSION_REVOKED', 'DEVICE_TRUSTED', 'DEVICE_REVOKED', 'PASSWORD_CHANGED', 'PASSWORD_RESET_STARTED', 'PASSWORD_RESET_COMPLETED');
 
 -- CreateEnum
-CREATE TYPE "BillingCycle" AS ENUM ('MONTHLY', 'YEARLY', 'QUARTERLY');
+CREATE TYPE "BillingCycle" AS ENUM ('MONTHLY', 'QUARTERLY', 'SIX_MONTHS', 'YEARLY');
 
 -- CreateEnum
 CREATE TYPE "CategoryStatus" AS ENUM ('ACTIVE', 'DISABLED');
@@ -33,6 +30,21 @@ CREATE TYPE "ConsentType" AS ENUM ('DATA_PROCESSING', 'MARKETING', 'ANALYTICS', 
 
 -- CreateEnum
 CREATE TYPE "DiscountType" AS ENUM ('PERCENTAGE', 'FIXED_AMOUNT');
+
+-- CreateEnum
+CREATE TYPE "OrderStatus" AS ENUM ('PENDING', 'CONFIRMED', 'PROCESSING', 'SHIPPED', 'DELIVERED', 'CANCELLED', 'REFUNDED');
+
+-- CreateEnum
+CREATE TYPE "PaymentMethod" AS ENUM ('CARD', 'BANK_TRANSFER', 'CLOVER', 'STRIPE', 'PAYPAL', 'WALLET');
+
+-- CreateEnum
+CREATE TYPE "PaymentStatus" AS ENUM ('PENDING', 'COMPLETED', 'FAILED', 'REFUNDED', 'CANCELLED', 'PROCESSING');
+
+-- CreateEnum
+CREATE TYPE "RefundStatus" AS ENUM ('PENDING', 'COMPLETED', 'FAILED', 'REJECTED');
+
+-- CreateEnum
+CREATE TYPE "SubscriptionStatus" AS ENUM ('ACTIVE', 'REFUNDED', 'CANCELLED', 'EXPIRED', 'PAST_DUE', 'TRIALING');
 
 -- CreateEnum
 CREATE TYPE "IncidentSeverity" AS ENUM ('CRITICAL', 'HIGH', 'MEDIUM', 'LOW');
@@ -304,6 +316,7 @@ CREATE TABLE "CartItem" (
 CREATE TABLE "Category" (
     "id" TEXT NOT NULL,
     "name" TEXT NOT NULL,
+    "slug" TEXT NOT NULL,
     "description" TEXT,
     "status" "CategoryStatus" NOT NULL DEFAULT 'ACTIVE',
     "iconId" TEXT,
@@ -323,6 +336,22 @@ CREATE TABLE "PaymentPlan" (
     "updatedAt" TIMESTAMP(3) NOT NULL,
 
     CONSTRAINT "PaymentPlan_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "compliance_confirmations" (
+    "id" TEXT NOT NULL,
+    "agreedToTermsAndPrivacy" BOOLEAN NOT NULL DEFAULT false,
+    "certifiedInfoAccurate" BOOLEAN NOT NULL DEFAULT false,
+    "understoodFalseInfoConsequences" BOOLEAN NOT NULL DEFAULT false,
+    "understoodRecommendationsBasis" BOOLEAN NOT NULL DEFAULT false,
+    "understoodAdditionalInfoMayBeRequested" BOOLEAN NOT NULL DEFAULT false,
+    "userId" TEXT NOT NULL,
+    "submissionId" TEXT NOT NULL,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) NOT NULL,
+
+    CONSTRAINT "compliance_confirmations_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateTable
@@ -471,11 +500,81 @@ CREATE TABLE "incidents" (
 );
 
 -- CreateTable
+CREATE TABLE "orders" (
+    "id" TEXT NOT NULL,
+    "orderNumber" TEXT NOT NULL,
+    "status" "OrderStatus" NOT NULL DEFAULT 'PENDING',
+    "subtotal" DECIMAL(10,2) NOT NULL,
+    "discountAmount" DECIMAL(10,2) NOT NULL DEFAULT 0,
+    "shippingAmount" DECIMAL(10,2) NOT NULL DEFAULT 0,
+    "total" DECIMAL(10,2) NOT NULL,
+    "shippingName" TEXT,
+    "shippingAddress" TEXT,
+    "shippingCity" TEXT,
+    "shippingState" TEXT,
+    "shippingZip" TEXT,
+    "shippingCountry" TEXT,
+    "notes" TEXT,
+    "confirmedAt" TIMESTAMP(3),
+    "shippedAt" TIMESTAMP(3),
+    "deliveredAt" TIMESTAMP(3),
+    "cancelledAt" TIMESTAMP(3),
+    "cancelReason" TEXT,
+    "trackingNumber" TEXT,
+    "trackingCarrier" TEXT,
+    "userId" TEXT NOT NULL,
+    "discountId" TEXT,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) NOT NULL,
+
+    CONSTRAINT "orders_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "order_items" (
+    "id" TEXT NOT NULL,
+    "quantity" INTEGER NOT NULL DEFAULT 1,
+    "unitPrice" DECIMAL(10,2) NOT NULL,
+    "totalPrice" DECIMAL(10,2) NOT NULL,
+    "productNameSnapshot" TEXT NOT NULL,
+    "variantSizeSnapshot" TEXT,
+    "productImageSnapshot" TEXT,
+    "orderId" TEXT NOT NULL,
+    "productId" TEXT NOT NULL,
+    "variantId" TEXT,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+    CONSTRAINT "order_items_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "payments" (
+    "id" TEXT NOT NULL,
+    "transactionId" TEXT NOT NULL,
+    "amount" DECIMAL(10,2) NOT NULL,
+    "currency" TEXT NOT NULL DEFAULT 'USD',
+    "status" "PaymentStatus" NOT NULL DEFAULT 'PENDING',
+    "method" "PaymentMethod" NOT NULL DEFAULT 'CARD',
+    "paidAt" TIMESTAMP(3),
+    "failedAt" TIMESTAMP(3),
+    "refundedAt" TIMESTAMP(3),
+    "userId" TEXT NOT NULL,
+    "subscriptionId" TEXT,
+    "orderId" TEXT,
+    "discountId" TEXT,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) NOT NULL,
+
+    CONSTRAINT "payments_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
 CREATE TABLE "Product" (
     "id" TEXT NOT NULL,
     "name" TEXT NOT NULL,
-    "price" DECIMAL(10,2) NOT NULL,
-    "stockQuantity" INTEGER NOT NULL DEFAULT 0,
+    "slug" TEXT NOT NULL,
+    "price" DECIMAL(10,2),
+    "stockQuantity" INTEGER DEFAULT 0,
     "description" TEXT,
     "categoryId" TEXT,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -485,12 +584,26 @@ CREATE TABLE "Product" (
 );
 
 -- CreateTable
+CREATE TABLE "ProductVariant" (
+    "id" TEXT NOT NULL,
+    "productId" TEXT NOT NULL,
+    "size" TEXT NOT NULL,
+    "price" DECIMAL(10,2) NOT NULL,
+    "stockQuantity" INTEGER NOT NULL DEFAULT 0,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) NOT NULL,
+
+    CONSTRAINT "ProductVariant_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
 CREATE TABLE "DoctorProfile" (
     "id" TEXT NOT NULL,
     "userId" TEXT NOT NULL,
     "name" TEXT NOT NULL,
     "avatar_id" TEXT,
     "title" TEXT,
+    "featured" BOOLEAN NOT NULL DEFAULT false,
     "specialty" TEXT,
     "bio" TEXT,
     "licenseNumber" TEXT,
@@ -502,6 +615,24 @@ CREATE TABLE "DoctorProfile" (
     "deletedAt" TIMESTAMP(3),
 
     CONSTRAINT "DoctorProfile_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "PatientProfile" (
+    "id" TEXT NOT NULL,
+    "userId" TEXT NOT NULL,
+    "name" TEXT NOT NULL,
+    "avatar_id" TEXT,
+    "address" TEXT,
+    "city" TEXT,
+    "state" TEXT,
+    "zipCode" TEXT,
+    "bio" TEXT,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) NOT NULL,
+    "deletedAt" TIMESTAMP(3),
+
+    CONSTRAINT "PatientProfile_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateTable
@@ -563,6 +694,22 @@ CREATE TABLE "QuestionOption" (
 );
 
 -- CreateTable
+CREATE TABLE "refunds" (
+    "id" TEXT NOT NULL,
+    "refundNumber" TEXT NOT NULL,
+    "amount" DECIMAL(10,2) NOT NULL,
+    "reason" TEXT,
+    "status" "RefundStatus" NOT NULL DEFAULT 'PENDING',
+    "gatewayRefundId" TEXT,
+    "paymentId" TEXT NOT NULL,
+    "userId" TEXT NOT NULL,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) NOT NULL,
+
+    CONSTRAINT "refunds_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
 CREATE TABLE "side_effect_reports" (
     "id" TEXT NOT NULL,
     "firstName" TEXT NOT NULL,
@@ -591,6 +738,29 @@ CREATE TABLE "state_coverages" (
     "updatedAt" TIMESTAMP(3) NOT NULL,
 
     CONSTRAINT "state_coverages_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "subscriptions" (
+    "id" TEXT NOT NULL,
+    "status" "SubscriptionStatus" NOT NULL DEFAULT 'ACTIVE',
+    "startDate" TIMESTAMP(3) NOT NULL,
+    "endDate" TIMESTAMP(3),
+    "nextBillingDate" TIMESTAMP(3),
+    "currentPeriodStart" TIMESTAMP(3),
+    "currentPeriodEnd" TIMESTAMP(3),
+    "trialEndsAt" TIMESTAMP(3),
+    "isRecurring" BOOLEAN NOT NULL DEFAULT true,
+    "cancelledAt" TIMESTAMP(3),
+    "cancelReason" TEXT,
+    "userId" TEXT NOT NULL,
+    "categoryId" TEXT NOT NULL,
+    "paymentPlanId" TEXT NOT NULL,
+    "discountId" TEXT,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) NOT NULL,
+
+    CONSTRAINT "subscriptions_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateTable
@@ -925,7 +1095,7 @@ CREATE UNIQUE INDEX "Cart_userId_key" ON "Cart"("userId");
 CREATE UNIQUE INDEX "CartItem_cartId_productId_size_key" ON "CartItem"("cartId", "productId", "size");
 
 -- CreateIndex
-CREATE UNIQUE INDEX "Category_name_key" ON "Category"("name");
+CREATE UNIQUE INDEX "Category_slug_key" ON "Category"("slug");
 
 -- CreateIndex
 CREATE UNIQUE INDEX "Category_iconId_key" ON "Category"("iconId");
@@ -937,7 +1107,19 @@ CREATE INDEX "Category_status_idx" ON "Category"("status");
 CREATE INDEX "Category_name_idx" ON "Category"("name");
 
 -- CreateIndex
+CREATE INDEX "Category_slug_idx" ON "Category"("slug");
+
+-- CreateIndex
 CREATE UNIQUE INDEX "PaymentPlan_categoryId_key" ON "PaymentPlan"("categoryId");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "compliance_confirmations_submissionId_key" ON "compliance_confirmations"("submissionId");
+
+-- CreateIndex
+CREATE INDEX "compliance_confirmations_userId_idx" ON "compliance_confirmations"("userId");
+
+-- CreateIndex
+CREATE INDEX "compliance_confirmations_submissionId_idx" ON "compliance_confirmations"("submissionId");
 
 -- CreateIndex
 CREATE INDEX "consents_email_idx" ON "consents"("email");
@@ -982,10 +1164,64 @@ CREATE INDEX "incidents_status_idx" ON "incidents"("status");
 CREATE INDEX "incidents_detectedAt_idx" ON "incidents"("detectedAt");
 
 -- CreateIndex
+CREATE UNIQUE INDEX "orders_orderNumber_key" ON "orders"("orderNumber");
+
+-- CreateIndex
+CREATE INDEX "orders_userId_idx" ON "orders"("userId");
+
+-- CreateIndex
+CREATE INDEX "orders_status_idx" ON "orders"("status");
+
+-- CreateIndex
+CREATE INDEX "orders_orderNumber_idx" ON "orders"("orderNumber");
+
+-- CreateIndex
+CREATE INDEX "orders_createdAt_idx" ON "orders"("createdAt");
+
+-- CreateIndex
+CREATE INDEX "order_items_orderId_idx" ON "order_items"("orderId");
+
+-- CreateIndex
+CREATE INDEX "order_items_productId_idx" ON "order_items"("productId");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "payments_transactionId_key" ON "payments"("transactionId");
+
+-- CreateIndex
+CREATE INDEX "payments_userId_idx" ON "payments"("userId");
+
+-- CreateIndex
+CREATE INDEX "payments_subscriptionId_idx" ON "payments"("subscriptionId");
+
+-- CreateIndex
+CREATE INDEX "payments_orderId_idx" ON "payments"("orderId");
+
+-- CreateIndex
+CREATE INDEX "payments_status_idx" ON "payments"("status");
+
+-- CreateIndex
+CREATE INDEX "payments_transactionId_idx" ON "payments"("transactionId");
+
+-- CreateIndex
+CREATE INDEX "payments_paidAt_idx" ON "payments"("paidAt");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "Product_slug_key" ON "Product"("slug");
+
+-- CreateIndex
 CREATE INDEX "Product_categoryId_idx" ON "Product"("categoryId");
 
 -- CreateIndex
 CREATE INDEX "Product_name_idx" ON "Product"("name");
+
+-- CreateIndex
+CREATE INDEX "Product_slug_idx" ON "Product"("slug");
+
+-- CreateIndex
+CREATE INDEX "ProductVariant_productId_idx" ON "ProductVariant"("productId");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "ProductVariant_productId_size_key" ON "ProductVariant"("productId", "size");
 
 -- CreateIndex
 CREATE UNIQUE INDEX "DoctorProfile_userId_key" ON "DoctorProfile"("userId");
@@ -1001,6 +1237,18 @@ CREATE INDEX "DoctorProfile_userId_idx" ON "DoctorProfile"("userId");
 
 -- CreateIndex
 CREATE INDEX "DoctorProfile_title_idx" ON "DoctorProfile"("title");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "PatientProfile_userId_key" ON "PatientProfile"("userId");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "PatientProfile_avatar_id_key" ON "PatientProfile"("avatar_id");
+
+-- CreateIndex
+CREATE INDEX "PatientProfile_name_idx" ON "PatientProfile"("name");
+
+-- CreateIndex
+CREATE INDEX "PatientProfile_userId_idx" ON "PatientProfile"("userId");
 
 -- CreateIndex
 CREATE INDEX "provider_licenses_doctorId_idx" ON "provider_licenses"("doctorId");
@@ -1030,6 +1278,21 @@ CREATE INDEX "Question_parentOptionId_idx" ON "Question"("parentOptionId");
 CREATE INDEX "QuestionOption_questionId_idx" ON "QuestionOption"("questionId");
 
 -- CreateIndex
+CREATE UNIQUE INDEX "refunds_refundNumber_key" ON "refunds"("refundNumber");
+
+-- CreateIndex
+CREATE INDEX "refunds_paymentId_idx" ON "refunds"("paymentId");
+
+-- CreateIndex
+CREATE INDEX "refunds_userId_idx" ON "refunds"("userId");
+
+-- CreateIndex
+CREATE INDEX "refunds_status_idx" ON "refunds"("status");
+
+-- CreateIndex
+CREATE INDEX "refunds_refundNumber_idx" ON "refunds"("refundNumber");
+
+-- CreateIndex
 CREATE INDEX "side_effect_reports_status_idx" ON "side_effect_reports"("status");
 
 -- CreateIndex
@@ -1046,6 +1309,21 @@ CREATE INDEX "state_coverages_status_idx" ON "state_coverages"("status");
 
 -- CreateIndex
 CREATE INDEX "state_coverages_stateCode_idx" ON "state_coverages"("stateCode");
+
+-- CreateIndex
+CREATE INDEX "subscriptions_userId_idx" ON "subscriptions"("userId");
+
+-- CreateIndex
+CREATE INDEX "subscriptions_categoryId_idx" ON "subscriptions"("categoryId");
+
+-- CreateIndex
+CREATE INDEX "subscriptions_status_idx" ON "subscriptions"("status");
+
+-- CreateIndex
+CREATE INDEX "subscriptions_nextBillingDate_idx" ON "subscriptions"("nextBillingDate");
+
+-- CreateIndex
+CREATE INDEX "subscriptions_currentPeriodEnd_idx" ON "subscriptions"("currentPeriodEnd");
 
 -- CreateIndex
 CREATE UNIQUE INDEX "system_health_key_key" ON "system_health"("key");
@@ -1216,6 +1494,12 @@ ALTER TABLE "Category" ADD CONSTRAINT "Category_iconId_fkey" FOREIGN KEY ("iconI
 ALTER TABLE "PaymentPlan" ADD CONSTRAINT "PaymentPlan_categoryId_fkey" FOREIGN KEY ("categoryId") REFERENCES "Category"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
+ALTER TABLE "compliance_confirmations" ADD CONSTRAINT "compliance_confirmations_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "compliance_confirmations" ADD CONSTRAINT "compliance_confirmations_submissionId_fkey" FOREIGN KEY ("submissionId") REFERENCES "AssessmentSubmission"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
 ALTER TABLE "ContactLead" ADD CONSTRAINT "ContactLead_attachment_id_fkey" FOREIGN KEY ("attachment_id") REFERENCES "Attachment"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
@@ -1237,13 +1521,49 @@ ALTER TABLE "how_it_works_steps" ADD CONSTRAINT "how_it_works_steps_icon_id_fkey
 ALTER TABLE "homepage_faqs" ADD CONSTRAINT "homepage_faqs_homepage_content_id_fkey" FOREIGN KEY ("homepage_content_id") REFERENCES "homepage_content"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
+ALTER TABLE "orders" ADD CONSTRAINT "orders_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "orders" ADD CONSTRAINT "orders_discountId_fkey" FOREIGN KEY ("discountId") REFERENCES "discounts"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "order_items" ADD CONSTRAINT "order_items_orderId_fkey" FOREIGN KEY ("orderId") REFERENCES "orders"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "order_items" ADD CONSTRAINT "order_items_productId_fkey" FOREIGN KEY ("productId") REFERENCES "Product"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "order_items" ADD CONSTRAINT "order_items_variantId_fkey" FOREIGN KEY ("variantId") REFERENCES "ProductVariant"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "payments" ADD CONSTRAINT "payments_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "payments" ADD CONSTRAINT "payments_subscriptionId_fkey" FOREIGN KEY ("subscriptionId") REFERENCES "subscriptions"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "payments" ADD CONSTRAINT "payments_orderId_fkey" FOREIGN KEY ("orderId") REFERENCES "orders"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "payments" ADD CONSTRAINT "payments_discountId_fkey" FOREIGN KEY ("discountId") REFERENCES "discounts"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+
+-- AddForeignKey
 ALTER TABLE "Product" ADD CONSTRAINT "Product_categoryId_fkey" FOREIGN KEY ("categoryId") REFERENCES "Category"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "ProductVariant" ADD CONSTRAINT "ProductVariant_productId_fkey" FOREIGN KEY ("productId") REFERENCES "Product"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "DoctorProfile" ADD CONSTRAINT "DoctorProfile_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "DoctorProfile" ADD CONSTRAINT "DoctorProfile_avatar_id_fkey" FOREIGN KEY ("avatar_id") REFERENCES "Attachment"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "PatientProfile" ADD CONSTRAINT "PatientProfile_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "PatientProfile" ADD CONSTRAINT "PatientProfile_avatar_id_fkey" FOREIGN KEY ("avatar_id") REFERENCES "Attachment"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "Question" ADD CONSTRAINT "Question_assessmentId_fkey" FOREIGN KEY ("assessmentId") REFERENCES "Assessment"("id") ON DELETE CASCADE ON UPDATE CASCADE;
@@ -1255,10 +1575,28 @@ ALTER TABLE "Question" ADD CONSTRAINT "Question_parentOptionId_fkey" FOREIGN KEY
 ALTER TABLE "QuestionOption" ADD CONSTRAINT "QuestionOption_questionId_fkey" FOREIGN KEY ("questionId") REFERENCES "Question"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
+ALTER TABLE "refunds" ADD CONSTRAINT "refunds_paymentId_fkey" FOREIGN KEY ("paymentId") REFERENCES "payments"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "refunds" ADD CONSTRAINT "refunds_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
 ALTER TABLE "side_effect_reports" ADD CONSTRAINT "side_effect_reports_service_id_fkey" FOREIGN KEY ("service_id") REFERENCES "Category"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "side_effect_reports" ADD CONSTRAINT "side_effect_reports_provider_id_fkey" FOREIGN KEY ("provider_id") REFERENCES "DoctorProfile"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "subscriptions" ADD CONSTRAINT "subscriptions_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "subscriptions" ADD CONSTRAINT "subscriptions_categoryId_fkey" FOREIGN KEY ("categoryId") REFERENCES "Category"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "subscriptions" ADD CONSTRAINT "subscriptions_paymentPlanId_fkey" FOREIGN KEY ("paymentPlanId") REFERENCES "PaymentPlan"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "subscriptions" ADD CONSTRAINT "subscriptions_discountId_fkey" FOREIGN KEY ("discountId") REFERENCES "discounts"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "User" ADD CONSTRAINT "User_categoryId_fkey" FOREIGN KEY ("categoryId") REFERENCES "Category"("id") ON DELETE CASCADE ON UPDATE CASCADE;

@@ -23,11 +23,20 @@ model User {
   patientProfile        PatientProfile?
   attachments           Attachment[]
   auditLogs             AuditLog[]
+  cart                  Cart?
+
+  // Payment relations
+  subscriptions Subscription[]
+  payments      Payment[]
+  orders        Order[]
+  refunds       Refund[]
+
+  // Compliance
+  complianceConfirmations ComplianceConfirmation[]
 
   createdAt DateTime  @default(now())
   updatedAt DateTime  @updatedAt
   deletedAt DateTime?
-  cart      Cart?
 
   @@index([status])
   @@index([categoryId])
