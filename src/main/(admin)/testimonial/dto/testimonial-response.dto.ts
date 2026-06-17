@@ -23,6 +23,9 @@ export class TestimonialResponseDto {
     @ApiPropertyOptional({ type: AttachmentResponseDto, nullable: true })
     avatar: AttachmentResponseDto | null;
 
+    @ApiProperty({ example: true })
+    isPublished: boolean;
+
     @ApiProperty({ example: "2026-06-08T00:00:00.000Z" })
     createdAt: Date;
 

@@ -8,6 +8,7 @@ type TestimonialCreateData = {
     rating: number;
     date: Date;
     avatarId?: string | null;
+    isPublished?: boolean;
 };
 
 type TestimonialUpdateData = {
@@ -16,10 +17,12 @@ type TestimonialUpdateData = {
     rating?: number;
     date?: Date;
     avatarId?: string | null;
+    isPublished?: boolean;
 };
 
 type TestimonialFindAllParams = {
     search?: string;
+    isPublished?: boolean;
     minRating?: number;
     maxRating?: number;
     fromDate?: Date;
@@ -87,6 +90,7 @@ export class TestimonialRepository {
         const dateFilter = this.buildDateRangeFilter(params.fromDate, params.toDate);
 
         return {
+            ...(params.isPublished !== undefined ? { isPublished: params.isPublished } : {}),
             ...(ratingFilter ? { rating: ratingFilter } : {}),
             ...(dateFilter ? { date: dateFilter } : {}),
             ...(params.search
