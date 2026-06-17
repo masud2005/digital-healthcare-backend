@@ -1,3 +1,4 @@
+import { ExportService } from "@global/export/export.service";
 import {
     BadRequestException,
     Injectable,
@@ -22,6 +23,7 @@ export class TestimonialService implements OnModuleInit {
     constructor(
         private readonly testimonialRepository: TestimonialRepository,
         private readonly googleReviewService: GoogleReviewService,
+        private readonly exportService: ExportService,
     ) {}
 
     async onModuleInit() {
@@ -91,6 +93,7 @@ export class TestimonialService implements OnModuleInit {
             page,
             limit,
             search: query.search?.trim(),
+            isPublished: query.isPublished,
             minRating: query.minRating,
             maxRating: query.maxRating,
             fromDate: this.parseQueryDate(query.fromDate, "fromDate"),
@@ -106,6 +109,41 @@ export class TestimonialService implements OnModuleInit {
                 totalPages: Math.ceil(total / limit),
             },
         };
+    }
+
+    async exportCsv(query: Omit<TestimonialQueryDto, "page" | "limit">): Promise<string> {
+        const { data } = await this.testimonialRepository.findAll({
+            page: 1,
+            limit: 100000,
+            search: query.search?.trim(),
+            isPublished: query.isPublished,
+            minRating: query.minRating,
+            maxRating: query.maxRating,
+            fromDate: this.parseQueryDate(query.fromDate, "fromDate"),
+            toDate: this.parseQueryDate(query.toDate, "toDate"),
+        });
+
+        const headers = [
+            "ID",
+            "Client Name",
+            "Feedback",
+            "Rating",
+            "Date",
+            "Status",
+            "Created At",
+        ];
+
+        const rows = data.map((t) => [
+            t.id,
+            t.clientName,
+            t.feedback || "",
+            t.rating,
+            t.date,
+            t.isPublished ? "PUBLISHED" : "HIDDEN",
+            t.createdAt,
+        ]);
+
+        return this.exportService.generateCsv(headers, rows);
     }
 
     async findOne(id: string) {
@@ -134,6 +172,8 @@ export class TestimonialService implements OnModuleInit {
             feedback: this.parseOptionalText(payload.feedback),
             rating: payload.rating,
             date: payload.date,
+            avatarId: payload.avatarId ?? null,
+            isPublished: payload.isPublished ?? true,
         };
     }
 
@@ -143,6 +183,8 @@ export class TestimonialService implements OnModuleInit {
             feedback?: string | null;
             rating?: number;
             date?: Date;
+            avatarId?: string | null;
+            isPublished?: boolean;
         } = {};
 
         if (payload.clientName !== undefined) {
@@ -159,6 +201,14 @@ export class TestimonialService implements OnModuleInit {
 
         if (payload.date !== undefined) {
             data.date = payload.date;
+        }
+
+        if (payload.avatarId !== undefined) {
+            data.avatarId = payload.avatarId;
+        }
+
+        if (payload.isPublished !== undefined) {
+            data.isPublished = payload.isPublished;
         }
 
         if (Object.keys(data).length === 0) {

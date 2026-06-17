@@ -7,6 +7,8 @@ type TestimonialCreateData = {
     feedback?: string | null;
     rating: number;
     date: Date;
+    avatarId?: string | null;
+    isPublished?: boolean;
 };
 
 type TestimonialUpdateData = {
@@ -14,10 +16,13 @@ type TestimonialUpdateData = {
     feedback?: string | null;
     rating?: number;
     date?: Date;
+    avatarId?: string | null;
+    isPublished?: boolean;
 };
 
 type TestimonialFindAllParams = {
     search?: string;
+    isPublished?: boolean;
     minRating?: number;
     maxRating?: number;
     fromDate?: Date;
@@ -31,7 +36,10 @@ export class TestimonialRepository {
     constructor(private readonly prisma: PrismaService) {}
 
     create(data: TestimonialCreateData) {
-        return this.prisma.testimonial.create({ data });
+        return this.prisma.testimonial.create({
+            data,
+            include: { avatar: true },
+        });
     }
 
     count() {
@@ -45,6 +53,7 @@ export class TestimonialRepository {
         const [data, total] = await this.prisma.$transaction([
             this.prisma.testimonial.findMany({
                 where,
+                include: { avatar: true },
                 skip: (page - 1) * limit,
                 take: limit,
                 orderBy: { date: "desc" },
@@ -58,6 +67,7 @@ export class TestimonialRepository {
     findById(id: string) {
         return this.prisma.testimonial.findUnique({
             where: { id },
+            include: { avatar: true },
         });
     }
 
@@ -65,6 +75,7 @@ export class TestimonialRepository {
         return this.prisma.testimonial.update({
             where: { id },
             data,
+            include: { avatar: true },
         });
     }
 
@@ -79,6 +90,7 @@ export class TestimonialRepository {
         const dateFilter = this.buildDateRangeFilter(params.fromDate, params.toDate);
 
         return {
+            ...(params.isPublished !== undefined ? { isPublished: params.isPublished } : {}),
             ...(ratingFilter ? { rating: ratingFilter } : {}),
             ...(dateFilter ? { date: dateFilter } : {}),
             ...(params.search
