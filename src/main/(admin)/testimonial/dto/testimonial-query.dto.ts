@@ -1,12 +1,18 @@
 import { ApiPropertyOptional } from "@nestjs/swagger";
 import { Type } from "class-transformer";
-import { IsInt, IsNumber, IsOptional, IsString, Max, Min } from "class-validator";
+import { IsBoolean, IsInt, IsNumber, IsOptional, IsString, Max, Min } from "class-validator";
 
 export class TestimonialQueryDto {
     @ApiPropertyOptional({ example: "john", description: "Search by client name or feedback" })
     @IsOptional()
     @IsString()
     search?: string;
+
+    @ApiPropertyOptional({ example: true, type: Boolean })
+    @IsOptional()
+    @Type(() => Boolean)
+    @IsBoolean()
+    isPublished?: boolean;
 
     @ApiPropertyOptional({ example: 4, type: Number })
     @IsOptional()

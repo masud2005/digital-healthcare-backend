@@ -28,6 +28,7 @@ model Attachment {
   adminProfile          AdminProfile?    @relation("AdminAvatar")
   contactLead           ContactLead?     @relation("ContactLeadAttachment")
   contactLeadResponse   ContactLead?     @relation("ContactLeadResponseAttachment")
+  testimonial           Testimonial?
 
   sideEffectReportId String?           @map("side_effect_report_id")
   sideEffectReport   SideEffectReport? @relation(fields: [sideEffectReportId], references: [id], onDelete: Cascade)
