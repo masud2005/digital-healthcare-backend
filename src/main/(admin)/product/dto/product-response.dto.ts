@@ -45,7 +45,11 @@ export class ProductResponseDto {
     @ApiProperty({ type: [AttachmentResponseDto] })
     images: AttachmentResponseDto[];
 
-    @ApiPropertyOptional({ example: "49.99", description: "Decimal value serialized as a string", nullable: true })
+    @ApiPropertyOptional({
+        example: "49.99",
+        description: "Decimal value serialized as a string",
+        nullable: true,
+    })
     price: string | null;
 
     @ApiPropertyOptional({ example: 25, nullable: true })

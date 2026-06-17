@@ -102,12 +102,15 @@ export class ContactLeadsController {
             return undefined;
         };
 
-        const csvContent = await this.contactLeadsService.exportCsv({
-            search,
-            service,
-            read: parseBool(read),
-            responded: parseBool(responded),
-        }, user);
+        const csvContent = await this.contactLeadsService.exportCsv(
+            {
+                search,
+                service,
+                read: parseBool(read),
+                responded: parseBool(responded),
+            },
+            user,
+        );
 
         const timestamp = new Date().toISOString().replace(/[:.]/g, "-").slice(0, 19);
         const filename = `contact-leads-${timestamp}.csv`;

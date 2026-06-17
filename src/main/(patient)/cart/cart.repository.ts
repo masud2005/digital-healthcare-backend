@@ -67,7 +67,11 @@ export class CartRepository {
         });
     }
 
-    async upsertCartAndAddItem(userId: string, productId: string, defaultSize: string | null): Promise<CartRecord> {
+    async upsertCartAndAddItem(
+        userId: string,
+        productId: string,
+        defaultSize: string | null,
+    ): Promise<CartRecord> {
         const cart = await this.prisma.cart.upsert({
             where: { userId },
             create: { userId },

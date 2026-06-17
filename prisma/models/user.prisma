@@ -21,13 +21,24 @@ model User {
   userRoles             UserRole[]
   doctorProfile         DoctorProfile?
   patientProfile        PatientProfile?
+  adminProfile          AdminProfile?
   attachments           Attachment[]
   auditLogs             AuditLog[]
+  cart                  Cart?
+  userPreference        UserPreference?
+
+  // Payment relations
+  subscriptions Subscription[]
+  payments      Payment[]
+  orders        Order[]
+  refunds       Refund[]
+
+  // Compliance
+  complianceConfirmations ComplianceConfirmation[]
 
   createdAt DateTime  @default(now())
   updatedAt DateTime  @updatedAt
   deletedAt DateTime?
-  cart      Cart?
 
   @@index([status])
   @@index([categoryId])

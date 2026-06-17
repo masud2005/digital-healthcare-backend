@@ -254,7 +254,9 @@ export class AssessmentService {
             questionsByParentOptionId.set(question.parentOptionId, groupedQuestions);
         }
 
-        const buildNode = async (question: AssessmentDetailRecord["questions"][number]): Promise<object> => ({
+        const buildNode = async (
+            question: AssessmentDetailRecord["questions"][number],
+        ): Promise<object> => ({
             ...question,
             media: await this.storageService.resolveKey(question.media),
             options: await Promise.all(

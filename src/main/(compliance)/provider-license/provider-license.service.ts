@@ -154,7 +154,10 @@ export class ProviderLicenseService implements OnModuleInit {
         return this.providerLicenseRepository.delete(id);
     }
 
-    async exportCsv(query: Omit<ProviderLicenseQueryDto, "page" | "limit">, user?: AuthenticatedUser): Promise<string> {
+    async exportCsv(
+        query: Omit<ProviderLicenseQueryDto, "page" | "limit">,
+        user?: AuthenticatedUser,
+    ): Promise<string> {
         const { data } = await this.providerLicenseRepository.findAll({
             page: 1,
             limit: 10000,
@@ -170,18 +173,20 @@ export class ProviderLicenseService implements OnModuleInit {
         // Trigger incident for Bulk Data Download
         const reportedBy = user ? `${user.email}` : "Billing Staff #7";
         const userRole = user?.role ?? "EMPLOYEE";
-        await this.incidentService.triggerIncident({
-            type: "Bulk Data Download",
-            severity: "MEDIUM",
-            reportedBy,
-            affectedSystem: "Provider License Module",
-            description: "Bulk patient record download detected",
-            status: "RESOLVED",
-            source: "SYSTEM_MONITORING",
-            metadata: { userRole },
-        }).catch((err) => {
-            this.logger.error("Failed to trigger Bulk Data Download incident on export", err);
-        });
+        await this.incidentService
+            .triggerIncident({
+                type: "Bulk Data Download",
+                severity: "MEDIUM",
+                reportedBy,
+                affectedSystem: "Provider License Module",
+                description: "Bulk patient record download detected",
+                status: "RESOLVED",
+                source: "SYSTEM_MONITORING",
+                metadata: { userRole },
+            })
+            .catch((err) => {
+                this.logger.error("Failed to trigger Bulk Data Download incident on export", err);
+            });
 
         const headers = [
             "ID",

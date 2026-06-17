@@ -110,7 +110,12 @@ export class AttachmentService {
         };
     }
 
-    async replace(id: string, dto: ReplaceAttachmentDto, file?: Express.Multer.File, uploadedById?: string) {
+    async replace(
+        id: string,
+        dto: ReplaceAttachmentDto,
+        file?: Express.Multer.File,
+        uploadedById?: string,
+    ) {
         // Ensure attachment exists before updating
         const existing = await this.attachmentRepository.findById(id);
         if (!existing) throw new NotFoundException("Attachment not found");

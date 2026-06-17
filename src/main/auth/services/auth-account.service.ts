@@ -6,10 +6,12 @@ import {
     NotFoundException,
     UnauthorizedException,
 } from "@nestjs/common";
+import { StorageService } from "@global/storage/storage.service";
 import { AuditLogService } from "../../(compliance)/audit-log/audit-log.service";
 import { AuthRepository } from "../auth.repository";
 import { LoginDto } from "../dto/login.dto";
 import { RegisterDto } from "../dto/register.dto";
+import { UpdateProfileDto } from "../dto/update-profile.dto";
 import { AuthSharedService } from "./auth-shared.service";
 
 @Injectable()
@@ -19,6 +21,7 @@ export class AuthAccountService {
         private readonly authSharedService: AuthSharedService,
         private readonly systemHealthService: SystemHealthService,
         private readonly auditLogService: AuditLogService,
+        private readonly storageService: StorageService,
     ) {}
 
     async register(payload: RegisterDto) {
@@ -130,16 +133,202 @@ export class AuthAccountService {
     }
 
     async getProfile(userId: string) {
-        const user = await this.authRepository.findUserById(userId);
+        const user = await this.authRepository.findProfileByUserId(userId);
 
         if (!user) {
             throw new NotFoundException("User not found");
         }
 
+        const role = user.userRoles?.[0]?.role?.name?.toUpperCase() ?? "PATIENT";
+
+        let profile: any = null;
+        if (role === "DOCTOR" && user.doctorProfile) {
+            const p = user.doctorProfile;
+            profile = {
+                name: p.name,
+                avatar: p.avatar?.fileUrl
+                    ? await this.storageService.resolveKey(p.avatar.fileUrl)
+                    : null,
+                title: p.title,
+                specialty: p.specialty,
+                bio: p.bio,
+                officeLocation: p.officeLocation,
+            };
+        } else if (role === "ADMIN" && user.adminProfile) {
+            const p = user.adminProfile;
+            profile = {
+                name: p.name,
+                avatar: p.avatar?.fileUrl
+                    ? await this.storageService.resolveKey(p.avatar.fileUrl)
+                    : null,
+                title: p.title,
+                specialty: p.specialty,
+                bio: p.bio,
+                officeLocation: p.officeLocation,
+            };
+        } else if (user.patientProfile) {
+            const p = user.patientProfile;
+            profile = {
+                name: p.name,
+                avatar: p.avatar?.fileUrl
+                    ? await this.storageService.resolveKey(p.avatar.fileUrl)
+                    : null,
+                bio: p.bio,
+                address: p.address,
+                city: p.city,
+                state: p.state,
+                zipCode: p.zipCode,
+            };
+        }
+
         return {
             success: true,
+            statusCode: 200,
             message: "Profile fetched successfully",
-            data: this.authSharedService.mapUser(user),
+            data: {
+                id: user.id,
+                email: user.email,
+                phone: user.phone,
+                status: user.status,
+                role,
+                emailVerifiedAt: user.emailVerifiedAt,
+                phoneVerifiedAt: user.phoneVerifiedAt,
+                mfaEnabled: user.mfaEnabled,
+                lastLoginAt: user.lastLoginAt,
+                profile,
+            },
+        };
+    }
+
+    async updateProfile(userId: string, payload: UpdateProfileDto) {
+        const user = await this.authRepository.findProfileByUserId(userId);
+
+        if (!user) {
+            throw new NotFoundException("User not found");
+        }
+
+        const role = user.userRoles?.[0]?.role?.name?.toUpperCase() ?? "PATIENT";
+
+        const {
+            avatarId,
+            name,
+            bio,
+            title,
+            specialty,
+            officeLocation,
+            address,
+            city,
+            state,
+            zipCode,
+        } = payload;
+
+        let profile: any;
+
+        if (role === "DOCTOR") {
+            profile = await this.authRepository.upsertDoctorProfile(userId, {
+                ...(name !== undefined && { name }),
+                ...(bio !== undefined && { bio }),
+                ...(title !== undefined && { title }),
+                ...(specialty !== undefined && { specialty }),
+                ...(officeLocation !== undefined && { officeLocation }),
+                ...(avatarId !== undefined && { avatarId }),
+            });
+        } else if (role === "ADMIN") {
+            profile = await this.authRepository.upsertAdminProfile(userId, {
+                ...(name !== undefined && { name }),
+                ...(bio !== undefined && { bio }),
+                ...(title !== undefined && { title }),
+                ...(specialty !== undefined && { specialty }),
+                ...(officeLocation !== undefined && { officeLocation }),
+                ...(avatarId !== undefined && { avatarId }),
+            });
+        } else {
+            profile = await this.authRepository.upsertPatientProfile(userId, {
+                ...(name !== undefined && { name }),
+                ...(bio !== undefined && { bio }),
+                ...(address !== undefined && { address }),
+                ...(city !== undefined && { city }),
+                ...(state !== undefined && { state }),
+                ...(zipCode !== undefined && { zipCode }),
+                ...(avatarId !== undefined && { avatarId }),
+            });
+        }
+
+        const avatarUrl = profile.avatar?.fileUrl
+            ? await this.storageService.resolveKey(profile.avatar.fileUrl)
+            : null;
+
+        return {
+            success: true,
+            statusCode: 200,
+            message: "Profile updated successfully",
+            data: {
+                ...profile,
+                avatar: avatarUrl,
+            },
+        };
+    }
+
+    async getDeviceSessions(userId: string, currentSessionId: string) {
+        const activeSessions = await this.authRepository.findActiveSessionsByUserId(userId);
+
+        const devicesMap = new Map<string, any>();
+
+        for (const session of activeSessions) {
+            const isCurrentSession = session.id === currentSessionId;
+            // Determine device name based on platform or name
+            let deviceName = session.device?.name || "Unknown device";
+            if (session.device?.platform) {
+                deviceName = `${session.device.platform} device`;
+            }
+
+            if (!devicesMap.has(deviceName)) {
+                devicesMap.set(deviceName, {
+                    deviceName,
+                    isActiveNow: false,
+                    sessionCount: 0,
+                    sessions: [],
+                });
+            }
+
+            const deviceGroup = devicesMap.get(deviceName);
+            deviceGroup.sessionCount++;
+
+            if (isCurrentSession) {
+                deviceGroup.isActiveNow = true;
+            }
+
+            const sessionDueInMs = session.expiresAt.getTime() - Date.now();
+            const totalSeconds = Math.max(0, Math.floor(sessionDueInMs / 1000));
+            const hours = Math.floor(totalSeconds / 3600);
+            const minutes = Math.floor((totalSeconds % 3600) / 60);
+            const seconds = totalSeconds % 60;
+            let sessionDue = "";
+            if (hours > 0) sessionDue += `${hours}h `;
+            if (minutes > 0 || hours > 0) sessionDue += `${minutes}m `;
+            sessionDue += `${seconds}s`;
+
+            deviceGroup.sessions.push({
+                sessionId: session.id,
+                isCurrentSession,
+                lastLogin: session.lastUsedAt || session.createdAt,
+                ipAddress: session.ipAddress || "Unknown",
+                sessionDue: sessionDue.trim(),
+            });
+        }
+
+        // Sort so the active device is first
+        const devices = Array.from(devicesMap.values()).sort((a, b) => {
+            if (a.isActiveNow) return -1;
+            if (b.isActiveNow) return 1;
+            return 0;
+        });
+
+        return {
+            success: true,
+            statusCode: 200,
+            message: "Active sessions retrieved successfully",
+            data: devices,
         };
     }
 }

@@ -28,7 +28,7 @@ import {
 import { UpdateDoctorStatusDto } from "../dto/update-doctor-status.dto";
 import { UpdateDoctorDto } from "../dto/update-doctor.dto";
 import { ManageDoctorService } from "../services/manage-doctor.service";
-``
+``;
 
 @ApiTags("(Admin) Doctor manage")
 @Controller("admin/doctors")
@@ -40,7 +40,12 @@ export class ManageDoctorController {
     @ApiCreatedResponse({ type: DoctorResponseDto })
     async create(@Body() payload: CreateDoctorDto) {
         const data = await this.manageDoctorService.create(payload);
-        return { success: true, statusCode: HttpStatus.CREATED, message: "Doctor created successfully", data };
+        return {
+            success: true,
+            statusCode: HttpStatus.CREATED,
+            message: "Doctor created successfully",
+            data,
+        };
     }
 
     @Get()
@@ -48,7 +53,12 @@ export class ManageDoctorController {
     @ApiOkResponse({ type: DoctorListResponseDto })
     async findAll(@Query() query: DoctorQueryDto) {
         const result = await this.manageDoctorService.findAll(query);
-        return { success: true, statusCode: HttpStatus.OK, message: "Doctors fetched successfully", ...result };
+        return {
+            success: true,
+            statusCode: HttpStatus.OK,
+            message: "Doctors fetched successfully",
+            ...result,
+        };
     }
 
     @Get("titles")
@@ -56,7 +66,12 @@ export class ManageDoctorController {
     @ApiOkResponse({ type: DoctorTitleListResponseDto })
     async findTitles() {
         const result = await this.manageDoctorService.findTitles();
-        return { success: true, statusCode: HttpStatus.OK, message: "Doctor titles fetched successfully", ...result };
+        return {
+            success: true,
+            statusCode: HttpStatus.OK,
+            message: "Doctor titles fetched successfully",
+            ...result,
+        };
     }
 
     @Get(":id")
@@ -64,7 +79,12 @@ export class ManageDoctorController {
     @ApiOkResponse({ type: DoctorResponseDto })
     async findOne(@Param() params: DoctorParamDto) {
         const data = await this.manageDoctorService.findOne(params.id);
-        return { success: true, statusCode: HttpStatus.OK, message: "Doctor fetched successfully", data };
+        return {
+            success: true,
+            statusCode: HttpStatus.OK,
+            message: "Doctor fetched successfully",
+            data,
+        };
     }
 
     @Patch(":id")
@@ -72,7 +92,12 @@ export class ManageDoctorController {
     @ApiOkResponse({ type: DoctorResponseDto })
     async update(@Param() params: DoctorParamDto, @Body() payload: UpdateDoctorDto) {
         const data = await this.manageDoctorService.update(params.id, payload);
-        return { success: true, statusCode: HttpStatus.OK, message: "Doctor updated successfully", data };
+        return {
+            success: true,
+            statusCode: HttpStatus.OK,
+            message: "Doctor updated successfully",
+            data,
+        };
     }
 
     @Patch(":id/status")
@@ -80,7 +105,12 @@ export class ManageDoctorController {
     @ApiOkResponse({ type: DoctorResponseDto })
     async updateStatus(@Param() params: DoctorParamDto, @Body() payload: UpdateDoctorStatusDto) {
         const data = await this.manageDoctorService.updateStatus(params.id, payload.status);
-        return { success: true, statusCode: HttpStatus.OK, message: "Doctor status updated successfully", data };
+        return {
+            success: true,
+            statusCode: HttpStatus.OK,
+            message: "Doctor status updated successfully",
+            data,
+        };
     }
 
     @Delete(":id")
