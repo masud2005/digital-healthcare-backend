@@ -66,7 +66,10 @@ export class ContactLeadsService {
         };
     }
 
-    async exportCsv(query: Omit<ContactLeadQueryDto, "page" | "limit">, user?: AuthenticatedUser): Promise<string> {
+    async exportCsv(
+        query: Omit<ContactLeadQueryDto, "page" | "limit">,
+        user?: AuthenticatedUser,
+    ): Promise<string> {
         const leads = await this.contactLeadsRepository.findMany({
             search: query.search?.trim(),
             service: query.service?.trim(),
@@ -77,16 +80,18 @@ export class ContactLeadsService {
         // Trigger incident for Bulk Data Download
         const reportedBy = user ? `${user.email}` : "Billing Staff #7";
         const userRole = user?.role ?? "EMPLOYEE";
-        await this.incidentService.triggerIncident({
-            type: "Bulk Data Download",
-            severity: "MEDIUM",
-            reportedBy,
-            affectedSystem: "Contact Leads Module",
-            description: "Bulk patient record download detected",
-            status: "RESOLVED",
-            source: "SYSTEM_MONITORING",
-            metadata: { userRole },
-        }).catch(() => {});
+        await this.incidentService
+            .triggerIncident({
+                type: "Bulk Data Download",
+                severity: "MEDIUM",
+                reportedBy,
+                affectedSystem: "Contact Leads Module",
+                description: "Bulk patient record download detected",
+                status: "RESOLVED",
+                source: "SYSTEM_MONITORING",
+                metadata: { userRole },
+            })
+            .catch(() => {});
 
         const headers = [
             "ID",

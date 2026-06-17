@@ -40,7 +40,8 @@ export class DashboardController {
     @Get("recent-activity")
     @ApiOperation({
         summary: "Get recent 5 patients",
-        description: "Returns the latest 5 registered patients with the same structure as all-patients API.",
+        description:
+            "Returns the latest 5 registered patients with the same structure as all-patients API.",
     })
     @ApiOkResponse({ description: "Latest 5 patients" })
     getRecentActivity() {

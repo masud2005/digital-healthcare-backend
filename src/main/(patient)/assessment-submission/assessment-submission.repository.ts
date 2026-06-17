@@ -247,7 +247,11 @@ export class AssessmentSubmissionRepository {
                         data: {
                             textResponse: answer.textResponse ?? null,
                             selectedOptions: answer.selectedOptionIds?.length
-                                ? { create: answer.selectedOptionIds.map((optionId) => ({ optionId })) }
+                                ? {
+                                      create: answer.selectedOptionIds.map((optionId) => ({
+                                          optionId,
+                                      })),
+                                  }
                                 : undefined,
                         },
                     });
@@ -258,7 +262,11 @@ export class AssessmentSubmissionRepository {
                             questionId: answer.questionId,
                             textResponse: answer.textResponse ?? null,
                             selectedOptions: answer.selectedOptionIds?.length
-                                ? { create: answer.selectedOptionIds.map((optionId) => ({ optionId })) }
+                                ? {
+                                      create: answer.selectedOptionIds.map((optionId) => ({
+                                          optionId,
+                                      })),
+                                  }
                                 : undefined,
                         },
                     });

@@ -132,7 +132,10 @@ export class ConsentService implements OnModuleInit {
         return this.consentRepository.delete(id);
     }
 
-    async exportCsv(query: Omit<ConsentQueryDto, "page" | "limit">, user?: AuthenticatedUser): Promise<string> {
+    async exportCsv(
+        query: Omit<ConsentQueryDto, "page" | "limit">,
+        user?: AuthenticatedUser,
+    ): Promise<string> {
         const { data } = await this.consentRepository.findAll({
             search: query.search?.trim(),
             role: query.role?.trim(),
@@ -146,18 +149,20 @@ export class ConsentService implements OnModuleInit {
         // Trigger incident for PHI Export Event
         const reportedBy = user ? `${user.email}` : "Jessica Martinez";
         const userRole = user?.role ?? "EMPLOYEE";
-        await this.incidentService.triggerIncident({
-            type: "PHI Export Event",
-            severity: "HIGH",
-            reportedBy,
-            affectedSystem: "Export Module",
-            description: "Large PHI export detected — exceeds daily threshold",
-            status: "INVESTIGATING",
-            source: "SYSTEM_MONITORING",
-            metadata: { userRole },
-        }).catch((err) => {
-            this.logger.error("Failed to trigger PHI Export Event incident on export", err);
-        });
+        await this.incidentService
+            .triggerIncident({
+                type: "PHI Export Event",
+                severity: "HIGH",
+                reportedBy,
+                affectedSystem: "Export Module",
+                description: "Large PHI export detected — exceeds daily threshold",
+                status: "INVESTIGATING",
+                source: "SYSTEM_MONITORING",
+                metadata: { userRole },
+            })
+            .catch((err) => {
+                this.logger.error("Failed to trigger PHI Export Event incident on export", err);
+            });
 
         const headers = [
             "ID",

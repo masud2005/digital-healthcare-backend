@@ -1,5 +1,12 @@
 import { Controller, Get, Query, Res, Body, Post, Req, UseGuards } from "@nestjs/common";
-import { ApiBearerAuth, ApiOkResponse, ApiOperation, ApiProduces, ApiQuery, ApiTags } from "@nestjs/swagger";
+import {
+    ApiBearerAuth,
+    ApiOkResponse,
+    ApiOperation,
+    ApiProduces,
+    ApiQuery,
+    ApiTags,
+} from "@nestjs/swagger";
 import type { Response } from "express";
 import { AuditLogService } from "./audit-log.service";
 import { AuditLogQueryDto } from "./dto/audit-log-query.dto";
@@ -48,14 +55,17 @@ export class AuditLogController {
         @Res({ passthrough: false }) res?: Response,
         @CurrentUser() user?: AuthenticatedUser,
     ) {
-        const csvContent = await this.auditLogService.exportLogsCsv({
-            search,
-            role,
-            activityType,
-            status,
-            startDate,
-            endDate,
-        }, user);
+        const csvContent = await this.auditLogService.exportLogsCsv(
+            {
+                search,
+                role,
+                activityType,
+                status,
+                startDate,
+                endDate,
+            },
+            user,
+        );
 
         const timestamp = new Date().toISOString().replace(/[:.]/g, "-").slice(0, 19);
         const filename = `audit-logs-${timestamp}.csv`;

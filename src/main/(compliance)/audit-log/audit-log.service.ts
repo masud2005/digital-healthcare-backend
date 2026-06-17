@@ -92,24 +92,29 @@ export class AuditLogService implements OnModuleInit {
         return this.auditLogRepository.findMany(query);
     }
 
-    async exportLogsCsv(query: Partial<AuditLogQueryDto>, user?: AuthenticatedUser): Promise<string> {
+    async exportLogsCsv(
+        query: Partial<AuditLogQueryDto>,
+        user?: AuthenticatedUser,
+    ): Promise<string> {
         const logs = await this.auditLogRepository.findAll(query);
 
         // Trigger incident for Bulk Data Download
         const reportedBy = user ? `${user.email}` : "Billing Staff #7";
         const userRole = user?.role ?? "EMPLOYEE";
-        await this.incidentService.triggerIncident({
-            type: "Bulk Data Download",
-            severity: "MEDIUM",
-            reportedBy,
-            affectedSystem: "Billing System",
-            description: "Bulk patient record download detected",
-            status: "RESOLVED",
-            source: "SYSTEM_MONITORING",
-            metadata: { userRole },
-        }).catch((err) => {
-            this.logger.error("Failed to trigger Bulk Data Download incident on export", err);
-        });
+        await this.incidentService
+            .triggerIncident({
+                type: "Bulk Data Download",
+                severity: "MEDIUM",
+                reportedBy,
+                affectedSystem: "Billing System",
+                description: "Bulk patient record download detected",
+                status: "RESOLVED",
+                source: "SYSTEM_MONITORING",
+                metadata: { userRole },
+            })
+            .catch((err) => {
+                this.logger.error("Failed to trigger Bulk Data Download incident on export", err);
+            });
 
         // Build CSV content
         const headers = [
@@ -201,10 +206,12 @@ export class AuditLogService implements OnModuleInit {
                     });
 
                     // Temporarily suspend user account
-                    await this.prisma.user.update({
-                        where: { id: log.userId },
-                        data: { status: "SUSPENDED" },
-                    }).catch(() => {});
+                    await this.prisma.user
+                        .update({
+                            where: { id: log.userId },
+                            data: { status: "SUSPENDED" },
+                        })
+                        .catch(() => {});
                 }
             }
         } else {

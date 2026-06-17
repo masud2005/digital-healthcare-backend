@@ -14,7 +14,7 @@ import {
     UploadedFile,
     UploadedFiles,
     UseGuards,
-    UseInterceptors
+    UseInterceptors,
 } from "@nestjs/common";
 import { FileInterceptor, FilesInterceptor } from "@nestjs/platform-express";
 import {
@@ -24,7 +24,7 @@ import {
     ApiCreatedResponse,
     ApiOkResponse,
     ApiOperation,
-    ApiTags
+    ApiTags,
 } from "@nestjs/swagger";
 import "multer";
 import { AttachmentService } from "./attachment.service";
@@ -44,7 +44,10 @@ export class AttachmentController {
     @Post("upload")
     @UseGuards(OptionalJwtAuthGuard)
     @ApiBearerAuth()
-    @ApiOperation({ summary: "Upload single or multiple files with context. Auth optional — if authenticated, uploadedById is stored." })
+    @ApiOperation({
+        summary:
+            "Upload single or multiple files with context. Auth optional — if authenticated, uploadedById is stored.",
+    })
     @ApiConsumes("multipart/form-data")
     @ApiBody({
         schema: {
@@ -96,7 +99,10 @@ export class AttachmentController {
     @Patch(":id")
     @UseGuards(OptionalJwtAuthGuard)
     @ApiBearerAuth()
-    @ApiOperation({ summary: "Replace file or update context of an attachment. Auth optional — if authenticated, uploadedById is updated." })
+    @ApiOperation({
+        summary:
+            "Replace file or update context of an attachment. Auth optional — if authenticated, uploadedById is updated.",
+    })
     @ApiConsumes("multipart/form-data")
     @ApiBody({
         schema: {

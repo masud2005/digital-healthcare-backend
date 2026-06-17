@@ -413,6 +413,22 @@ export class AuthRepository {
         });
     }
 
+    findActiveSessionsByUserId(userId: string) {
+        return this.prisma.authSession.findMany({
+            where: {
+                userId,
+                revokedAt: null,
+                expiresAt: { gt: new Date() },
+            },
+            include: {
+                device: true,
+            },
+            orderBy: {
+                lastUsedAt: "desc",
+            },
+        });
+    }
+
     revokeSessionById(sessionId: string, reason: string) {
         return this.prisma.authSession.updateMany({
             where: { id: sessionId, revokedAt: null },
@@ -466,14 +482,17 @@ export class AuthRepository {
         });
     }
 
-    upsertDoctorProfile(userId: string, data: {
-        name?: string;
-        bio?: string | null;
-        title?: string | null;
-        specialty?: string | null;
-        officeLocation?: string | null;
-        avatarId?: string | null;
-    }) {
+    upsertDoctorProfile(
+        userId: string,
+        data: {
+            name?: string;
+            bio?: string | null;
+            title?: string | null;
+            specialty?: string | null;
+            officeLocation?: string | null;
+            avatarId?: string | null;
+        },
+    ) {
         return this.prisma.doctorProfile.upsert({
             where: { userId },
             update: data,
@@ -482,14 +501,17 @@ export class AuthRepository {
         });
     }
 
-    upsertAdminProfile(userId: string, data: {
-        name?: string;
-        bio?: string | null;
-        title?: string | null;
-        specialty?: string | null;
-        officeLocation?: string | null;
-        avatarId?: string | null;
-    }) {
+    upsertAdminProfile(
+        userId: string,
+        data: {
+            name?: string;
+            bio?: string | null;
+            title?: string | null;
+            specialty?: string | null;
+            officeLocation?: string | null;
+            avatarId?: string | null;
+        },
+    ) {
         return this.prisma.adminProfile.upsert({
             where: { userId },
             update: data,
@@ -498,15 +520,18 @@ export class AuthRepository {
         });
     }
 
-    upsertPatientProfile(userId: string, data: {
-        name?: string;
-        bio?: string | null;
-        address?: string | null;
-        city?: string | null;
-        state?: string | null;
-        zipCode?: string | null;
-        avatarId?: string | null;
-    }) {
+    upsertPatientProfile(
+        userId: string,
+        data: {
+            name?: string;
+            bio?: string | null;
+            address?: string | null;
+            city?: string | null;
+            state?: string | null;
+            zipCode?: string | null;
+            avatarId?: string | null;
+        },
+    ) {
         return this.prisma.patientProfile.upsert({
             where: { userId },
             update: data,
