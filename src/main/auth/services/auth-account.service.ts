@@ -269,6 +269,47 @@ export class AuthAccountService {
         };
     }
 
+    async toggleMfa(userId: string) {
+        const user = await this.authRepository.findUserById(userId);
+
+        if (!user) throw new NotFoundException("User not found");
+
+        const updated = await this.authRepository.toggleMfa(userId, !user.mfaEnabled);
+
+        return {
+            success: true,
+            statusCode: 200,
+            message: `MFA ${updated.mfaEnabled ? "enabled" : "disabled"} successfully`,
+            data: { mfaEnabled: updated.mfaEnabled },
+        };
+    }
+
+    async getPreference(userId: string) {
+        const pref = await this.authRepository.findPreference(userId);
+
+        return {
+            success: true,
+            statusCode: 200,
+            message: "Communication preferences fetched successfully",
+            data: pref ?? { emailNotifications: true, smsNotifications: true, pushNotifications: true },
+        };
+    }
+
+    async updatePreference(userId: string, dto: {
+        emailNotifications?: boolean;
+        smsNotifications?: boolean;
+        pushNotifications?: boolean;
+    }) {
+        const data = await this.authRepository.upsertPreference(userId, dto);
+
+        return {
+            success: true,
+            statusCode: 200,
+            message: "Communication preferences updated successfully",
+            data,
+        };
+    }
+
     async getDeviceSessions(userId: string, currentSessionId: string) {
         const activeSessions = await this.authRepository.findActiveSessionsByUserId(userId);
 
