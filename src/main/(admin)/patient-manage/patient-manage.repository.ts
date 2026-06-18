@@ -174,7 +174,7 @@ export class PatientManageRepository {
 
         const where: any = {
             deletedAt: null,
-            userRoles: { some: { role: { name: { not: "DOCTOR" } } } },
+            userRoles: { some: { role: { name: "PATIENT" } } },
             ...(params.status ? { status: params.status } : {}),
             ...(params.search
                 ? {
