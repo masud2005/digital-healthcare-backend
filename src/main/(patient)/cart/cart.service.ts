@@ -4,6 +4,8 @@ import type { CartRecord } from "./cart.repository";
 import { CartRepository } from "./cart.repository";
 import type { AddToCartDto, UpdateCartItemDto } from "./dto/cart.dto";
 
+const SHIPPING_CHARGE = 20;
+
 @Injectable()
 export class CartService {
     constructor(
@@ -152,6 +154,65 @@ export class CartService {
         }
 
         return cart;
+    }
+
+    async getCartSummary(userId: string, discountCode?: string) {
+        const cart = await this.cartRepository.findCartByUserId(userId);
+        const user = await this.cartRepository.findUserWithCategory(userId);
+
+        let subtotal = 0;
+        if (cart) {
+            for (const item of cart.items) {
+                const activeVariant = item.size
+                    ? item.product.variants.find((v) => v.size === item.size)
+                    : null;
+                const unitPrice = activeVariant
+                    ? Number(activeVariant.price)
+                    : Number(item.product.price ?? 0);
+                subtotal += unitPrice * item.quantity;
+            }
+        }
+
+        const paymentPlan = user?.category?.paymentPlan ?? null;
+        const serviceFees = paymentPlan ? Number(paymentPlan.price) : 0;
+        const serviceDuration = paymentPlan?.billingCycle ?? null;
+        const shippingCharge = SHIPPING_CHARGE;
+
+        let discount = 0;
+        let discountMeta: { code: string; type: string; value: number } | null = null;
+
+        if (discountCode) {
+            const found = await this.cartRepository.findActiveDiscount(discountCode);
+
+            if (!found) {
+                throw new BadRequestException("Invalid or expired discount code");
+            }
+
+            const baseForDiscount = subtotal + serviceFees + shippingCharge;
+
+            discount = found.type === "PERCENTAGE"
+                ? parseFloat(((baseForDiscount * found.value) / 100).toFixed(2))
+                : parseFloat(Math.min(found.value, baseForDiscount).toFixed(2));
+
+            discountMeta = { code: discountCode.toUpperCase(), type: found.type, value: found.value };
+        }
+
+        const total = parseFloat((subtotal + serviceFees + shippingCharge - discount).toFixed(2));
+
+        return {
+            success: true,
+            statusCode: 200,
+            message: "Cart summary fetched successfully",
+            data: {
+                subtotal: subtotal.toFixed(2),
+                serviceDuration,
+                serviceFees: serviceFees.toFixed(2),
+                shippingCharge: shippingCharge.toFixed(2),
+                discount: discount.toFixed(2),
+                discountMeta,
+                total: total.toFixed(2),
+            },
+        };
     }
 
     private async mapCart(cart: CartRecord, message: string) {
