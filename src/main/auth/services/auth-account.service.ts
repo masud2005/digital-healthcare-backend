@@ -150,6 +150,7 @@ export class AuthAccountService {
                     ? await this.storageService.resolveKey(p.avatar.fileUrl)
                     : null,
                 title: p.title,
+                featured: p.featured,
                 specialty: p.specialty,
                 bio: p.bio,
                 officeLocation: p.officeLocation,
@@ -195,6 +196,8 @@ export class AuthAccountService {
                 phoneVerifiedAt: user.phoneVerifiedAt,
                 mfaEnabled: user.mfaEnabled,
                 lastLoginAt: user.lastLoginAt,
+                createdAt: user.createdAt,
+                updatedAt: user.updatedAt,
                 profile,
             },
         };
