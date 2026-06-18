@@ -29,6 +29,13 @@ const cartInclude = {
                             stockQuantity: true,
                         },
                     },
+                    category: {
+                        select: {
+                            paymentPlan: {
+                                select: { price: true, billingCycle: true },
+                            },
+                        },
+                    },
                 },
             },
         },
@@ -106,5 +113,34 @@ export class CartRepository {
 
     updateCartItem(id: string, data: { quantity?: number; size?: string | null }) {
         return this.prisma.cartItem.update({ where: { id }, data });
+    }
+
+    findUserWithCategory(userId: string) {
+        return this.prisma.user.findUnique({
+            where: { id: userId },
+            select: {
+                category: {
+                    select: {
+                        paymentPlan: {
+                            select: { price: true, billingCycle: true },
+                        },
+                    },
+                },
+            },
+        });
+    }
+
+    findActiveDiscount(code: string) {
+        return this.prisma.discount.findFirst({
+            where: {
+                code: { equals: code, mode: "insensitive" },
+                isActive: true,
+                OR: [
+                    { expiresAt: null },
+                    { expiresAt: { gt: new Date() } },
+                ],
+            },
+            select: { id: true, type: true, value: true },
+        });
     }
 }

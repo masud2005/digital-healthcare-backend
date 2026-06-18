@@ -12,7 +12,7 @@ export class DashboardRepository {
                 this.prisma.user.count({
                     where: {
                         deletedAt: null,
-                        userRoles: { some: { role: { name: { not: "DOCTOR" } } } },
+                        userRoles: { some: { role: { name: "PATIENT" } } },
                     },
                 }),
                 this.prisma.doctorProfile.count({
