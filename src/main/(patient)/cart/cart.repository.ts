@@ -12,6 +12,7 @@ const cartInclude = {
                     name: true,
                     description: true,
                     price: true,
+                    categoryId: true,
                     images: {
                         select: {
                             id: true,
@@ -32,7 +33,7 @@ const cartInclude = {
                     category: {
                         select: {
                             paymentPlan: {
-                                select: { price: true, billingCycle: true },
+                                select: { id: true, price: true, billingCycle: true },
                             },
                         },
                     },
@@ -119,10 +120,11 @@ export class CartRepository {
         return this.prisma.user.findUnique({
             where: { id: userId },
             select: {
+                categoryId: true,
                 category: {
                     select: {
                         paymentPlan: {
-                            select: { price: true, billingCycle: true },
+                            select: { id: true, price: true, billingCycle: true },
                         },
                     },
                 },

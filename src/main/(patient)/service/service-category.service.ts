@@ -28,4 +28,8 @@ export class ServiceCategoryService {
             })),
         );
     }
+
+    async getProductsByCategory(categoryId: string) {
+        return this.serviceCategoryRepository.findProductsByCategory(categoryId);
+    }
 }
