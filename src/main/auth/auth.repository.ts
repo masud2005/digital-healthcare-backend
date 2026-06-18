@@ -499,7 +499,11 @@ export class AuthRepository {
             where: { id: userId },
             include: {
                 userRoles: { select: { role: { select: { name: true } } } },
-                doctorProfile: { include: { avatar: { select: { fileUrl: true } } } },
+                doctorProfile: {
+                    include: {
+                        avatar: { select: { fileUrl: true } },
+                    },
+                },
                 adminProfile: { include: { avatar: { select: { fileUrl: true } } } },
                 patientProfile: { include: { avatar: { select: { fileUrl: true } } } },
             },
