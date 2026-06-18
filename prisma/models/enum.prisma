@@ -139,6 +139,11 @@ enum OtpStatus {
   FAILED
 }
 
+enum PaymentItemType {
+  FEES
+  PRODUCT
+}
+
 enum PaymentMethod {
   CARD
   BANK_TRANSFER

@@ -1,12 +1,12 @@
 model UserPreference {
-    id     String @id @default(uuid())
-    userId String @unique
-    user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  id     String @id @default(uuid())
+  userId String @unique
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
 
-    emailNotifications Boolean @default(true) // Email Notifications
-    smsNotifications   Boolean @default(true) // SMS Notifications
-    pushNotifications  Boolean @default(true) // Push Notifications
+  emailNotifications Boolean @default(true) // Email Notifications
+  smsNotifications   Boolean @default(true) // SMS Notifications
+  pushNotifications  Boolean @default(true) // Push Notifications
 
-    createdAt DateTime @default(now())
-    updatedAt DateTime @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }

@@ -156,6 +156,9 @@ export const paymentMethod = [
 ] as const;
 export type PaymentMethod = (typeof paymentMethod)[number];
 
+export const paymentItemType = ["FEES", "PRODUCT"] as const;
+export type PaymentItemType = (typeof paymentItemType)[number];
+
 export const paymentStatus = [
     "PENDING",
     "COMPLETED",
