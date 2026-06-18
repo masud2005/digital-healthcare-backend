@@ -5,13 +5,17 @@ import { Injectable } from "@nestjs/common";
 export class PublicProductRepository {
     constructor(private readonly prisma: PrismaService) {}
 
-    findCategoriesWithProducts(categoryName: string) {
+    findCategoriesWithProducts(categoryId: string) {
         return this.prisma.category.findMany({
-            where: { status: "ACTIVE", name: { contains: categoryName, mode: "insensitive" } },
+            where: { status: "ACTIVE", id: categoryId },
             orderBy: { name: "asc" },
             select: {
                 id: true,
                 name: true,
+                assessments: {
+                    where: { status: "ACTIVE" },
+                    select: { id: true, title: true },
+                },
                 products: {
                     select: {
                         id: true,

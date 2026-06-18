@@ -9,16 +9,16 @@ export class PublicProductController {
 
     @Get()
     @ApiOperation({
-        summary: "Get products by category name (required)",
-        description: "Returns products of the matched active category. The `category` query param is mandatory.",
+        summary: "Get products by category id (required)",
+        description: "Returns products of the matched active category. The `categoryId` query param is mandatory.",
     })
-    @ApiQuery({ name: "category", required: true, description: "Category name to filter by" })
+    @ApiQuery({ name: "categoryId", required: true, description: "Category ID to filter by" })
     @ApiOkResponse({ description: "Products of the given category" })
-    getProducts(@Query("category") category: string) {
-        if (!category?.trim()) {
-            throw new BadRequestException("category query param is required");
+    getProducts(@Query("categoryId") categoryId: string) {
+        if (!categoryId?.trim()) {
+            throw new BadRequestException("categoryId query param is required");
         }
 
-        return this.publicProductService.getProducts(category.trim());
+        return this.publicProductService.getProducts(categoryId.trim());
     }
 }

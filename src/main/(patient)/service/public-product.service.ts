@@ -9,13 +9,14 @@ export class PublicProductService {
         private readonly storageService: StorageService,
     ) {}
 
-    async getProducts(categoryName: string) {
-        const categories = await this.repo.findCategoriesWithProducts(categoryName);
+    async getProducts(categoryId: string) {
+        const categories = await this.repo.findCategoriesWithProducts(categoryId);
 
         const data = await Promise.all(
             categories.map(async (category) => ({
                 categoryId: category.id,
                 categoryName: category.name,
+                assessments: category.assessments.map((a) => ({ id: a.id, title: a.title })),
                 products: await Promise.all(
                     category.products.map(async (product) => {
                         const image = product.images[0];
