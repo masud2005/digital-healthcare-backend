@@ -1,5 +1,7 @@
-import { Body, Controller, Get, HttpStatus, Param, Patch, Post, Query } from "@nestjs/common";
-import { ApiOperation, ApiTags } from "@nestjs/swagger";
+import { Roles } from "@common/decorators";
+import { JwtAuthGuard, RolesGuard } from "@common/guards";
+import { Body, Controller, Get, HttpStatus, Param, Patch, Post, Query, UseGuards } from "@nestjs/common";
+import { ApiBearerAuth, ApiOperation, ApiTags } from "@nestjs/swagger";
 import { PatientAssessmentQueryDto } from "./dto/assessment-query.dto";
 import { AssignDoctorDto } from "./dto/assign-doctor.dto";
 import { PatientParamDto } from "./dto/patient-param.dto";
@@ -8,6 +10,9 @@ import { UpdatePatientStatusDto } from "./dto/update-patient-status.dto";
 import { PatientManageService } from "./patient-manage.service";
 
 @ApiTags("(Admin) Patient Manage")
+@ApiBearerAuth()
+@UseGuards(JwtAuthGuard, RolesGuard)
+@Roles("ADMIN")
 @Controller("admin/patient-manage")
 export class PatientManageController {
     constructor(private readonly patientManageService: PatientManageService) {}

@@ -1,6 +1,9 @@
+import { Roles } from "@common/decorators";
+import { JwtAuthGuard, RolesGuard } from "@common/guards";
 import { StorageService } from "@global/storage/storage.service";
-import { Body, Controller, Delete, Get, HttpCode, Param, Patch, Post, Query } from "@nestjs/common";
+import { Body, Controller, Delete, Get, HttpCode, Param, Patch, Post, Query, UseGuards } from "@nestjs/common";
 import {
+    ApiBearerAuth,
     ApiCreatedResponse,
     ApiNoContentResponse,
     ApiOkResponse,
@@ -15,6 +18,9 @@ import { UpdateProductDto } from "./dto/update-product.dto";
 import { ProductService } from "./product.service";
 
 @ApiTags("(Admin) Product")
+@ApiBearerAuth()
+@UseGuards(JwtAuthGuard, RolesGuard)
+@Roles("ADMIN")
 @Controller("admin/products")
 export class ProductController {
     constructor(

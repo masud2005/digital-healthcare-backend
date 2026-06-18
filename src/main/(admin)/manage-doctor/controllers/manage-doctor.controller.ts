@@ -1,3 +1,5 @@
+import { Roles } from "@common/decorators";
+import { JwtAuthGuard, RolesGuard } from "@common/guards";
 import {
     Body,
     Controller,
@@ -9,8 +11,10 @@ import {
     Patch,
     Post,
     Query,
+    UseGuards,
 } from "@nestjs/common";
 import {
+    ApiBearerAuth,
     ApiCreatedResponse,
     ApiNoContentResponse,
     ApiOkResponse,
@@ -31,6 +35,9 @@ import { ManageDoctorService } from "../services/manage-doctor.service";
 ``;
 
 @ApiTags("(Admin) Doctor manage")
+@ApiBearerAuth()
+@UseGuards(JwtAuthGuard, RolesGuard)
+@Roles("ADMIN")
 @Controller("admin/doctors")
 export class ManageDoctorController {
     constructor(private readonly manageDoctorService: ManageDoctorService) {}

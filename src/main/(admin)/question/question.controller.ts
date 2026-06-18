@@ -1,3 +1,5 @@
+import { Roles } from "@common/decorators";
+import { JwtAuthGuard, RolesGuard } from "@common/guards";
 import { StorageService } from "@global/storage/storage.service";
 import {
     Body,
@@ -10,10 +12,12 @@ import {
     Post,
     Query,
     UploadedFile,
+    UseGuards,
     UseInterceptors,
 } from "@nestjs/common";
 import { FileInterceptor } from "@nestjs/platform-express";
 import {
+    ApiBearerAuth,
     ApiConsumes,
     ApiCreatedResponse,
     ApiNoContentResponse,
@@ -29,6 +33,9 @@ import { UpdateQuestionDto } from "./dto/update-question.dto";
 import { QuestionService } from "./question.service";
 
 @ApiTags("(Admin) Question")
+@ApiBearerAuth()
+@UseGuards(JwtAuthGuard, RolesGuard)
+@Roles("ADMIN")
 @Controller("admin/questions")
 export class QuestionController {
     constructor(

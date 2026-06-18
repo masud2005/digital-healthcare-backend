@@ -1,3 +1,5 @@
+import { Roles } from "@common/decorators";
+import { JwtAuthGuard, RolesGuard } from "@common/guards";
 import { StorageService } from "@global/storage/storage.service";
 import {
     Body,
@@ -10,10 +12,12 @@ import {
     Post,
     Query,
     UploadedFile,
+    UseGuards,
     UseInterceptors,
 } from "@nestjs/common";
 import { FileInterceptor } from "@nestjs/platform-express";
 import {
+    ApiBearerAuth,
     ApiConsumes,
     ApiCreatedResponse,
     ApiNoContentResponse,
@@ -42,6 +46,9 @@ export class AssessmentController {
     ) {}
 
     @Post()
+    @ApiBearerAuth()
+    @UseGuards(JwtAuthGuard, RolesGuard)
+    @Roles("ADMIN")
     @ApiOperation({ summary: "Create an assessment" })
     @ApiConsumes("multipart/form-data")
     @UseInterceptors(FileInterceptor("thumbnail"))
@@ -60,6 +67,9 @@ export class AssessmentController {
     }
 
     @Get()
+    @ApiBearerAuth()
+    @UseGuards(JwtAuthGuard, RolesGuard)
+    @Roles("ADMIN")
     @ApiOperation({ summary: "Get all assessments" })
     @ApiOkResponse({ type: AssessmentListResponseDto })
     findAll(@Query() query: AssessmentQueryDto) {
@@ -67,6 +77,9 @@ export class AssessmentController {
     }
 
     @Get("stats")
+    @ApiBearerAuth()
+    @UseGuards(JwtAuthGuard, RolesGuard)
+    @Roles("ADMIN")
     @ApiOperation({ summary: "Get assessment stats" })
     @ApiOkResponse({ type: AssessmentStatsResponseDto })
     findStats() {
@@ -74,13 +87,16 @@ export class AssessmentController {
     }
 
     @Get(":id")
-    @ApiOperation({ summary: "Get an assessment by id" })
+    @ApiOperation({ summary: "Get an assessment by id (Public)" })
     @ApiOkResponse({ type: AssessmentResponseDto })
     findOne(@Param() params: AssessmentParamDto) {
         return this.assessmentService.findOne(params.id);
     }
 
     @Patch(":id")
+    @ApiBearerAuth()
+    @UseGuards(JwtAuthGuard, RolesGuard)
+    @Roles("ADMIN")
     @ApiOperation({ summary: "Update an assessment" })
     @ApiConsumes("multipart/form-data")
     @UseInterceptors(FileInterceptor("thumbnail"))
@@ -103,6 +119,9 @@ export class AssessmentController {
     }
 
     @Delete(":id")
+    @ApiBearerAuth()
+    @UseGuards(JwtAuthGuard, RolesGuard)
+    @Roles("ADMIN")
     @HttpCode(204)
     @ApiOperation({ summary: "Delete an assessment" })
     @ApiNoContentResponse({ description: "Assessment deleted successfully" })

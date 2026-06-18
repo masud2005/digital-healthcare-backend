@@ -1,5 +1,8 @@
-import { Body, Controller, Delete, Get, HttpCode, Param, Patch, Post, Query } from "@nestjs/common";
+import { Roles } from "@common/decorators";
+import { JwtAuthGuard, RolesGuard } from "@common/guards";
+import { Body, Controller, Delete, Get, HttpCode, Param, Patch, Post, Query, UseGuards } from "@nestjs/common";
 import {
+    ApiBearerAuth,
     ApiCreatedResponse,
     ApiNoContentResponse,
     ApiOkResponse,
@@ -17,6 +20,9 @@ import { UpdateQuestionOptionDto } from "./dto/update-question-option.dto";
 import { QuestionOptionService } from "./question-option.service";
 
 @ApiTags("(Admin) Question Option")
+@ApiBearerAuth()
+@UseGuards(JwtAuthGuard, RolesGuard)
+@Roles("ADMIN")
 @Controller("admin/question-options")
 export class QuestionOptionController {
     constructor(private readonly questionOptionService: QuestionOptionService) {}

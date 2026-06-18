@@ -1,3 +1,5 @@
+import { Roles } from "@common/decorators";
+import { RolesGuard } from "@common/guards";
 import { JwtAuthGuard } from "@common/guards/jwt-auth.guard";
 import { Controller, Get, UseGuards } from "@nestjs/common";
 import { ApiBearerAuth, ApiOkResponse, ApiOperation, ApiTags } from "@nestjs/swagger";
@@ -5,7 +7,8 @@ import { DashboardService } from "./dashboard.service";
 
 @ApiTags("(Admin) Dashboard Overview")
 @ApiBearerAuth()
-@UseGuards(JwtAuthGuard)
+@UseGuards(JwtAuthGuard, RolesGuard)
+@Roles("ADMIN")
 @Controller("admin/dashboard")
 export class DashboardController {
     constructor(private readonly dashboardService: DashboardService) {}
