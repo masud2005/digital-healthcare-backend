@@ -29,6 +29,13 @@ const cartInclude = {
                             stockQuantity: true,
                         },
                     },
+                    category: {
+                        select: {
+                            paymentPlan: {
+                                select: { price: true, billingCycle: true },
+                            },
+                        },
+                    },
                 },
             },
         },

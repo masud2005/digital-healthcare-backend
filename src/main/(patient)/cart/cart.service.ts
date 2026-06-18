@@ -173,7 +173,7 @@ export class CartService {
             }
         }
 
-        const paymentPlan = user?.category?.paymentPlan ?? null;
+        const paymentPlan = user?.category?.paymentPlan ?? cart?.items[0]?.product?.category?.paymentPlan ?? null;
         const serviceFees = paymentPlan ? Number(paymentPlan.price) : 0;
         const serviceDuration = paymentPlan?.billingCycle ?? null;
         const shippingCharge = SHIPPING_CHARGE;
