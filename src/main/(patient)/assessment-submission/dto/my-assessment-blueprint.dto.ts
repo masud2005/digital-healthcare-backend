@@ -56,6 +56,31 @@ export class BlueprintQuestionDto {
     patientAnswer: BlueprintPatientAnswerDto | null;
 }
 
+export class BlueprintComplianceConfirmationDto {
+    @ApiProperty() agreedToTermsAndPrivacy: boolean;
+    @ApiProperty() certifiedInfoAccurate: boolean;
+    @ApiProperty() understoodFalseInfoConsequences: boolean;
+    @ApiProperty() understoodRecommendationsBasis: boolean;
+    @ApiProperty() understoodAdditionalInfoMayBeRequested: boolean;
+}
+
+export class BlueprintPaymentProductDto {
+    @ApiProperty({ example: "Phentermine" }) name: string;
+    @ApiPropertyOptional({ example: "37.5mg", nullable: true }) size: string | null;
+    @ApiPropertyOptional({ example: "url", nullable: true }) image: string | null;
+    @ApiProperty({ example: 48 }) price: number;
+}
+
+export class BlueprintPaymentSummaryDto {
+    @ApiProperty({ type: [BlueprintPaymentProductDto] }) products: BlueprintPaymentProductDto[];
+    @ApiProperty({ example: 96 }) subtotal: number;
+    @ApiPropertyOptional({ example: "1 month", nullable: true }) serviceDuration: string | null;
+    @ApiProperty({ example: 50 }) serviceFees: number;
+    @ApiProperty({ example: 20 }) shippingCharge: number;
+    @ApiProperty({ example: 15 }) discount: number;
+    @ApiProperty({ example: 151 }) total: number;
+}
+
 export class MyAssessmentBlueprintDto {
     @ApiProperty({ example: "00b21a00-28d8-4054-8c45-f074d2bfbbf1" })
     submissionId: string;
@@ -74,4 +99,10 @@ export class MyAssessmentBlueprintDto {
 
     @ApiProperty({ type: [BlueprintQuestionDto] })
     questions: BlueprintQuestionDto[];
+
+    @ApiPropertyOptional({ type: BlueprintComplianceConfirmationDto, nullable: true })
+    complianceConfirmation: BlueprintComplianceConfirmationDto | null;
+
+    @ApiPropertyOptional({ type: BlueprintPaymentSummaryDto, nullable: true })
+    paymentSummary: BlueprintPaymentSummaryDto | null;
 }

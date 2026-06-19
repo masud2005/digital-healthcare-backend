@@ -81,6 +81,16 @@ const blueprintSubmissionInclude = {
             },
         },
     },
+    complianceConfirmation: {
+        select: {
+            agreedToTermsAndPrivacy: true,
+            certifiedInfoAccurate: true,
+            understoodFalseInfoConsequences: true,
+            understoodRecommendationsBasis: true,
+            understoodAdditionalInfoMayBeRequested: true,
+            createdAt: true,
+        },
+    },
 } satisfies Prisma.AssessmentSubmissionInclude;
 
 export type AssessmentSubmissionRecord = Prisma.AssessmentSubmissionGetPayload<{

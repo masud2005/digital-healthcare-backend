@@ -230,6 +230,69 @@ export class AssessmentSubmissionService {
             assessment.questions.filter((q) => !q.parentOptionId).map((q) => buildQuestion(q)),
         );
 
+        let paymentSummary: any = null;
+        const compliance = submission.complianceConfirmation;
+
+        if (compliance) {
+            const margin = 5000; // 5 seconds margin
+            // Find the order created around the same transaction time
+            const order = await this.prisma.order.findFirst({
+                where: {
+                    userId: submission.userId,
+                    createdAt: {
+                        gte: new Date(compliance.createdAt.getTime() - margin),
+                        lte: new Date(compliance.createdAt.getTime() + margin),
+                    },
+                },
+                include: {
+                    items: {
+                        include: { product: true },
+                    },
+                    payments: {
+                        include: {
+                            subscription: {
+                                include: { paymentPlan: true },
+                            },
+                        },
+                    },
+                },
+            });
+
+            if (order) {
+                const billingCycleMap: Record<string, string> = {
+                    MONTHLY: "1 month",
+                    QUARTERLY: "3 months",
+                    YEARLY: "1 year",
+                };
+
+                const paymentWithSub = order.payments?.find((p) => p.subscription);
+                const subscription = paymentWithSub?.subscription;
+
+                const serviceDuration = subscription?.paymentPlan?.billingCycle
+                    ? billingCycleMap[subscription.paymentPlan.billingCycle] || null
+                    : null;
+
+                paymentSummary = {
+                    products: await Promise.all(
+                        (order.items || []).map(async (item) => ({
+                            name: item.productNameSnapshot,
+                            size: item.variantSizeSnapshot,
+                            image: item.productImageSnapshot
+                                ? await this.storageService.resolveKey(item.productImageSnapshot)
+                                : null,
+                            price: Number(item.unitPrice),
+                        }))
+                    ),
+                    subtotal: Number(order.subtotal),
+                    serviceDuration,
+                    serviceFees: subscription?.paymentPlan ? Number(subscription.paymentPlan.price) : 0,
+                    shippingCharge: Number(order.shippingAmount),
+                    discount: Number(order.discountAmount),
+                    total: Number(order.total),
+                };
+            }
+        }
+
         return {
             submissionId: submission.id,
             submissionCode: submission.submissionCode,
@@ -242,6 +305,16 @@ export class AssessmentSubmissionService {
                 category: assessment.category.name,
             },
             questions: rootQuestions,
+            complianceConfirmation: compliance
+                ? {
+                      agreedToTermsAndPrivacy: compliance.agreedToTermsAndPrivacy,
+                      certifiedInfoAccurate: compliance.certifiedInfoAccurate,
+                      understoodFalseInfoConsequences: compliance.understoodFalseInfoConsequences,
+                      understoodRecommendationsBasis: compliance.understoodRecommendationsBasis,
+                      understoodAdditionalInfoMayBeRequested: compliance.understoodAdditionalInfoMayBeRequested,
+                  }
+                : null,
+            paymentSummary,
         };
     }
 
