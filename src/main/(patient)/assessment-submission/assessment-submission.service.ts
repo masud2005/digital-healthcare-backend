@@ -46,11 +46,11 @@ export class AssessmentSubmissionService {
             submissions.map(async (sub) => {
                 let reviewer: { id: string; name: string | null } | null = null;
                 if (sub.reviewedBy) {
-                    const doc = await this.prisma.user.findUnique({
-                        where: { id: sub.reviewedBy },
-                        select: { id: true, name: true },
+                    const doc = await this.prisma.doctorProfile.findUnique({
+                        where: { userId: sub.reviewedBy },
+                        select: { userId: true, name: true },
                     });
-                    if (doc) reviewer = doc;
+                    if (doc) reviewer = { id: doc.userId, name: doc.name };
                 }
 
                 return {
@@ -327,11 +327,11 @@ export class AssessmentSubmissionService {
 
         let reviewer: { id: string; name: string | null } | null = null;
         if (submission.reviewedBy) {
-            const doc = await this.prisma.user.findUnique({
-                where: { id: submission.reviewedBy },
-                select: { id: true, name: true },
+            const doc = await this.prisma.doctorProfile.findUnique({
+                where: { userId: submission.reviewedBy },
+                select: { userId: true, name: true },
             });
-            if (doc) reviewer = doc;
+            if (doc) reviewer = { id: doc.userId, name: doc.name };
         }
 
         return {

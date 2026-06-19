@@ -7,6 +7,11 @@ export class MyOrderSubmissionRefDto {
     @ApiProperty({ example: "Weight Loss" }) assessmentTitle: string;
 }
 
+export class MyOrderApprovedByDto {
+    @ApiProperty({ example: "doctor-user-uuid" }) id: string;
+    @ApiPropertyOptional({ example: "Dr. Emily Chen", nullable: true }) name: string | null;
+}
+
 export class MyOrderListItemDto {
     @ApiProperty({ example: "ord-uuid-1234" }) id: string;
     @ApiProperty({ example: "ORD-2026-10245" }) orderNumber: string;
@@ -15,6 +20,7 @@ export class MyOrderListItemDto {
     @ApiProperty({ example: 2 }) itemCount: number;
     @ApiProperty({ example: "2026-05-31T00:00:00.000Z" }) createdAt: Date;
     @ApiPropertyOptional({ example: "TXN-CLVR-123", nullable: true }) transactionId: string | null;
+    @ApiPropertyOptional({ type: MyOrderApprovedByDto, nullable: true }) reviewedBy: MyOrderApprovedByDto | null;
     @ApiPropertyOptional({ type: MyOrderSubmissionRefDto, nullable: true }) submission: MyOrderSubmissionRefDto | null;
 }
 
@@ -36,11 +42,6 @@ export class MyOrderItemDto {
     @ApiProperty({ example: 2 }) quantity: number;
     @ApiProperty({ example: 65.0 }) unitPrice: number;
     @ApiProperty({ example: 130.0 }) totalPrice: number;
-}
-
-export class MyOrderApprovedByDto {
-    @ApiProperty({ example: "doctor-user-uuid" }) id: string;
-    @ApiPropertyOptional({ example: "Dr. Emily Chen", nullable: true }) name: string | null;
 }
 
 export class MyOrderInfoDto {

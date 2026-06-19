@@ -14,11 +14,11 @@ export class MyOrderService {
 
     private async resolveReviewer(reviewedBy: string | null | undefined) {
         if (!reviewedBy) return null;
-        const doc = await this.prisma.user.findUnique({
-            where: { id: reviewedBy },
-            select: { id: true, name: true },
+        const doc = await this.prisma.doctorProfile.findUnique({
+            where: { userId: reviewedBy },
+            select: { userId: true, name: true },
         });
-        return doc ?? null;
+        return doc ? { id: doc.userId, name: doc.name } : null;
     }
 
     async getMyOrders(userId: string, status?: OrderStatus, dateRange?: DateRangeFilter) {
@@ -35,7 +35,7 @@ export class MyOrderService {
                     itemCount: order.items.length,
                     createdAt: order.createdAt,
                     transactionId: order.payments?.[0]?.transactionId ?? null,
-                    doctorName: reviewer?.name ?? null,
+                    reviewedBy: reviewer,
                     submission: order.submission
                         ? {
                               id: order.submission.id,
