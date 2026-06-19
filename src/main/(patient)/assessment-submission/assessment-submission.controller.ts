@@ -239,7 +239,7 @@ export class AssessmentSubmissionController {
     ) {
         const assessment = await this.assessmentSubmissionService.getMyAssessmentBlueprint(
             params.id,
-            user.id,
+            { userId: user.id },
         );
         return {
             success: true,

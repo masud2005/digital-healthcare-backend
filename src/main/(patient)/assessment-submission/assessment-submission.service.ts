@@ -76,10 +76,13 @@ export class AssessmentSubmissionService {
         return { submissions: mappedSubmissions, counts };
     }
 
-    async getMyAssessmentBlueprint(submissionId: string, userId: string) {
+    async getMyAssessmentBlueprint(
+        submissionId: string,
+        options?: { userId?: string; doctorId?: string },
+    ) {
         const submission = await this.assessmentSubmissionRepository.findSubmissionById(
             submissionId,
-            userId,
+            options,
         );
 
         if (!submission) {
@@ -96,7 +99,7 @@ export class AssessmentSubmissionService {
     ) {
         const submission = await this.assessmentSubmissionRepository.findSubmissionById(
             submissionId,
-            userId,
+            { userId },
         );
 
         if (!submission) {

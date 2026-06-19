@@ -263,9 +263,21 @@ export class AssessmentSubmissionRepository {
         return { submissions, counts: countsMap };
     }
 
-    findSubmissionById(id: string, userId: string): Promise<BlueprintSubmissionRecord | null> {
+    findSubmissionById(
+        id: string,
+        options?: { userId?: string; doctorId?: string },
+    ): Promise<BlueprintSubmissionRecord | null> {
+        const where: any = { id };
+        if (options?.userId) {
+            where.userId = options.userId;
+        } else if (options?.doctorId) {
+            where.OR = [
+                { reviewedBy: options.doctorId },
+                { status: "PENDING" },
+            ];
+        }
         return this.prisma.assessmentSubmission.findFirst({
-            where: { id, userId },
+            where,
             include: blueprintSubmissionInclude,
         });
     }
