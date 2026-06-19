@@ -18,6 +18,7 @@ async function bootstrap() {
             "https://doc-frontend-omega.vercel.app",
             "https://doc-dashboard-delta.vercel.app",
             "https://dashboard.weightlossmdcherrycreek.com",
+            "https://impracticably-sclerometric-niki.ngrok-free.dev"
         ],
         methods: "GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS",
         credentials: true,

@@ -42,4 +42,14 @@ export class ServiceCategoryRepository {
             },
         });
     }
+
+    findProductsByCategory(categoryId: string) {
+        return this.prisma.product.findMany({
+            where: { categoryId },
+            select: {
+                id: true,
+                name: true,
+            },
+        });
+    }
 }

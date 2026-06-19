@@ -1,3 +1,4 @@
+import { PrismaService } from "@global/prisma/prisma.service";
 import { StorageService } from "@global/storage/storage.service";
 import {
     BadRequestException,
@@ -5,8 +6,7 @@ import {
     Injectable,
     NotFoundException,
 } from "@nestjs/common";
-import { PrismaService } from "@global/prisma/prisma.service";
-import type { QuestionType } from "@prisma/client";
+import { QuestionType, SubmissionStatus } from "@prisma/client";
 import {
     AssessmentSubmissionRecord,
     AssessmentSubmissionRepository,
@@ -39,15 +39,50 @@ export class AssessmentSubmissionService {
         private readonly prisma: PrismaService,
     ) {}
 
-    async getMyAssessmentBlueprints(userId: string) {
-        const submissions = await this.assessmentSubmissionRepository.findMySubmissions(userId);
-        return Promise.all(submissions.map((s) => this.mapBlueprint(s)));
+    async getMyAssessmentsSummary(userId: string, status?: SubmissionStatus) {
+        const { submissions, counts } = await this.assessmentSubmissionRepository.getMyAssessmentsSummary(userId, status);
+
+        const mappedSubmissions = await Promise.all(
+            submissions.map(async (sub) => {
+                let reviewer: { id: string; name: string | null } | null = null;
+                if (sub.reviewedBy) {
+                    const doc = await this.prisma.doctorProfile.findUnique({
+                        where: { userId: sub.reviewedBy },
+                        select: { userId: true, name: true },
+                    });
+                    if (doc) reviewer = { id: doc.userId, name: doc.name };
+                }
+
+                return {
+                    id: sub.id,
+                    submissionCode: sub.submissionCode,
+                    status: sub.status,
+                    createdAt: sub.createdAt,
+                    assessment: {
+                        id: sub.assessment.id,
+                        title: sub.assessment.title,
+                        description: sub.assessment.description,
+                        thumbnail: sub.assessment.thumbnail
+                            ? await this.storageService.resolveKey(sub.assessment.thumbnail)
+                            : null,
+                        category: sub.assessment.category,
+                    },
+                    reviewedBy: reviewer,
+                    doctorNotes: sub.doctorNotes ?? null,
+                };
+            })
+        );
+
+        return { submissions: mappedSubmissions, counts };
     }
 
-    async getMyAssessmentBlueprint(submissionId: string, userId: string) {
+    async getMyAssessmentBlueprint(
+        submissionId: string,
+        options?: { userId?: string; doctorId?: string },
+    ) {
         const submission = await this.assessmentSubmissionRepository.findSubmissionById(
             submissionId,
-            userId,
+            options,
         );
 
         if (!submission) {
@@ -64,7 +99,7 @@ export class AssessmentSubmissionService {
     ) {
         const submission = await this.assessmentSubmissionRepository.findSubmissionById(
             submissionId,
-            userId,
+            { userId },
         );
 
         if (!submission) {
@@ -175,7 +210,10 @@ export class AssessmentSubmissionService {
             if (!answer) return null;
 
             const options = questionOptionsMap.get(questionId) ?? [];
-            const isFileInput = options.some((o) => o.inputType?.toLowerCase() === "file");
+            const isFileInput = options.some((o) => {
+                const type = o.inputType?.toLowerCase();
+                return type === "file" || type === "file_upload" || type === "file-upload" || type === "file upload";
+            });
 
             // Resolve attachment if textResponse holds a file attachment id
             let resolvedFile: { id: string; fileUrl: string | null } | null = null;
@@ -227,6 +265,78 @@ export class AssessmentSubmissionService {
             assessment.questions.filter((q) => !q.parentOptionId).map((q) => buildQuestion(q)),
         );
 
+        let paymentSummary: any = null;
+        const compliance = submission.complianceConfirmation;
+
+        if (compliance) {
+            const margin = 5000; // 5 seconds margin
+            // Find the order created around the same transaction time
+            const order = await this.prisma.order.findFirst({
+                where: {
+                    userId: submission.userId,
+                    createdAt: {
+                        gte: new Date(compliance.createdAt.getTime() - margin),
+                        lte: new Date(compliance.createdAt.getTime() + margin),
+                    },
+                },
+                include: {
+                    items: {
+                        include: { product: true },
+                    },
+                    payments: {
+                        include: {
+                            subscription: {
+                                include: { paymentPlan: true },
+                            },
+                        },
+                    },
+                },
+            });
+
+            if (order) {
+                const billingCycleMap: Record<string, string> = {
+                    MONTHLY: "1 month",
+                    QUARTERLY: "3 months",
+                    YEARLY: "1 year",
+                };
+
+                const paymentWithSub = order.payments?.find((p) => p.subscription);
+                const subscription = paymentWithSub?.subscription;
+
+                const serviceDuration = subscription?.paymentPlan?.billingCycle
+                    ? billingCycleMap[subscription.paymentPlan.billingCycle] || null
+                    : null;
+
+                paymentSummary = {
+                    products: await Promise.all(
+                        (order.items || []).map(async (item) => ({
+                            name: item.productNameSnapshot,
+                            size: item.variantSizeSnapshot,
+                            image: item.productImageSnapshot
+                                ? await this.storageService.resolveKey(item.productImageSnapshot)
+                                : null,
+                            price: Number(item.unitPrice),
+                        }))
+                    ),
+                    subtotal: Number(order.subtotal),
+                    serviceDuration,
+                    serviceFees: subscription?.paymentPlan ? Number(subscription.paymentPlan.price) : 0,
+                    shippingCharge: Number(order.shippingAmount),
+                    discount: Number(order.discountAmount),
+                    total: Number(order.total),
+                };
+            }
+        }
+
+        let reviewer: { id: string; name: string | null } | null = null;
+        if (submission.reviewedBy) {
+            const doc = await this.prisma.doctorProfile.findUnique({
+                where: { userId: submission.reviewedBy },
+                select: { userId: true, name: true },
+            });
+            if (doc) reviewer = { id: doc.userId, name: doc.name };
+        }
+
         return {
             submissionId: submission.id,
             submissionCode: submission.submissionCode,
@@ -238,7 +348,19 @@ export class AssessmentSubmissionService {
                 thumbnail,
                 category: assessment.category.name,
             },
+            reviewedBy: reviewer,
+            doctorNotes: submission.doctorNotes ?? null,
             questions: rootQuestions,
+            complianceConfirmation: compliance
+                ? {
+                      agreedToTermsAndPrivacy: compliance.agreedToTermsAndPrivacy,
+                      certifiedInfoAccurate: compliance.certifiedInfoAccurate,
+                      understoodFalseInfoConsequences: compliance.understoodFalseInfoConsequences,
+                      understoodRecommendationsBasis: compliance.understoodRecommendationsBasis,
+                      understoodAdditionalInfoMayBeRequested: compliance.understoodAdditionalInfoMayBeRequested,
+                  }
+                : null,
+            paymentSummary,
         };
     }
 

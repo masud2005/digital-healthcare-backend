@@ -1,10 +1,10 @@
 import { CurrentUser } from "@common/decorators/current-user.decorator";
 import { JwtAuthGuard } from "@common/guards/jwt-auth.guard";
 import type { AuthenticatedUser } from "@main/auth/auth.types";
-import { Body, Controller, Delete, Get, Param, Patch, Post, UseGuards } from "@nestjs/common";
+import { Body, Controller, Delete, Get, Param, Patch, Post, Query, UseGuards } from "@nestjs/common";
 import { ApiBearerAuth, ApiOkResponse, ApiOperation, ApiTags } from "@nestjs/swagger";
 import { CartService } from "./cart.service";
-import { AddToCartDto, CartItemParamDto, UpdateCartItemDto } from "./dto/cart.dto";
+import { AddToCartDto, CartItemParamDto, CartSummaryQueryDto, UpdateCartItemDto } from "./dto/cart.dto";
 
 @ApiTags("(Patient) Product Cart")
 @ApiBearerAuth()
@@ -60,5 +60,17 @@ export class CartController {
     @ApiOkResponse({ description: "Cart with items and totalPrice" })
     getMyCarts(@CurrentUser() user: AuthenticatedUser) {
         return this.cartService.getMyCarts(user.id);
+    }
+
+    @Get("summary")
+    @ApiOperation({
+        summary: "Get cart summary",
+        description:
+            "Returns subtotal, serviceDuration, serviceFees, shippingCharge, discount, and total. " +
+            "Pass optional discountCode query param to apply a discount.",
+    })
+    @ApiOkResponse({ description: "Cart summary" })
+    getCartSummary(@CurrentUser() user: AuthenticatedUser, @Query() query: CartSummaryQueryDto) {
+        return this.cartService.getCartSummary(user.id, query.discountCode);
     }
 }

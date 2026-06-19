@@ -2,14 +2,10 @@ import { PrismaService } from "@global/prisma/prisma.service";
 import { Injectable } from "@nestjs/common";
 import type { Prisma, SubmissionStatus } from "@prisma/client";
 
-const SUBMISSION_CODE_CHARS = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
-const SUBMISSION_CODE_LENGTH = 6;
 const SUBMISSION_CODE_MAX_RETRIES = 5;
 
 function generateSubmissionCode(): string {
-    return Array.from({ length: SUBMISSION_CODE_LENGTH })
-        .map(() => SUBMISSION_CODE_CHARS[Math.floor(Math.random() * SUBMISSION_CODE_CHARS.length)])
-        .join("");
+    return `ASM-${new Date().getFullYear()}-${Math.floor(10000 + Math.random() * 90000)}`;
 }
 
 const assessmentSubmissionInclude = {
@@ -79,6 +75,16 @@ const blueprintSubmissionInclude = {
                     },
                 },
             },
+        },
+    },
+    complianceConfirmation: {
+        select: {
+            agreedToTermsAndPrivacy: true,
+            certifiedInfoAccurate: true,
+            understoodFalseInfoConsequences: true,
+            understoodRecommendationsBasis: true,
+            understoodAdditionalInfoMayBeRequested: true,
+            createdAt: true,
         },
     },
 } satisfies Prisma.AssessmentSubmissionInclude;
@@ -208,17 +214,70 @@ export class AssessmentSubmissionRepository {
         return this.create(data);
     }
 
-    findMySubmissions(userId: string): Promise<BlueprintSubmissionRecord[]> {
-        return this.prisma.assessmentSubmission.findMany({
-            where: { userId },
+    async getMyAssessmentsSummary(userId: string, status?: SubmissionStatus) {
+        const whereClause: any = { userId };
+        if (status) {
+            whereClause.status = status;
+        }
+
+        const submissions = await this.prisma.assessmentSubmission.findMany({
+            where: whereClause,
             orderBy: { createdAt: "desc" },
-            include: blueprintSubmissionInclude,
+            select: {
+                id: true,
+                submissionCode: true,
+                status: true,
+                createdAt: true,
+                reviewedBy: true,
+                doctorNotes: true,
+                assessment: {
+                    select: {
+                        id: true,
+                        title: true,
+                        description: true,
+                        thumbnail: true,
+                        category: {
+                            select: {
+                                id: true,
+                                name: true,
+                            },
+                        },
+                    },
+                },
+            },
         });
+
+        const statusCounts = await this.prisma.assessmentSubmission.groupBy({
+            by: ["status"],
+            where: { userId },
+            _count: {
+                status: true,
+            },
+        });
+
+        const countsMap = statusCounts.reduce((acc, curr) => {
+            acc[curr.status] = curr._count.status;
+            return acc;
+        }, {} as Record<string, number>);
+
+        return { submissions, counts: countsMap };
     }
 
-    findSubmissionById(id: string, userId: string): Promise<BlueprintSubmissionRecord | null> {
+    findSubmissionById(
+        id: string,
+        options?: { userId?: string; doctorId?: string },
+    ): Promise<BlueprintSubmissionRecord | null> {
+        const where: any = { id };
+        if (options?.userId) {
+            where.userId = options.userId;
+        } else if (options?.doctorId) {
+            where.OR = [
+                { reviewedBy: options.doctorId },
+                { status: "PENDING" },
+            ];
+        }
         return this.prisma.assessmentSubmission.findFirst({
-            where: { id, userId },
+            where,
             include: blueprintSubmissionInclude,
         });
     }

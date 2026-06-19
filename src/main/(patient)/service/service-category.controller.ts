@@ -1,4 +1,4 @@
-import { Controller, Get, Query } from "@nestjs/common";
+import { BadRequestException, Controller, Get, Query } from "@nestjs/common";
 import { ApiOkResponse, ApiOperation, ApiQuery, ApiTags } from "@nestjs/swagger";
 import { ServiceCategoryService } from "./service-category.service";
 
@@ -39,6 +39,26 @@ export class ServiceCategoryController {
             statusCode: 200,
             message: "Categories retrieved successfully",
             data: categories,
+        };
+    }
+
+    @Get("products-names")
+    @ApiOperation({
+        summary: "Get products by category",
+        description: "Returns id and name of products belonging to a specific category.",
+    })
+    @ApiQuery({ name: "categoryId", required: true, description: "Category ID to filter by" })
+    @ApiOkResponse({ description: "List of products (id, name)" })
+    async getProductsByCategory(@Query("categoryId") categoryId: string) {
+        if (!categoryId) {
+            throw new BadRequestException("categoryId is required");
+        }
+        const products = await this.serviceCategoryService.getProductsByCategory(categoryId);
+        return {
+            success: true,
+            statusCode: 200,
+            message: "Products retrieved successfully",
+            data: products,
         };
     }
 }

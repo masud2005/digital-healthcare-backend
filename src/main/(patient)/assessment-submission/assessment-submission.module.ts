@@ -9,5 +9,6 @@ import { AssessmentSubmissionService } from "./assessment-submission.service";
     imports: [PrismaModule, StorageModule],
     controllers: [AssessmentSubmissionController],
     providers: [AssessmentSubmissionService, AssessmentSubmissionRepository],
+    exports: [AssessmentSubmissionService],
 })
 export class AssessmentSubmissionModule {}

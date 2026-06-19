@@ -21,6 +21,7 @@ model Order {
 
   // Fulfillment timestamps
   confirmedAt  DateTime?
+  processingAt DateTime?
   shippedAt    DateTime?
   deliveredAt  DateTime?
   cancelledAt  DateTime?
@@ -36,6 +37,9 @@ model Order {
   discountId String?
   discount   Discount? @relation(fields: [discountId], references: [id], onDelete: SetNull)
 
+  submissionId String?
+  submission   AssessmentSubmission? @relation(fields: [submissionId], references: [id], onDelete: SetNull)
+
   items    OrderItem[]
   payments Payment[]
 
@@ -46,6 +50,7 @@ model Order {
   @@index([status])
   @@index([orderNumber])
   @@index([createdAt])
+  @@index([submissionId])
   @@map("orders")
 }
 
