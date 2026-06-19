@@ -93,7 +93,7 @@ export class MyAssessmentBlueprintDto {
     @ApiProperty({ example: "00b21a00-28d8-4054-8c45-f074d2bfbbf1" })
     submissionId: string;
 
-    @ApiProperty({ example: "A3K9P2" })
+    @ApiProperty({ example: "ASM-2026-41674" })
     submissionCode: string;
 
     @ApiProperty({ example: "DRAFT" })
@@ -150,7 +150,7 @@ export class MyAssessmentListItemDto {
     @ApiProperty({ example: "00b21a00-28d8-4054-8c45-f074d2bfbbf1" })
     id: string;
 
-    @ApiProperty({ example: "A3K9P2" })
+    @ApiProperty({ example: "ASM-2026-41674" })
     submissionCode: string;
 
     @ApiProperty({ example: "ACCEPTED" })

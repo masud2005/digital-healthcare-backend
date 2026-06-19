@@ -2,14 +2,10 @@ import { PrismaService } from "@global/prisma/prisma.service";
 import { Injectable } from "@nestjs/common";
 import type { Prisma, SubmissionStatus } from "@prisma/client";
 
-const SUBMISSION_CODE_CHARS = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
-const SUBMISSION_CODE_LENGTH = 6;
 const SUBMISSION_CODE_MAX_RETRIES = 5;
 
 function generateSubmissionCode(): string {
-    return Array.from({ length: SUBMISSION_CODE_LENGTH })
-        .map(() => SUBMISSION_CODE_CHARS[Math.floor(Math.random() * SUBMISSION_CODE_CHARS.length)])
-        .join("");
+    return `ASM-${new Date().getFullYear()}-${Math.floor(10000 + Math.random() * 90000)}`;
 }
 
 const assessmentSubmissionInclude = {
