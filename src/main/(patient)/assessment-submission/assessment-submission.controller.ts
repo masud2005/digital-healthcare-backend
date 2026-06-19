@@ -1,20 +1,22 @@
 import { CurrentUser } from "@common/decorators/current-user.decorator";
 import { JwtAuthGuard } from "@common/guards/jwt-auth.guard";
 import type { AuthenticatedUser } from "@main/auth/auth.types";
-import { Body, Controller, Get, Param, Patch, Post, UseGuards } from "@nestjs/common";
+import { Body, Controller, Get, Param, Patch, Post, Query, UseGuards } from "@nestjs/common";
 import {
     ApiBearerAuth,
     ApiBody,
     ApiCreatedResponse,
     ApiOkResponse,
     ApiOperation,
+    ApiQuery,
     ApiTags,
 } from "@nestjs/swagger";
+import { SubmissionStatus } from "@prisma/client";
 import { AssessmentSubmissionService } from "./assessment-submission.service";
 import { AssessmentParamDto } from "./dto/assessment-submission-param.dto";
 import { AssessmentSubmissionResponseDto } from "./dto/assessment-submission-response.dto";
 import { CreateAssessmentSubmissionDto } from "./dto/create-assessment-submission.dto";
-import { MyAssessmentBlueprintDto } from "./dto/my-assessment-blueprint.dto";
+import { MyAssessmentBlueprintDto, MyAssessmentSummaryResponseDto } from "./dto/my-assessment-blueprint.dto";
 import { UpdateAssessmentSubmissionDto } from "./dto/update-assessment-submission.dto";
 
 const ANSWERS_EXAMPLES = {
@@ -223,22 +225,27 @@ export class AssessmentSubmissionController {
     @UseGuards(JwtAuthGuard)
     @Get("my-assessment")
     @ApiOperation({
-        summary: "Get my submitted assessments",
+        summary: "Get my submitted assessments summary (list view)",
         description:
-            "Returns all assessment submissions of the authenticated patient. " +
-            "Each item includes the full question tree with the patient's saved answers (patientAnswer). " +
-            "isEditable is true only when status is DRAFT or REFIL_REQUESTED.",
+            "Returns a lightweight list of the patient's assessment submissions " +
+            "with basic info like thumbnail, title, status, and category. " +
+            "Supports filtering by status and returns a grouped counts map for all statuses.",
     })
-    @ApiOkResponse({ type: [MyAssessmentBlueprintDto] })
-    async getMyAssessments(@CurrentUser() user: AuthenticatedUser) {
-        const assessments = await this.assessmentSubmissionService.getMyAssessmentBlueprints(
+    @ApiOkResponse({ type: MyAssessmentSummaryResponseDto })
+    @ApiQuery({ name: "status", enum: SubmissionStatus, required: false, description: "Filter by assessment status" })
+    async getMyAssessments(
+        @CurrentUser() user: AuthenticatedUser,
+        @Query("status") status?: SubmissionStatus,
+    ) {
+        const result = await this.assessmentSubmissionService.getMyAssessmentsSummary(
             user.id,
+            status,
         );
         return {
             success: true,
             statusCode: 200,
             message: "My assessments retrieved successfully",
-            data: assessments,
+            data: result,
         };
     }
 

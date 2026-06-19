@@ -218,12 +218,53 @@ export class AssessmentSubmissionRepository {
         return this.create(data);
     }
 
-    findMySubmissions(userId: string): Promise<BlueprintSubmissionRecord[]> {
-        return this.prisma.assessmentSubmission.findMany({
-            where: { userId },
+    async getMyAssessmentsSummary(userId: string, status?: SubmissionStatus) {
+        const whereClause: any = { userId };
+        if (status) {
+            whereClause.status = status;
+        }
+
+        const submissions = await this.prisma.assessmentSubmission.findMany({
+            where: whereClause,
             orderBy: { createdAt: "desc" },
-            include: blueprintSubmissionInclude,
+            select: {
+                id: true,
+                submissionCode: true,
+                status: true,
+                createdAt: true,
+                reviewedBy: true,
+                doctorNotes: true,
+                assessment: {
+                    select: {
+                        id: true,
+                        title: true,
+                        description: true,
+                        thumbnail: true,
+                        category: {
+                            select: {
+                                id: true,
+                                name: true,
+                            },
+                        },
+                    },
+                },
+            },
         });
+
+        const statusCounts = await this.prisma.assessmentSubmission.groupBy({
+            by: ["status"],
+            where: { userId },
+            _count: {
+                status: true,
+            },
+        });
+
+        const countsMap = statusCounts.reduce((acc, curr) => {
+            acc[curr.status] = curr._count.status;
+            return acc;
+        }, {} as Record<string, number>);
+
+        return { submissions, counts: countsMap };
     }
 
     findSubmissionById(id: string, userId: string): Promise<BlueprintSubmissionRecord | null> {

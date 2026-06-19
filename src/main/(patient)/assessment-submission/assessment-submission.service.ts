@@ -6,7 +6,7 @@ import {
     Injectable,
     NotFoundException,
 } from "@nestjs/common";
-import type { QuestionType } from "@prisma/client";
+import { QuestionType, SubmissionStatus } from "@prisma/client";
 import {
     AssessmentSubmissionRecord,
     AssessmentSubmissionRepository,
@@ -39,9 +39,41 @@ export class AssessmentSubmissionService {
         private readonly prisma: PrismaService,
     ) {}
 
-    async getMyAssessmentBlueprints(userId: string) {
-        const submissions = await this.assessmentSubmissionRepository.findMySubmissions(userId);
-        return Promise.all(submissions.map((s) => this.mapBlueprint(s)));
+    async getMyAssessmentsSummary(userId: string, status?: SubmissionStatus) {
+        const { submissions, counts } = await this.assessmentSubmissionRepository.getMyAssessmentsSummary(userId, status);
+
+        const mappedSubmissions = await Promise.all(
+            submissions.map(async (sub) => {
+                let reviewer: { id: string; name: string | null } | null = null;
+                if (sub.reviewedBy) {
+                    const doc = await this.prisma.user.findUnique({
+                        where: { id: sub.reviewedBy },
+                        select: { id: true, name: true },
+                    });
+                    if (doc) reviewer = doc;
+                }
+
+                return {
+                    id: sub.id,
+                    submissionCode: sub.submissionCode,
+                    status: sub.status,
+                    createdAt: sub.createdAt,
+                    assessment: {
+                        id: sub.assessment.id,
+                        title: sub.assessment.title,
+                        description: sub.assessment.description,
+                        thumbnail: sub.assessment.thumbnail
+                            ? await this.storageService.resolveKey(sub.assessment.thumbnail)
+                            : null,
+                        category: sub.assessment.category,
+                    },
+                    reviewedBy: reviewer,
+                    doctorNotes: sub.doctorNotes ?? null,
+                };
+            })
+        );
+
+        return { submissions: mappedSubmissions, counts };
     }
 
     async getMyAssessmentBlueprint(submissionId: string, userId: string) {
@@ -293,6 +325,15 @@ export class AssessmentSubmissionService {
             }
         }
 
+        let reviewer: { id: string; name: string | null } | null = null;
+        if (submission.reviewedBy) {
+            const doc = await this.prisma.user.findUnique({
+                where: { id: submission.reviewedBy },
+                select: { id: true, name: true },
+            });
+            if (doc) reviewer = doc;
+        }
+
         return {
             submissionId: submission.id,
             submissionCode: submission.submissionCode,
@@ -304,6 +345,8 @@ export class AssessmentSubmissionService {
                 thumbnail,
                 category: assessment.category.name,
             },
+            reviewedBy: reviewer,
+            doctorNotes: submission.doctorNotes ?? null,
             questions: rootQuestions,
             complianceConfirmation: compliance
                 ? {
