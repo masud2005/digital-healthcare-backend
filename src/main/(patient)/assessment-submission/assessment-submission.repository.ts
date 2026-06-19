@@ -214,53 +214,61 @@ export class AssessmentSubmissionRepository {
         return this.create(data);
     }
 
-    async getMyAssessmentsSummary(userId: string, status?: SubmissionStatus) {
+    async getMyAssessmentsSummary(userId: string, status?: SubmissionStatus, page?: number, limit?: number) {
+        const currentPage = page ?? 1;
+        const currentLimit = limit ?? 10;
+        const skip = (currentPage - 1) * currentLimit;
+
         const whereClause: any = { userId };
         if (status) {
             whereClause.status = status;
         }
 
-        const submissions = await this.prisma.assessmentSubmission.findMany({
-            where: whereClause,
-            orderBy: { createdAt: "desc" },
-            select: {
-                id: true,
-                submissionCode: true,
-                status: true,
-                createdAt: true,
-                reviewedBy: true,
-                doctorNotes: true,
-                assessment: {
-                    select: {
-                        id: true,
-                        title: true,
-                        description: true,
-                        thumbnail: true,
-                        category: {
-                            select: {
-                                id: true,
-                                name: true,
+        const [submissions, total, statusCounts] = await Promise.all([
+            this.prisma.assessmentSubmission.findMany({
+                where: whereClause,
+                skip,
+                take: currentLimit,
+                orderBy: { createdAt: "desc" },
+                select: {
+                    id: true,
+                    submissionCode: true,
+                    status: true,
+                    createdAt: true,
+                    reviewedBy: true,
+                    doctorNotes: true,
+                    assessment: {
+                        select: {
+                            id: true,
+                            title: true,
+                            description: true,
+                            thumbnail: true,
+                            category: {
+                                select: {
+                                    id: true,
+                                    name: true,
+                                },
                             },
                         },
                     },
                 },
-            },
-        });
-
-        const statusCounts = await this.prisma.assessmentSubmission.groupBy({
-            by: ["status"],
-            where: { userId },
-            _count: {
-                status: true,
-            },
-        });
+            }),
+            this.prisma.assessmentSubmission.count({ where: whereClause }),
+            this.prisma.assessmentSubmission.groupBy({
+                by: ["status"],
+                where: { userId },
+                _count: {
+                    status: true,
+                },
+            }),
+        ]);
 
         const countsMap = statusCounts.reduce((acc, curr) => {
             acc[curr.status] = curr._count.status;
             return acc;
         }, {} as Record<string, number>);
 
-        return { submissions, counts: countsMap };
+        return { submissions, counts: countsMap, total, page: currentPage, limit: currentLimit };
     }
 
     findSubmissionById(

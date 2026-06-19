@@ -11,8 +11,9 @@ export class DoctorMyConsultationService {
         private readonly storageService: StorageService,
     ) {}
 
-    async getMyConsultations(userId: string, tab?: ConsultationTab) {
-        const { consultations, statusCounts } = await this.myConsultationRepository.findConsultations(userId, tab);
+    async getMyConsultations(userId: string, tab?: ConsultationTab, page?: number, limit?: number) {
+        const { consultations, total, page: currentPage, limit: currentLimit, statusCounts } =
+            await this.myConsultationRepository.findConsultations(userId, tab, page, limit);
 
         const mappedConsultations = await Promise.all(
             consultations.map(async (consultation) => ({
@@ -51,10 +52,19 @@ export class DoctorMyConsultationService {
             [ConsultationTab.ACTIVE_CONSULTATION]: activeCount,
             [ConsultationTab.NEW_REQUEST]: newCount,
             [ConsultationTab.DECLINED_REQUEST]: declinedCount,
-            [ConsultationTab.HISTORY]: activeCount + newCount + declinedCount, // Total
+            [ConsultationTab.HISTORY]: activeCount + newCount + declinedCount,
         };
 
-        return { consultations: mappedConsultations, counts };
+        return {
+            consultations: mappedConsultations,
+            counts,
+            meta: {
+                page: currentPage,
+                limit: currentLimit,
+                total,
+                totalPages: Math.ceil(total / currentLimit),
+            },
+        };
     }
 
     async updateStatus(submissionId: string, doctorId: string, dto: UpdateConsultationStatusDto) {

@@ -23,17 +23,26 @@ export class DoctorMyConsultationController {
         description: "Returns consultations filtered by tab and includes the counts for the tabs.",
     })
     @ApiQuery({ name: "tab", enum: ConsultationTab, required: false })
+    @ApiQuery({ name: "page", required: false, type: Number })
+    @ApiQuery({ name: "limit", required: false, type: Number })
     @ApiOkResponse({ type: DoctorConsultationListResponseDto })
     async getMyConsultations(
         @CurrentUser() user: AuthenticatedUser,
         @Query("tab") tab?: ConsultationTab,
+        @Query("page") page?: string,
+        @Query("limit") limit?: string,
     ) {
-        const result = await this.myConsultationService.getMyConsultations(user.id, tab);
+        const result = await this.myConsultationService.getMyConsultations(
+            user.id,
+            tab,
+            page ? Number(page) : undefined,
+            limit ? Number(limit) : undefined,
+        );
         return {
             success: true,
             statusCode: 200,
             message: "Consultations retrieved successfully",
-            data: result,
+            ...result,
         };
     }
 
