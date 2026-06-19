@@ -102,6 +102,7 @@ export class PaymentRepository {
                     shippingZip: shippingInfo.zip,
                     userId,
                     discountId,
+                    submissionId: submissionId ?? null,
                 },
             });
 
