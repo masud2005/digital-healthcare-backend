@@ -1,3 +1,4 @@
+import { PrismaService } from "@global/prisma/prisma.service";
 import { StorageService } from "@global/storage/storage.service";
 import {
     BadRequestException,
@@ -5,7 +6,6 @@ import {
     Injectable,
     NotFoundException,
 } from "@nestjs/common";
-import { PrismaService } from "@global/prisma/prisma.service";
 import type { QuestionType } from "@prisma/client";
 import {
     AssessmentSubmissionRecord,
@@ -175,7 +175,10 @@ export class AssessmentSubmissionService {
             if (!answer) return null;
 
             const options = questionOptionsMap.get(questionId) ?? [];
-            const isFileInput = options.some((o) => o.inputType?.toLowerCase() === "file");
+            const isFileInput = options.some((o) => {
+                const type = o.inputType?.toLowerCase();
+                return type === "file" || type === "file_upload" || type === "file-upload" || type === "file upload";
+            });
 
             // Resolve attachment if textResponse holds a file attachment id
             let resolvedFile: { id: string; fileUrl: string | null } | null = null;
