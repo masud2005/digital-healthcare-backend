@@ -14,7 +14,7 @@ import { MyOrderDetailDto, MyOrderListResponseDto } from "./dto/my-order.dto";
 import type { DateRangeFilter } from "./my-order.repository";
 import { MyOrderService } from "./my-order.service";
 
-@ApiTags("Patient - My Orders")
+@ApiTags("(Patient) My Orders")
 @ApiBearerAuth()
 @Controller("my-orders")
 export class MyOrderController {
