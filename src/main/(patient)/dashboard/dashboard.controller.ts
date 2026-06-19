@@ -6,7 +6,7 @@ import { ApiBearerAuth, ApiOkResponse, ApiOperation, ApiTags } from "@nestjs/swa
 import { DashboardService } from "./dashboard.service";
 import { DashboardStatsResponseDto } from "./dto/dashboard.dto";
 
-@ApiTags("Patient - Dashboard")
+@ApiTags("(Patient) Dashboard")
 @ApiBearerAuth()
 @Controller("dashboard")
 export class DashboardController {

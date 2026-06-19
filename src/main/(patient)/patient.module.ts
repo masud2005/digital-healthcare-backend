@@ -12,8 +12,8 @@ import { ServiceCategoryModule } from "./service/service-category.module";
         AssessmentSubmissionModule,
         CartModule,
         PaymentModule,
-        MyOrderModule,
         DashboardModule,
+        MyOrderModule,
     ],
 })
 export class PatientModule {}
