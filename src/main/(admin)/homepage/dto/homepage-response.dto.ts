@@ -1,3 +1,4 @@
+import { AttachmentResponseDto } from "@global/attachment/dto/attachment-response.dto";
 import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
 
 export class HowItWorksStepResponseDto {
@@ -12,6 +13,12 @@ export class HowItWorksStepResponseDto {
 
     @ApiPropertyOptional({ nullable: true })
     description: string | null;
+
+    @ApiPropertyOptional({ example: "7f4145d8-087e-4d33-82bd-0f65d3fbdb4f", nullable: true })
+    iconId: string | null;
+
+    @ApiPropertyOptional({ type: AttachmentResponseDto, nullable: true })
+    icon: AttachmentResponseDto | null;
 
     @ApiPropertyOptional({ nullable: true })
     iconUrl: string | null;
@@ -53,8 +60,20 @@ export class HomePageContentResponseDto {
     @ApiProperty()
     id: string;
 
+    @ApiPropertyOptional({ example: "7f4145d8-087e-4d33-82bd-0f65d3fbdb4f", nullable: true })
+    heroImageId: string | null;
+
+    @ApiPropertyOptional({ type: AttachmentResponseDto, nullable: true })
+    heroImage: AttachmentResponseDto | null;
+
     @ApiPropertyOptional({ nullable: true })
     heroImageUrl: string | null;
+
+    @ApiPropertyOptional({ example: "7f4145d8-087e-4d33-82bd-0f65d3fbdb4f", nullable: true })
+    heroBadgeImageId: string | null;
+
+    @ApiPropertyOptional({ type: AttachmentResponseDto, nullable: true })
+    heroBadgeImage: AttachmentResponseDto | null;
 
     @ApiPropertyOptional({ nullable: true })
     heroBadgeImageUrl: string | null;
