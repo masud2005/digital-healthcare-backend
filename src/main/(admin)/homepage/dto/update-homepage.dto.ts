@@ -25,6 +25,11 @@ export class HowItWorksStepDto {
     @IsString()
     description?: string;
 
+    @ApiPropertyOptional({ example: "7f4145d8-087e-4d33-82bd-0f65d3fbdb4f" })
+    @IsOptional()
+    @IsString()
+    iconId?: string;
+
     @ApiPropertyOptional()
     @IsOptional()
     @IsInt()
@@ -54,14 +59,15 @@ export class HomePageFaqDto {
 }
 
 export class UpdateHomePageContentDto {
-    // Hero Section
-    @ApiPropertyOptional({ type: "string", format: "binary", description: "Hero section image" })
+    @ApiPropertyOptional({ example: "7f4145d8-087e-4d33-82bd-0f65d3fbdb4f" })
     @IsOptional()
-    heroImage?: any;
+    @IsString()
+    heroImageId?: string;
 
-    @ApiPropertyOptional({ type: "string", format: "binary", description: "Hero badge image" })
+    @ApiPropertyOptional({ example: "7f4145d8-087e-4d33-82bd-0f65d3fbdb4f" })
     @IsOptional()
-    heroBadgeImage?: any;
+    @IsString()
+    heroBadgeImageId?: string;
 
     @ApiPropertyOptional()
     @IsOptional()

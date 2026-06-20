@@ -1,6 +1,5 @@
-import { Body, Controller, Get, Patch, UploadedFiles, UseInterceptors } from "@nestjs/common";
-import { FileFieldsInterceptor } from "@nestjs/platform-express";
-import { ApiBody, ApiConsumes, ApiOkResponse, ApiOperation, ApiTags } from "@nestjs/swagger";
+import { Body, Controller, Get, Patch } from "@nestjs/common";
+import { ApiOkResponse, ApiOperation, ApiTags } from "@nestjs/swagger";
 import { HomePageContentResponseDto } from "./dto/homepage-response.dto";
 import { UpdateHomePageContentDto } from "./dto/update-homepage.dto";
 import { HomePageService } from "./homepage.service";
@@ -19,23 +18,10 @@ export class HomePageController {
 
     @Patch()
     @ApiOperation({ summary: "Update homepage content" })
-    @ApiConsumes("multipart/form-data")
-    @ApiBody({ type: UpdateHomePageContentDto })
-    @UseInterceptors(
-        FileFieldsInterceptor([
-            { name: "heroImage", maxCount: 1 },
-            { name: "heroBadgeImage", maxCount: 1 },
-        ]),
-    )
     @ApiOkResponse({ type: HomePageContentResponseDto })
     updateContent(
         @Body() payload: UpdateHomePageContentDto,
-        @UploadedFiles()
-        files: {
-            heroImage?: Express.Multer.File[];
-            heroBadgeImage?: Express.Multer.File[];
-        },
     ) {
-        return this.homePageService.updateContent(payload, files);
+        return this.homePageService.updateContent(payload);
     }
 }

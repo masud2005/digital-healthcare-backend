@@ -83,45 +83,30 @@ export class UpdateWebsiteSettingsDto {
     @IsString()
     metaDescription?: string;
 
-    @ApiPropertyOptional({
-        type: "string",
-        format: "binary",
-        description: "White logo image file to upload",
-    })
+    @ApiPropertyOptional({ example: "7f4145d8-087e-4d33-82bd-0f65d3fbdb4f" })
     @IsOptional()
-    whiteLogo?: any;
+    @IsString()
+    whiteLogoId?: string;
 
-    @ApiPropertyOptional({
-        type: "string",
-        format: "binary",
-        description: "Black logo image file to upload",
-    })
+    @ApiPropertyOptional({ example: "7f4145d8-087e-4d33-82bd-0f65d3fbdb4f" })
     @IsOptional()
-    blackLogo?: any;
+    @IsString()
+    blackLogoId?: string;
 
-    @ApiPropertyOptional({
-        type: "string",
-        format: "binary",
-        description: "Favicon light image file to upload",
-    })
+    @ApiPropertyOptional({ example: "7f4145d8-087e-4d33-82bd-0f65d3fbdb4f" })
     @IsOptional()
-    faviconLight?: any;
+    @IsString()
+    faviconLightId?: string;
 
-    @ApiPropertyOptional({
-        type: "string",
-        format: "binary",
-        description: "Favicon dark image file to upload",
-    })
+    @ApiPropertyOptional({ example: "7f4145d8-087e-4d33-82bd-0f65d3fbdb4f" })
     @IsOptional()
-    faviconDark?: any;
+    @IsString()
+    faviconDarkId?: string;
 
-    @ApiPropertyOptional({
-        type: "string",
-        format: "binary",
-        description: "Social preview image file to upload",
-    })
+    @ApiPropertyOptional({ example: "7f4145d8-087e-4d33-82bd-0f65d3fbdb4f" })
     @IsOptional()
-    socialPreview?: any;
+    @IsString()
+    socialPreviewId?: string;
 
     @ApiPropertyOptional({ example: "(720) 279-1104" })
     @IsOptional()

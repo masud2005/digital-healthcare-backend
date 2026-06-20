@@ -43,80 +43,30 @@ export class WebsiteService implements OnModuleInit {
         return this.resolveSettingsImages(settings!);
     }
 
-    async updateSettings(payload: UpdateWebsiteSettingsDto, files?: any) {
+    async updateSettings(payload: UpdateWebsiteSettingsDto) {
         const settings = await this.getSettings();
         const updateData: any = { ...payload };
 
-        if (files) {
-            if (files.whiteLogo?.[0]) {
-                const attachmentId = await this.uploadAttachment(
-                    files.whiteLogo[0],
-                    "WEBSITE_LOGO",
-                );
-                updateData.whiteLogoId = attachmentId;
-                if (settings.whiteLogoId) {
-                    await this.attachmentService.remove(settings.whiteLogoId).catch(() => {});
-                }
-            }
-            if (files.blackLogo?.[0]) {
-                const attachmentId = await this.uploadAttachment(
-                    files.blackLogo[0],
-                    "WEBSITE_LOGO",
-                );
-                updateData.blackLogoId = attachmentId;
-                if (settings.blackLogoId) {
-                    await this.attachmentService.remove(settings.blackLogoId).catch(() => {});
-                }
-            }
-            if (files.faviconLight?.[0]) {
-                const attachmentId = await this.uploadAttachment(
-                    files.faviconLight[0],
-                    "WEBSITE_FAVICON",
-                );
-                updateData.faviconLightId = attachmentId;
-                if (settings.faviconLightId) {
-                    await this.attachmentService.remove(settings.faviconLightId).catch(() => {});
-                }
-            }
-            if (files.faviconDark?.[0]) {
-                const attachmentId = await this.uploadAttachment(
-                    files.faviconDark[0],
-                    "WEBSITE_FAVICON",
-                );
-                updateData.faviconDarkId = attachmentId;
-                if (settings.faviconDarkId) {
-                    await this.attachmentService.remove(settings.faviconDarkId).catch(() => {});
-                }
-            }
-            if (files.socialPreview?.[0]) {
-                const attachmentId = await this.uploadAttachment(
-                    files.socialPreview[0],
-                    "WEBSITE_SOCIAL_PREVIEW",
-                );
-                updateData.socialPreviewId = attachmentId;
-                if (settings.socialPreviewId) {
-                    await this.attachmentService.remove(settings.socialPreviewId).catch(() => {});
+        const attachmentFields = [
+            "whiteLogoId",
+            "blackLogoId",
+            "faviconLightId",
+            "faviconDarkId",
+            "socialPreviewId",
+        ];
+
+        for (const field of attachmentFields) {
+            const newId = payload[field];
+            const oldId = settings[field as keyof typeof settings];
+            if (newId !== undefined && newId !== oldId) {
+                if (oldId && typeof oldId === "string") {
+                    await this.attachmentService.remove(oldId).catch(() => {});
                 }
             }
         }
-
-        // Remove multipart binary fields from the payload before saving
-        delete updateData.whiteLogo;
-        delete updateData.blackLogo;
-        delete updateData.faviconLight;
-        delete updateData.faviconDark;
-        delete updateData.socialPreview;
 
         const updated = await this.websiteRepository.updateSettings(settings.id, updateData);
         return this.resolveSettingsImages(updated!);
-    }
-
-    private async uploadAttachment(file: Express.Multer.File, context: any) {
-        const res = await this.attachmentService.upload([file], { context });
-        if (Array.isArray(res.data)) {
-            return res.data[0].id;
-        }
-        return (res.data as any).id;
     }
 
     private async resolveSettingsImages<
