@@ -57,21 +57,6 @@ export class OfficeLocationDto {
     linkedinUrl?: string;
 }
 
-export class SocialLinkDto {
-    @ApiPropertyOptional({ example: "clh9876543210987654321098" })
-    @IsOptional()
-    @IsString()
-    id?: string;
-
-    @ApiProperty({ example: "facebook" })
-    @IsString()
-    platform: string;
-
-    @ApiProperty({ example: "https://facebook.com/wlmmd" })
-    @IsString()
-    url: string;
-}
-
 export class UpdateWebsiteSettingsDto {
     @ApiPropertyOptional({ example: "Weight Loss MD" })
     @IsOptional()
@@ -150,20 +135,23 @@ export class UpdateWebsiteSettingsDto {
     @Type(() => OfficeLocationDto)
     offices?: OfficeLocationDto[];
 
-    @ApiPropertyOptional({ type: [SocialLinkDto] })
+    @ApiPropertyOptional({ example: "https://facebook.com/wlmmd" })
     @IsOptional()
-    @Transform(({ value }) => {
-        if (typeof value === "string") {
-            try {
-                return JSON.parse(value);
-            } catch {
-                return value;
-            }
-        }
-        return value;
-    })
-    @IsArray()
-    @ValidateNested({ each: true })
-    @Type(() => SocialLinkDto)
-    socialLinks?: SocialLinkDto[];
+    @IsString()
+    facebookUrl?: string;
+
+    @ApiPropertyOptional({ example: "https://instagram.com/wlmmd" })
+    @IsOptional()
+    @IsString()
+    instagramUrl?: string;
+
+    @ApiPropertyOptional({ example: "https://twitter.com/wlmmd" })
+    @IsOptional()
+    @IsString()
+    twitterUrl?: string;
+
+    @ApiPropertyOptional({ example: "https://linkedin.com/wlmmd" })
+    @IsOptional()
+    @IsString()
+    linkedinUrl?: string;
 }

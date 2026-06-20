@@ -44,71 +44,111 @@ export class WebsiteService implements OnModuleInit {
     }
 
     async updateSettings(payload: UpdateWebsiteSettingsDto) {
-        const settings = await this.getSettings();
+        const dbSettings = await this.websiteRepository.findSettings();
+        if (!dbSettings) {
+            throw new Error("Settings not found");
+        }
+
         const updateData: any = { ...payload };
 
-        const attachmentFields = [
-            "whiteLogoId",
-            "blackLogoId",
-            "faviconLightId",
-            "faviconDarkId",
-            "socialPreviewId",
-        ];
+        const attachmentFieldsWithContext: Record<string, string> = {
+            whiteLogoId: "WEBSITE_LOGO",
+            blackLogoId: "WEBSITE_LOGO",
+            faviconLightId: "WEBSITE_FAVICON",
+            faviconDarkId: "WEBSITE_FAVICON",
+            socialPreviewId: "WEBSITE_SOCIAL_PREVIEW",
+        };
 
-        for (const field of attachmentFields) {
-            const newId = payload[field];
-            const oldId = settings[field as keyof typeof settings];
+        for (const [field, context] of Object.entries(attachmentFieldsWithContext)) {
+            const newId = payload[field as keyof UpdateWebsiteSettingsDto];
+            const oldId = dbSettings[field as keyof typeof dbSettings];
             if (newId !== undefined && newId !== oldId) {
                 if (oldId && typeof oldId === "string") {
                     await this.attachmentService.remove(oldId).catch(() => {});
                 }
+                if (newId && typeof newId === "string") {
+                    await this.attachmentService.replace(newId, { context: context as any }).catch(() => {});
+                }
             }
         }
 
-        const updated = await this.websiteRepository.updateSettings(settings.id, updateData);
+        // Map flat social link fields back to relational schema format
+        const socialLinks = dbSettings.socialLinks || [];
+        const mappedSocialLinks: any[] = [];
+
+        if (payload.facebookUrl !== undefined) {
+            const existing = socialLinks.find(s => s.platform === "facebook");
+            mappedSocialLinks.push({ id: existing?.id, platform: "facebook", url: payload.facebookUrl });
+        }
+        if (payload.instagramUrl !== undefined) {
+            const existing = socialLinks.find(s => s.platform === "instagram");
+            mappedSocialLinks.push({ id: existing?.id, platform: "instagram", url: payload.instagramUrl });
+        }
+        if (payload.twitterUrl !== undefined) {
+            const existing = socialLinks.find(s => s.platform === "twitter");
+            mappedSocialLinks.push({ id: existing?.id, platform: "twitter", url: payload.twitterUrl });
+        }
+        if (payload.linkedinUrl !== undefined) {
+            const existing = socialLinks.find(s => s.platform === "linkedin");
+            mappedSocialLinks.push({ id: existing?.id, platform: "linkedin", url: payload.linkedinUrl });
+        }
+
+        if (mappedSocialLinks.length > 0) {
+            updateData.socialLinks = mappedSocialLinks;
+        }
+
+        // Remove flat fields from updateData before sending to repository
+        delete updateData.facebookUrl;
+        delete updateData.instagramUrl;
+        delete updateData.twitterUrl;
+        delete updateData.linkedinUrl;
+
+        const updated = await this.websiteRepository.updateSettings(dbSettings.id, updateData);
         return this.resolveSettingsImages(updated!);
     }
 
-    private async resolveSettingsImages<
-        T extends {
-            whiteLogoId?: string | null;
-            whiteLogo?: { fileUrl: string } | null;
-            blackLogoId?: string | null;
-            blackLogo?: { fileUrl: string } | null;
-            faviconLightId?: string | null;
-            faviconLight?: { fileUrl: string } | null;
-            faviconDarkId?: string | null;
-            faviconDark?: { fileUrl: string } | null;
-            socialPreviewId?: string | null;
-            socialPreview?: { fileUrl: string } | null;
-        },
-    >(settings: T) {
-        const [whiteLogoUrl, blackLogoUrl, faviconLightUrl, faviconDarkUrl, socialPreviewUrl] =
+    private async resolveSettingsImages(settings: any) {
+        const [whiteLogo, blackLogo, faviconLight, faviconDark, socialPreview] =
             await Promise.all([
-                settings.whiteLogo?.fileUrl
-                    ? this.storageService.getSignedUrl(settings.whiteLogo.fileUrl)
-                    : Promise.resolve(null),
-                settings.blackLogo?.fileUrl
-                    ? this.storageService.getSignedUrl(settings.blackLogo.fileUrl)
-                    : Promise.resolve(null),
-                settings.faviconLight?.fileUrl
-                    ? this.storageService.getSignedUrl(settings.faviconLight.fileUrl)
-                    : Promise.resolve(null),
-                settings.faviconDark?.fileUrl
-                    ? this.storageService.getSignedUrl(settings.faviconDark.fileUrl)
-                    : Promise.resolve(null),
-                settings.socialPreview?.fileUrl
-                    ? this.storageService.getSignedUrl(settings.socialPreview.fileUrl)
-                    : Promise.resolve(null),
+                settings.whiteLogo ? this.resolveAttachmentUrl(settings.whiteLogo) : Promise.resolve(null),
+                settings.blackLogo ? this.resolveAttachmentUrl(settings.blackLogo) : Promise.resolve(null),
+                settings.faviconLight ? this.resolveAttachmentUrl(settings.faviconLight) : Promise.resolve(null),
+                settings.faviconDark ? this.resolveAttachmentUrl(settings.faviconDark) : Promise.resolve(null),
+                settings.socialPreview ? this.resolveAttachmentUrl(settings.socialPreview) : Promise.resolve(null),
             ]);
 
+        const socialLinks = settings.socialLinks || [];
+        const facebookUrl = socialLinks.find((s: any) => s.platform === "facebook")?.url || null;
+        const instagramUrl = socialLinks.find((s: any) => s.platform === "instagram")?.url || null;
+        const twitterUrl = socialLinks.find((s: any) => s.platform === "twitter")?.url || null;
+        const linkedinUrl = socialLinks.find((s: any) => s.platform === "linkedin")?.url || null;
+
+        const { socialLinks: _, ...settingsWithoutSocialLinks } = settings;
+
         return {
-            ...settings,
-            whiteLogoUrl,
-            blackLogoUrl,
-            faviconLightUrl,
-            faviconDarkUrl,
-            socialPreviewUrl,
+            ...settingsWithoutSocialLinks,
+            whiteLogo,
+            blackLogo,
+            faviconLight,
+            faviconDark,
+            socialPreview,
+            whiteLogoUrl: whiteLogo?.fileUrl || null,
+            blackLogoUrl: blackLogo?.fileUrl || null,
+            faviconLightUrl: faviconLight?.fileUrl || null,
+            faviconDarkUrl: faviconDark?.fileUrl || null,
+            socialPreviewUrl: socialPreview?.fileUrl || null,
+            facebookUrl,
+            instagramUrl,
+            twitterUrl,
+            linkedinUrl,
+        };
+    }
+
+    private async resolveAttachmentUrl(attachment: any) {
+        if (!attachment) return null;
+        return {
+            ...attachment,
+            fileUrl: await this.storageService.getSignedUrl(attachment.fileUrl),
         };
     }
 }
