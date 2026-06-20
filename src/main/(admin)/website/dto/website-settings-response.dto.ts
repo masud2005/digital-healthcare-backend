@@ -1,3 +1,4 @@
+import { AttachmentResponseDto } from "@global/attachment/dto/attachment-response.dto";
 import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
 
 export class OfficeLocationResponseDto {
@@ -44,20 +45,6 @@ export class OfficeLocationResponseDto {
     updatedAt: Date;
 }
 
-export class SocialLinkResponseDto {
-    @ApiProperty({ example: "clh9876543210987654321098" })
-    id: string;
-
-    @ApiProperty({ example: "clh9999999990123456789012" })
-    siteId: string;
-
-    @ApiProperty({ example: "facebook" })
-    platform: string;
-
-    @ApiProperty({ example: "https://facebook.com/wlmmd" })
-    url: string;
-}
-
 export class WebsiteSettingsResponseDto {
     @ApiProperty({ example: "clh9999999990123456789012" })
     id: string;
@@ -68,17 +55,47 @@ export class WebsiteSettingsResponseDto {
     @ApiPropertyOptional({ example: "Denver's leading weight loss clinic", nullable: true })
     metaDescription: string | null;
 
+    @ApiPropertyOptional({ example: "7f4145d8-087e-4d33-82bd-0f65d3fbdb4f", nullable: true })
+    whiteLogoId: string | null;
+
+    @ApiPropertyOptional({ type: AttachmentResponseDto, nullable: true })
+    whiteLogo: AttachmentResponseDto | null;
+
     @ApiPropertyOptional({ example: "https://example.com/logo-white.png", nullable: true })
     whiteLogoUrl: string | null;
+
+    @ApiPropertyOptional({ example: "7f4145d8-087e-4d33-82bd-0f65d3fbdb4f", nullable: true })
+    blackLogoId: string | null;
+
+    @ApiPropertyOptional({ type: AttachmentResponseDto, nullable: true })
+    blackLogo: AttachmentResponseDto | null;
 
     @ApiPropertyOptional({ example: "https://example.com/logo-black.png", nullable: true })
     blackLogoUrl: string | null;
 
+    @ApiPropertyOptional({ example: "7f4145d8-087e-4d33-82bd-0f65d3fbdb4f", nullable: true })
+    faviconLightId: string | null;
+
+    @ApiPropertyOptional({ type: AttachmentResponseDto, nullable: true })
+    faviconLight: AttachmentResponseDto | null;
+
     @ApiPropertyOptional({ example: "https://example.com/favicon-light.ico", nullable: true })
     faviconLightUrl: string | null;
 
+    @ApiPropertyOptional({ example: "7f4145d8-087e-4d33-82bd-0f65d3fbdb4f", nullable: true })
+    faviconDarkId: string | null;
+
+    @ApiPropertyOptional({ type: AttachmentResponseDto, nullable: true })
+    faviconDark: AttachmentResponseDto | null;
+
     @ApiPropertyOptional({ example: "https://example.com/favicon-dark.ico", nullable: true })
     faviconDarkUrl: string | null;
+
+    @ApiPropertyOptional({ example: "7f4145d8-087e-4d33-82bd-0f65d3fbdb4f", nullable: true })
+    socialPreviewId: string | null;
+
+    @ApiPropertyOptional({ type: AttachmentResponseDto, nullable: true })
+    socialPreview: AttachmentResponseDto | null;
 
     @ApiPropertyOptional({ example: "https://example.com/social-preview.jpg", nullable: true })
     socialPreviewUrl: string | null;
@@ -101,8 +118,17 @@ export class WebsiteSettingsResponseDto {
     @ApiProperty({ type: [OfficeLocationResponseDto] })
     offices: OfficeLocationResponseDto[];
 
-    @ApiProperty({ type: [SocialLinkResponseDto] })
-    socialLinks: SocialLinkResponseDto[];
+    @ApiPropertyOptional({ example: "https://facebook.com/wlmmd", nullable: true })
+    facebookUrl: string | null;
+
+    @ApiPropertyOptional({ example: "https://instagram.com/wlmmd", nullable: true })
+    instagramUrl: string | null;
+
+    @ApiPropertyOptional({ example: "https://twitter.com/wlmmd", nullable: true })
+    twitterUrl: string | null;
+
+    @ApiPropertyOptional({ example: "https://linkedin.com/wlmmd", nullable: true })
+    linkedinUrl: string | null;
 
     @ApiProperty({ example: "2026-05-19T08:00:00.000Z" })
     createdAt: Date;

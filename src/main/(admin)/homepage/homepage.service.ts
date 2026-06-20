@@ -41,78 +41,83 @@ export class HomePageService implements OnModuleInit {
         return this.resolveImages(content!);
     }
 
-    async updateContent(payload: UpdateHomePageContentDto, files?: any) {
+    async updateContent(payload: UpdateHomePageContentDto) {
         const content = await this.getContent();
         const updateData: any = { ...payload };
 
-        if (files) {
-            if (files.heroImage?.[0]) {
-                const attachmentId = await this.uploadAttachment(files.heroImage[0], "HERO_IMAGE");
-                updateData.heroImageId = attachmentId;
-                if (content.heroImageId) {
-                    await this.attachmentService.remove(content.heroImageId).catch(() => {});
+        // Clean up and update context of main images
+        const attachmentFieldsWithContext: Record<string, string> = {
+            heroImageId: "HERO_IMAGE",
+            heroBadgeImageId: "HERO_BADGE_IMAGE",
+        };
+
+        for (const [field, context] of Object.entries(attachmentFieldsWithContext)) {
+            const newId = payload[field as keyof UpdateHomePageContentDto];
+            const oldId = content[field as keyof typeof content];
+            if (newId !== undefined && newId !== oldId) {
+                if (oldId && typeof oldId === "string") {
+                    await this.attachmentService.remove(oldId).catch(() => {});
                 }
-            }
-            if (files.heroBadgeImage?.[0]) {
-                const attachmentId = await this.uploadAttachment(
-                    files.heroBadgeImage[0],
-                    "HERO_BADGE_IMAGE",
-                );
-                updateData.heroBadgeImageId = attachmentId;
-                if (content.heroBadgeImageId) {
-                    await this.attachmentService.remove(content.heroBadgeImageId).catch(() => {});
+                if (newId && typeof newId === "string") {
+                    await this.attachmentService.replace(newId, { context: context as any }).catch(() => {});
                 }
             }
         }
 
-        // Remove multipart binary fields
-        delete updateData.heroImage;
-        delete updateData.heroBadgeImage;
+        // Clean up step icons if they changed or steps were deleted, and set contexts
+        if (payload.howItWorksSteps !== undefined && content.howItWorksSteps) {
+            for (const incomingStep of payload.howItWorksSteps) {
+                if (incomingStep.id) {
+                    const existingStep = content.howItWorksSteps.find(s => s.id === incomingStep.id);
+                    if (existingStep && incomingStep.iconId !== undefined && incomingStep.iconId !== existingStep.iconId) {
+                        if (existingStep.iconId) {
+                            await this.attachmentService.remove(existingStep.iconId).catch(() => {});
+                        }
+                        if (incomingStep.iconId) {
+                            await this.attachmentService.replace(incomingStep.iconId, { context: "HOW_IT_WORKS_ICON" }).catch(() => {});
+                        }
+                    }
+                } else if (incomingStep.iconId) {
+                    await this.attachmentService.replace(incomingStep.iconId, { context: "HOW_IT_WORKS_ICON" }).catch(() => {});
+                }
+            }
+            const incomingIds = payload.howItWorksSteps.map(s => s.id).filter(Boolean);
+            for (const existingStep of content.howItWorksSteps) {
+                if (!incomingIds.includes(existingStep.id)) {
+                    if (existingStep.iconId) {
+                        await this.attachmentService.remove(existingStep.iconId).catch(() => {});
+                    }
+                }
+            }
+        }
 
         const updated = await this.homePageRepository.updateContent(content.id, updateData);
         return this.resolveImages(updated!);
     }
 
-    private async uploadAttachment(file: Express.Multer.File, context: any) {
-        const res = await this.attachmentService.upload([file], { context });
-        // The data property contains the created attachment record or records.
-        // In the upload method, single file upload returns:
-        // { success: true, message: ..., data: resolvedAttachment }
-        // where data is the attachment object itself.
-        if (Array.isArray(res.data)) {
-            return res.data[0].id;
-        }
-        return (res.data as any).id;
-    }
-
     private async resolveImages<
         T extends {
             heroImageId?: string | null;
-            heroImage?: { fileUrl: string } | null;
+            heroImage?: any;
             heroBadgeImageId?: string | null;
-            heroBadgeImage?: { fileUrl: string } | null;
+            heroBadgeImage?: any;
             howItWorksSteps?: any[] | null;
         },
     >(content: T) {
-        const [heroImageUrl, heroBadgeImageUrl] = await Promise.all([
-            content.heroImage?.fileUrl
-                ? this.storageService.getSignedUrl(content.heroImage.fileUrl)
-                : Promise.resolve(null),
-            content.heroBadgeImage?.fileUrl
-                ? this.storageService.getSignedUrl(content.heroBadgeImage.fileUrl)
-                : Promise.resolve(null),
+        const [heroImage, heroBadgeImage] = await Promise.all([
+            content.heroImage ? this.resolveAttachmentUrl(content.heroImage) : Promise.resolve(null),
+            content.heroBadgeImage ? this.resolveAttachmentUrl(content.heroBadgeImage) : Promise.resolve(null),
         ]);
 
         let resolvedSteps = content.howItWorksSteps;
         if (Array.isArray(resolvedSteps)) {
             resolvedSteps = await Promise.all(
                 resolvedSteps.map(async (step) => {
-                    const iconUrl = step.icon?.fileUrl
-                        ? await this.storageService.getSignedUrl(step.icon.fileUrl)
-                        : null;
+                    const icon = step.icon ? await this.resolveAttachmentUrl(step.icon) : null;
                     return {
                         ...step,
-                        iconUrl,
+                        icon,
+                        iconUrl: icon?.fileUrl || null,
                     };
                 }),
             );
@@ -120,9 +125,19 @@ export class HomePageService implements OnModuleInit {
 
         return {
             ...content,
-            heroImageUrl,
-            heroBadgeImageUrl,
+            heroImage,
+            heroBadgeImage,
+            heroImageUrl: heroImage?.fileUrl || null,
+            heroBadgeImageUrl: heroBadgeImage?.fileUrl || null,
             howItWorksSteps: resolvedSteps,
+        };
+    }
+
+    private async resolveAttachmentUrl(attachment: any) {
+        if (!attachment) return null;
+        return {
+            ...attachment,
+            fileUrl: await this.storageService.getSignedUrl(attachment.fileUrl),
         };
     }
 }

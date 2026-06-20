@@ -102,20 +102,35 @@ export type ConsentStatus = (typeof consentStatus)[number];
 export const consentSource = ["WEB", "MOBILE"] as const;
 export type ConsentSource = (typeof consentSource)[number];
 export const attachmentContext = [
+    /** User profile pictures */
     "PROFILE_PICTURE",
+    /** Files uploaded within chat messages */
     "CHAT_MESSAGE",
+    /** Product showcase images */
     "PRODUCT_IMAGE",
+    /** Files attached to assessment questions or submissions */
     "ASSESSMENT_FILE",
+    /** Patient medical reports */
     "MEDICAL_REPORT",
+    /** Category icons */
     "CATEGORY_ICON",
+    /** Homepage hero section main image */
     "HERO_IMAGE",
+    /** Homepage hero section badge/logo image */
     "HERO_BADGE_IMAGE",
+    /** Icons for 'How It Works' section steps */
     "HOW_IT_WORKS_ICON",
+    /** Website branding logos (light and dark) */
     "WEBSITE_LOGO",
+    /** Website favicon assets */
     "WEBSITE_FAVICON",
+    /** Website social media preview/OG images */
     "WEBSITE_SOCIAL_PREVIEW",
+    /** Doctor avatars/profile photos */
     "DOCTOR_AVATAR",
+    /** Files attached to contact lead inquiries */
     "CONTACT_LEAD_ATTACHMENT",
+    /** Files attached to side effect reports */
     "SIDE_EFFECT_REPORT_ATTACHMENT",
 ] as const;
 export type AttachmentContext = (typeof attachmentContext)[number];

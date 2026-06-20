@@ -57,21 +57,6 @@ export class OfficeLocationDto {
     linkedinUrl?: string;
 }
 
-export class SocialLinkDto {
-    @ApiPropertyOptional({ example: "clh9876543210987654321098" })
-    @IsOptional()
-    @IsString()
-    id?: string;
-
-    @ApiProperty({ example: "facebook" })
-    @IsString()
-    platform: string;
-
-    @ApiProperty({ example: "https://facebook.com/wlmmd" })
-    @IsString()
-    url: string;
-}
-
 export class UpdateWebsiteSettingsDto {
     @ApiPropertyOptional({ example: "Weight Loss MD" })
     @IsOptional()
@@ -83,45 +68,30 @@ export class UpdateWebsiteSettingsDto {
     @IsString()
     metaDescription?: string;
 
-    @ApiPropertyOptional({
-        type: "string",
-        format: "binary",
-        description: "White logo image file to upload",
-    })
+    @ApiPropertyOptional({ example: "7f4145d8-087e-4d33-82bd-0f65d3fbdb4f" })
     @IsOptional()
-    whiteLogo?: any;
+    @IsString()
+    whiteLogoId?: string;
 
-    @ApiPropertyOptional({
-        type: "string",
-        format: "binary",
-        description: "Black logo image file to upload",
-    })
+    @ApiPropertyOptional({ example: "7f4145d8-087e-4d33-82bd-0f65d3fbdb4f" })
     @IsOptional()
-    blackLogo?: any;
+    @IsString()
+    blackLogoId?: string;
 
-    @ApiPropertyOptional({
-        type: "string",
-        format: "binary",
-        description: "Favicon light image file to upload",
-    })
+    @ApiPropertyOptional({ example: "7f4145d8-087e-4d33-82bd-0f65d3fbdb4f" })
     @IsOptional()
-    faviconLight?: any;
+    @IsString()
+    faviconLightId?: string;
 
-    @ApiPropertyOptional({
-        type: "string",
-        format: "binary",
-        description: "Favicon dark image file to upload",
-    })
+    @ApiPropertyOptional({ example: "7f4145d8-087e-4d33-82bd-0f65d3fbdb4f" })
     @IsOptional()
-    faviconDark?: any;
+    @IsString()
+    faviconDarkId?: string;
 
-    @ApiPropertyOptional({
-        type: "string",
-        format: "binary",
-        description: "Social preview image file to upload",
-    })
+    @ApiPropertyOptional({ example: "7f4145d8-087e-4d33-82bd-0f65d3fbdb4f" })
     @IsOptional()
-    socialPreview?: any;
+    @IsString()
+    socialPreviewId?: string;
 
     @ApiPropertyOptional({ example: "(720) 279-1104" })
     @IsOptional()
@@ -165,20 +135,23 @@ export class UpdateWebsiteSettingsDto {
     @Type(() => OfficeLocationDto)
     offices?: OfficeLocationDto[];
 
-    @ApiPropertyOptional({ type: [SocialLinkDto] })
+    @ApiPropertyOptional({ example: "https://facebook.com/wlmmd" })
     @IsOptional()
-    @Transform(({ value }) => {
-        if (typeof value === "string") {
-            try {
-                return JSON.parse(value);
-            } catch {
-                return value;
-            }
-        }
-        return value;
-    })
-    @IsArray()
-    @ValidateNested({ each: true })
-    @Type(() => SocialLinkDto)
-    socialLinks?: SocialLinkDto[];
+    @IsString()
+    facebookUrl?: string;
+
+    @ApiPropertyOptional({ example: "https://instagram.com/wlmmd" })
+    @IsOptional()
+    @IsString()
+    instagramUrl?: string;
+
+    @ApiPropertyOptional({ example: "https://twitter.com/wlmmd" })
+    @IsOptional()
+    @IsString()
+    twitterUrl?: string;
+
+    @ApiPropertyOptional({ example: "https://linkedin.com/wlmmd" })
+    @IsOptional()
+    @IsString()
+    linkedinUrl?: string;
 }
