@@ -1,5 +1,6 @@
 import { Module } from "@nestjs/common";
 import { AssessmentModule } from "./assessment/assessment.module";
+import { DocumentCenterModule } from "./document-center/document-center.module";
 import { CategoryModule } from "./category/category.module";
 import { ContactLeadsModule } from "./contact-leads/contact-leads.module";
 import { DashboardModule } from "./dashboard/dashboard.module";
@@ -30,6 +31,7 @@ import { WebsiteModule } from "./website/website.module";
         TestimonialModule,
         DiscountModule,
         HomePageModule,
+        DocumentCenterModule,
     ],
 })
 export class AdminModule {}
