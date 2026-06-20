@@ -1,6 +1,8 @@
 import {
+    CreateBucketCommand,
     DeleteObjectCommand,
     GetObjectCommand,
+    HeadBucketCommand,
     PutObjectCommand,
     S3Client,
 } from "@aws-sdk/client-s3";
@@ -33,16 +35,16 @@ export class StorageService implements OnModuleInit {
     }
     async onModuleInit() {
         try {
-            await this.s3.send(
-                new GetObjectCommand({
-                    Bucket: this.bucket,
-                    Key: "init-check",
-                }),
-            );
-            console.log("Storage initialized");
+            await this.s3.send(new HeadBucketCommand({ Bucket: this.bucket }));
+            console.log("Storage initialized (connected to MinIO)");
         } catch (err: any) {
-            if (err.name === "NoSuchKey") {
-                console.log("Storage initialized (connected to MinIO)");
+            if (err.name === "NotFound" || err.name === "NoSuchBucket") {
+                try {
+                    await this.s3.send(new CreateBucketCommand({ Bucket: this.bucket }));
+                    console.log(`Storage initialized: Bucket '${this.bucket}' created successfully`);
+                } catch (createErr) {
+                    console.error(`Failed to create bucket '${this.bucket}'`, createErr);
+                }
             } else {
                 console.error("Storage not initialized", err);
             }
