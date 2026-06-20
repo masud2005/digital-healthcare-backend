@@ -21,8 +21,8 @@ export class MyOrderService {
         return doc ? { id: doc.userId, name: doc.name } : null;
     }
 
-    async getMyOrders(userId: string, status?: OrderStatus, dateRange?: DateRangeFilter) {
-        const { orders, counts } = await this.myOrderRepository.findMyOrders(userId, status, dateRange);
+    async getMyOrders(userId: string, status?: OrderStatus, dateRange?: DateRangeFilter, page?: number, limit?: number) {
+        const { orders, counts, total, page: currentPage, limit: currentLimit } = await this.myOrderRepository.findMyOrders(userId, status, dateRange, page, limit);
 
         const mappedOrders = await Promise.all(
             orders.map(async (order) => {
@@ -46,7 +46,16 @@ export class MyOrderService {
             }),
         );
 
-        return { orders: mappedOrders, counts };
+        return { 
+            orders: mappedOrders, 
+            counts,
+            meta: {
+                page: currentPage,
+                limit: currentLimit,
+                total,
+                totalPages: Math.ceil(total / currentLimit),
+            },
+        };
     }
 
     async getMyOrderById(orderId: string, userId: string) {

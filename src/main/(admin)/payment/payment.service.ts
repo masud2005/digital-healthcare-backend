@@ -53,6 +53,12 @@ export class AdminPaymentService {
                       id: payment.user.id,
                       name: payment.user.patientProfile?.name ?? payment.user.name ?? null,
                       email: payment.user.email,
+                      phone: payment.user.phone ?? null,
+                      address: payment.user.patientProfile?.address ?? null,
+                      bio: payment.user.patientProfile?.bio ?? null,
+                      city: payment.user.patientProfile?.city ?? null,
+                      state: payment.user.patientProfile?.state ?? null,
+                      zip: payment.user.patientProfile?.zipCode ?? null,
                   }
                 : null,
             order: payment.order
@@ -60,12 +66,29 @@ export class AdminPaymentService {
                       id: payment.order.id,
                       orderNumber: payment.order.orderNumber,
                       status: payment.order.status,
+                      subtotal: Number(payment.order.subtotal),
+                      discountAmount: Number(payment.order.discountAmount),
+                      shippingAmount: Number(payment.order.shippingAmount),
+                      total: Number(payment.order.total),
+                      items: payment.order.items.map((item) => ({
+                          id: item.id,
+                          quantity: item.quantity,
+                          unitPrice: Number(item.unitPrice),
+                          totalPrice: Number(item.totalPrice),
+                          productName: item.productNameSnapshot,
+                          variantSize: item.variantSizeSnapshot ?? null,
+                      })),
                   }
                 : null,
             subscription: payment.subscription
                 ? {
                       id: payment.subscription.id,
                       status: payment.subscription.status,
+                      startDate: payment.subscription.startDate,
+                      endDate: payment.subscription.endDate ?? null,
+                      nextBillingDate: payment.subscription.nextBillingDate ?? null,
+                      categoryName: payment.subscription.category.name,
+                      paymentPlanName: payment.subscription.paymentPlan.billingCycle,
                   }
                 : null,
         };

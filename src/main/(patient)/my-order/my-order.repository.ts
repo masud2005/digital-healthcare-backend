@@ -35,7 +35,11 @@ function getDateRange(range: DateRangeFilter): { gte?: Date; lte?: Date } | unde
 export class MyOrderRepository {
     constructor(private readonly prisma: PrismaService) {}
 
-    async findMyOrders(userId: string, status?: OrderStatus, dateRange?: DateRangeFilter) {
+    async findMyOrders(userId: string, status?: OrderStatus, dateRange?: DateRangeFilter, page?: number, limit?: number) {
+        const currentPage = page ?? 1;
+        const currentLimit = limit ?? 10;
+        const skip = (currentPage - 1) * currentLimit;
+
         const where: any = { userId };
 
         if (status) {
@@ -47,9 +51,11 @@ export class MyOrderRepository {
             where.createdAt = range;
         }
 
-        const [orders, statusCounts] = await Promise.all([
+        const [orders, total, statusCounts] = await Promise.all([
             this.prisma.order.findMany({
                 where,
+                skip,
+                take: currentLimit,
                 orderBy: { createdAt: "desc" },
                 select: {
                     id: true,
@@ -76,6 +82,7 @@ export class MyOrderRepository {
                     },
                 },
             }),
+            this.prisma.order.count({ where }),
             this.prisma.order.groupBy({
                 by: ["status"],
                 where: { userId },
@@ -91,7 +98,7 @@ export class MyOrderRepository {
             {} as Record<string, number>,
         );
 
-        return { orders, counts };
+        return { orders, counts, total, page: currentPage, limit: currentLimit };
     }
 
     findMyOrderById(id: string, userId: string) {

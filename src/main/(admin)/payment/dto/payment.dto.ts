@@ -1,7 +1,7 @@
 import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
+import { PaymentItemType, PaymentStatus } from "@prisma/client";
 import { Type } from "class-transformer";
 import { IsEnum, IsInt, IsOptional, IsString, Min } from "class-validator";
-import { PaymentItemType, PaymentStatus } from "@prisma/client";
 
 // ─── Query ────────────────────────────────────────────────────────────────────
 
@@ -81,16 +81,39 @@ export class PaymentDetailDto {
         id: string;
         name: string | null;
         email: string;
+        address: string | null;
+        bio: string | null;
+        phone: string | null;
+        city: string | null;
+        state: string | null;
+        zip: string | null;
     } | null;
 
     @ApiPropertyOptional({ nullable: true }) order: {
         id: string;
         orderNumber: string;
         status: string;
+        subtotal: number;
+        discountAmount: number;
+        shippingAmount: number;
+        total: number;
+        items: Array<{
+            id: string;
+            quantity: number;
+            unitPrice: number;
+            totalPrice: number;
+            productName: string;
+            variantSize: string | null;
+        }>;
     } | null;
 
     @ApiPropertyOptional({ nullable: true }) subscription: {
         id: string;
         status: string;
+        startDate: Date;
+        endDate: Date | null;
+        nextBillingDate: Date | null;
+        categoryName: string;
+        paymentPlanName: string;
     } | null;
 }
