@@ -6,6 +6,7 @@ import { DashboardModule } from "./dashboard/dashboard.module";
 import { DiscountModule } from "./discount/discount.module";
 import { HomePageModule } from "./homepage/homepage.module";
 import { ManageDoctorModule } from "./manage-doctor/manage-doctor.module";
+import { AdminOrderModule } from "./order/order.module";
 import { PatientManageModule } from "./patient-manage/patient-manage.module";
 import { AdminPaymentModule } from "./payment/payment.module";
 import { ProductModule } from "./product/product.module";
@@ -24,6 +25,7 @@ import { WebsiteModule } from "./website/website.module";
         ManageDoctorModule,
         PatientManageModule,
         AdminPaymentModule,
+        AdminOrderModule,
         ContactLeadsModule,
         TestimonialModule,
         DiscountModule,
