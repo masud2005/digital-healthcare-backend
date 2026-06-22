@@ -4,11 +4,18 @@ import type { Prisma } from "@prisma/client";
 import { SubmissionStatus } from "@prisma/client";
 import { ConsultationTab } from "./dto/my-consultation.dto";
 
+const DEFAULT_PAGE = 1;
+const DEFAULT_LIMIT = 10;
+
 @Injectable()
 export class DoctorMyConsultationRepository {
     constructor(private readonly prisma: PrismaService) {}
 
-    async findConsultations(userId: string, tab?: ConsultationTab) {
+    async findConsultations(userId: string, tab?: ConsultationTab, page?: number, limit?: number) {
+        const currentPage = page ?? DEFAULT_PAGE;
+        const currentLimit = limit ?? DEFAULT_LIMIT;
+        const skip = (currentPage - 1) * currentLimit;
+
         const baseWhere: Prisma.AssessmentSubmissionWhereInput = {
             OR: [
                 { reviewedBy: userId },
@@ -29,9 +36,11 @@ export class DoctorMyConsultationRepository {
             where.status = { in: statusMap[tab] };
         }
 
-        const [consultations, statusCounts] = await Promise.all([
+        const [consultations, total, statusCounts] = await Promise.all([
             this.prisma.assessmentSubmission.findMany({
                 where,
+                skip,
+                take: currentLimit,
                 orderBy: { createdAt: "desc" },
                 select: {
                     id: true,
@@ -51,6 +60,7 @@ export class DoctorMyConsultationRepository {
                     },
                 },
             }),
+            this.prisma.assessmentSubmission.count({ where }),
             this.prisma.assessmentSubmission.groupBy({
                 by: ["status"],
                 where: baseWhere,
@@ -58,7 +68,7 @@ export class DoctorMyConsultationRepository {
             }),
         ]);
 
-        return { consultations, statusCounts };
+        return { consultations, total, page: currentPage, limit: currentLimit, statusCounts };
     }
 
     async updateConsultationStatus(

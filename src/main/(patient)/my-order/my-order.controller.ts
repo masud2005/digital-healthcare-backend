@@ -41,17 +41,27 @@ export class MyOrderController {
         required: false,
         description: "Filter by date range",
     })
+    @ApiQuery({ name: "page", required: false, type: Number })
+    @ApiQuery({ name: "limit", required: false, type: Number })
     async getMyOrders(
         @CurrentUser() user: AuthenticatedUser,
         @Query("status") status?: OrderStatus,
         @Query("dateRange") dateRange?: DateRangeFilter,
+        @Query("page") page?: string,
+        @Query("limit") limit?: string,
     ) {
-        const result = await this.myOrderService.getMyOrders(user.id, status, dateRange);
+        const result = await this.myOrderService.getMyOrders(
+            user.id,
+            status,
+            dateRange,
+            page ? Number(page) : undefined,
+            limit ? Number(limit) : undefined,
+        );
         return {
             success: true,
             statusCode: 200,
             message: "Orders retrieved successfully",
-            data: result,
+            ...result,
         };
     }
 

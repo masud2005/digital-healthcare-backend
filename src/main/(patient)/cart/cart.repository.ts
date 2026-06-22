@@ -12,6 +12,7 @@ const cartInclude = {
                     name: true,
                     description: true,
                     price: true,
+                    stockQuantity: true,
                     categoryId: true,
                     images: {
                         select: {

@@ -208,19 +208,25 @@ export class AssessmentSubmissionController {
     })
     @ApiOkResponse({ type: MyAssessmentSummaryResponseDto })
     @ApiQuery({ name: "status", enum: SubmissionStatus, required: false, description: "Filter by assessment status" })
+    @ApiQuery({ name: "page", required: false, type: Number })
+    @ApiQuery({ name: "limit", required: false, type: Number })
     async getMyAssessments(
         @CurrentUser() user: AuthenticatedUser,
         @Query("status") status?: SubmissionStatus,
+        @Query("page") page?: string,
+        @Query("limit") limit?: string,
     ) {
         const result = await this.assessmentSubmissionService.getMyAssessmentsSummary(
             user.id,
             status,
+            page ? Number(page) : undefined,
+            limit ? Number(limit) : undefined,
         );
         return {
             success: true,
             statusCode: 200,
             message: "My assessments retrieved successfully",
-            data: result,
+            ...result,
         };
     }
 

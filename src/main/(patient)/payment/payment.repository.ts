@@ -12,14 +12,35 @@ export class PaymentRepository {
                 assessment: {
                     select: {
                         category: {
-                            select: {
-                                id: true,
-                                paymentPlan: true,
-                            },
+                            select: { id: true, paymentPlan: true },
                         },
                     },
                 },
             },
+        });
+    }
+
+    // Finds submission regardless of status — used for pre-checkout status validation
+    findSubmissionByIdAny(submissionId: string, userId: string) {
+        return this.prisma.assessmentSubmission.findFirst({
+            where: { id: submissionId, userId },
+            include: {
+                complianceConfirmation: { select: { id: true } },
+                assessment: {
+                    select: {
+                        category: {
+                            select: { id: true, paymentPlan: true },
+                        },
+                    },
+                },
+            },
+        });
+    }
+
+    findActiveSubscription(userId: string, categoryId: string) {
+        return this.prisma.subscription.findFirst({
+            where: { userId, categoryId, status: "ACTIVE" },
+            select: { id: true },
         });
     }
 

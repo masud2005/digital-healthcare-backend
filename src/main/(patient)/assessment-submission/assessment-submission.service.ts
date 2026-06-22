@@ -39,8 +39,9 @@ export class AssessmentSubmissionService {
         private readonly prisma: PrismaService,
     ) {}
 
-    async getMyAssessmentsSummary(userId: string, status?: SubmissionStatus) {
-        const { submissions, counts } = await this.assessmentSubmissionRepository.getMyAssessmentsSummary(userId, status);
+    async getMyAssessmentsSummary(userId: string, status?: SubmissionStatus, page?: number, limit?: number) {
+        const { submissions, counts, total, page: currentPage, limit: currentLimit } =
+            await this.assessmentSubmissionRepository.getMyAssessmentsSummary(userId, status, page, limit);
 
         const mappedSubmissions = await Promise.all(
             submissions.map(async (sub) => {
@@ -73,7 +74,16 @@ export class AssessmentSubmissionService {
             })
         );
 
-        return { submissions: mappedSubmissions, counts };
+        return {
+            submissions: mappedSubmissions,
+            counts,
+            meta: {
+                page: currentPage,
+                limit: currentLimit,
+                total,
+                totalPages: Math.ceil(total / currentLimit),
+            },
+        };
     }
 
     async getMyAssessmentBlueprint(

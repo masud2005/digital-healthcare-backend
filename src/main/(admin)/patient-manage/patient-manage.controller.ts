@@ -29,6 +29,18 @@ export class PatientManageController {
         };
     }
 
+    @Get("all-assessments/:id")
+    @ApiOperation({ summary: "Get a single assessment submission by submissionId" })
+    async findAssessmentById(@Param() params: PatientParamDto) {
+        const data = await this.patientManageService.findAssessmentSubmissionById(params.id);
+        return {
+            success: true,
+            statusCode: HttpStatus.OK,
+            message: "Assessment submission fetched successfully",
+            data,
+        };
+    }
+
     @Get("all-categories")
     @ApiOperation({ summary: "Get all categories (id and name)" })
     async findAllCategories() {

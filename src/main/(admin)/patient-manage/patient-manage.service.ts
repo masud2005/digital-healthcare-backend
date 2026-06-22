@@ -1,5 +1,6 @@
 import { BadRequestException, Injectable, NotFoundException } from "@nestjs/common";
 import { StorageService } from "@global/storage/storage.service";
+import { AssessmentSubmissionService } from "@main/(patient)/assessment-submission/assessment-submission.service";
 import { PatientAssessmentQueryDto } from "./dto/assessment-query.dto";
 import { PatientQueryDto } from "./dto/patient-query.dto";
 import { PatientManageRepository } from "./patient-manage.repository";
@@ -10,7 +11,12 @@ export class PatientManageService {
     constructor(
         private readonly repo: PatientManageRepository,
         private readonly storageService: StorageService,
+        private readonly assessmentSubmissionService: AssessmentSubmissionService,
     ) {}
+
+    async findAssessmentSubmissionById(submissionId: string) {
+        return this.assessmentSubmissionService.getMyAssessmentBlueprint(submissionId);
+    }
 
     async findAllAssessments(query: PatientAssessmentQueryDto) {
         const { data, total, page, limit } = await this.repo.findAllAssessments(query);
