@@ -1,6 +1,6 @@
-import type { AuthenticatedUser } from "@main/auth/auth.types";
 import { CurrentUser } from "@common/decorators/current-user.decorator";
 import { JwtAuthGuard } from "@common/guards/jwt-auth.guard";
+import type { AuthenticatedUser } from "@main/auth/auth.types";
 import { Body, Controller, Post, UseGuards } from "@nestjs/common";
 import { ApiBearerAuth, ApiCreatedResponse, ApiOperation, ApiTags } from "@nestjs/swagger";
 import { CheckoutDto } from "./dto/checkout.dto";
@@ -21,7 +21,13 @@ export class PaymentController {
             "Creates an order, subscription, and updates submission status.",
     })
     @ApiCreatedResponse({ description: "Checkout successful" })
-    checkout(@CurrentUser() user: AuthenticatedUser, @Body() dto: CheckoutDto) {
-        return this.paymentService.checkout(user.id, dto);
+    async checkout(@CurrentUser() user: AuthenticatedUser, @Body() dto: CheckoutDto) {
+        const data = await this.paymentService.checkout(user.id, dto);
+        return {
+            success: true,
+            statusCode: 201,
+            message: "Payment successful",
+            data,
+        };
     }
 }

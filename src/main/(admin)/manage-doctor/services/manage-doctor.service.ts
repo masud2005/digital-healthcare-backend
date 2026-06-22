@@ -1,18 +1,18 @@
+import type { UserStatus } from "@constant/enums";
+import { AttachmentService } from "@global/attachment/attachment.service";
+import { StorageService } from "@global/storage/storage.service";
 import {
     BadRequestException,
     ConflictException,
     Injectable,
     NotFoundException,
 } from "@nestjs/common";
-import { StorageService } from "@global/storage/storage.service";
-import { AttachmentService } from "@global/attachment/attachment.service";
 import { pbkdf2Sync, randomBytes } from "crypto";
-import type { UserStatus } from "@constant/enums";
 import { CreateDoctorDto } from "../dto/create-doctor.dto";
 import { DoctorQueryDto } from "../dto/doctor-query.dto";
 import { UpdateDoctorDto } from "../dto/update-doctor.dto";
-import { DoctorMailService } from "./doctor-mail.service";
 import { ManageDoctorRepository } from "../manage-doctor.repository";
+import { DoctorMailService } from "./doctor-mail.service";
 
 const DEFAULT_PAGE = 1;
 const DEFAULT_LIMIT = 10;
