@@ -2,7 +2,6 @@ import { Injectable, Logger, OnModuleInit } from "@nestjs/common";
 import { StorageService } from "@global/storage/storage.service";
 import { AttachmentService } from "@global/attachment/attachment.service";
 import { WebsiteRepository } from "./website.repository";
-import { UpdateWebsiteSettingsDto } from "./dto/update-website-settings.dto";
 import { DEFAULT_WEBSITE_SETTINGS } from "./website-seed.data";
 
 @Injectable()
@@ -43,7 +42,7 @@ export class WebsiteService implements OnModuleInit {
         return this.resolveSettingsImages(settings!);
     }
 
-    async updateSettings(payload: UpdateWebsiteSettingsDto) {
+    async updateSettings(payload: any) {
         const dbSettings = await this.websiteRepository.findSettings();
         if (!dbSettings) {
             throw new Error("Settings not found");
@@ -60,8 +59,8 @@ export class WebsiteService implements OnModuleInit {
         };
 
         for (const [field, context] of Object.entries(attachmentFieldsWithContext)) {
-            const newId = payload[field as keyof UpdateWebsiteSettingsDto];
-            const oldId = dbSettings[field as keyof typeof dbSettings];
+            const newId = payload[field];
+            const oldId = (dbSettings as any)[field];
             if (newId !== undefined && newId !== oldId) {
                 if (oldId && typeof oldId === "string") {
                     await this.attachmentService.remove(oldId).catch(() => {});
@@ -123,10 +122,12 @@ export class WebsiteService implements OnModuleInit {
         const twitterUrl = socialLinks.find((s: any) => s.platform === "twitter")?.url || null;
         const linkedinUrl = socialLinks.find((s: any) => s.platform === "linkedin")?.url || null;
 
-        const { socialLinks: _, ...settingsWithoutSocialLinks } = settings;
+        const { socialLinks: _, contactInfo, googleAnalytics, ...settingsWithoutSocialLinks } = settings;
 
         return {
             ...settingsWithoutSocialLinks,
+            ...contactInfo,
+            gaMeasurementId: googleAnalytics?.gaMeasurementId || null,
             whiteLogo,
             blackLogo,
             faviconLight,
