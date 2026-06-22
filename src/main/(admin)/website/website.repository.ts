@@ -16,6 +16,8 @@ export class WebsiteRepository {
                 faviconLight: true,
                 faviconDark: true,
                 socialPreview: true,
+                contactInfo: true,
+                googleAnalytics: true,
             },
         });
     }
@@ -31,19 +33,23 @@ export class WebsiteRepository {
                 faviconLight: true,
                 faviconDark: true,
                 socialPreview: true,
+                contactInfo: true,
+                googleAnalytics: true,
             },
         });
     }
 
     async updateSettings(id: string, data: any) {
-        const { offices, socialLinks, ...settingsData } = data;
+        const { offices, socialLinks, contactInfo, googleAnalytics, ...settingsData } = data;
 
         return this.prisma.$transaction(async (tx) => {
             // 1. Update primary settings fields
-            await tx.siteSettings.update({
-                where: { id },
-                data: settingsData,
-            });
+            if (Object.keys(settingsData).length > 0) {
+                await tx.siteSettings.update({
+                    where: { id },
+                    data: settingsData,
+                });
+            }
 
             // 2. Sync offices
             if (offices !== undefined) {
@@ -121,7 +127,25 @@ export class WebsiteRepository {
                 }
             }
 
-            // 4. Return updated settings with relations
+            // 4. Sync contact info
+            if (contactInfo !== undefined) {
+                await tx.contactInfo.upsert({
+                    where: { siteId: id },
+                    create: { ...contactInfo, siteId: id },
+                    update: contactInfo,
+                });
+            }
+
+            // 5. Sync google analytics
+            if (googleAnalytics !== undefined) {
+                await tx.googleAnalyticsSetting.upsert({
+                    where: { siteId: id },
+                    create: { ...googleAnalytics, siteId: id },
+                    update: googleAnalytics,
+                });
+            }
+
+            // 6. Return updated settings with relations
             return tx.siteSettings.findUnique({
                 where: { id },
                 include: {
@@ -132,6 +156,8 @@ export class WebsiteRepository {
                     faviconLight: true,
                     faviconDark: true,
                     socialPreview: true,
+                    contactInfo: true,
+                    googleAnalytics: true,
                 },
             });
         });

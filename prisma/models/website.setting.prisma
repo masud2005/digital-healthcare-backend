@@ -15,14 +15,9 @@ model SiteSettings {
   socialPreviewId String?     @unique @map("social_preview_id")
   socialPreview   Attachment? @relation("SocialPreview", fields: [socialPreviewId], references: [id], onDelete: Cascade)
 
-  // Contact Info
-  phone      String?
-  email      String?
-  openHours  String? // e.g. "Mon - Fri: 9AM - 2PM"
-  closedDays String? // e.g. "Sat - Sun"
-
-  // Analytics
-  gaMeasurementId String?
+  // Relations for new models
+  contactInfo     ContactInfo?
+  googleAnalytics GoogleAnalyticsSetting?
 
   // Relation to offices (One site, many offices)
   offices OfficeLocation[]
@@ -65,4 +60,25 @@ model SocialLink {
   site     SiteSettings @relation(fields: [siteId], references: [id])
   platform String // "facebook", "twitter", etc.
   url      String
+}
+
+model ContactInfo {
+  id         String       @id @default(cuid())
+  siteId     String       @unique
+  site       SiteSettings @relation(fields: [siteId], references: [id], onDelete: Cascade)
+  phone      String?
+  email      String?
+  openHours  String? // e.g. "Mon - Fri: 9AM - 2PM"
+  closedDays String? // e.g. "Sat - Sun"
+  createdAt  DateTime     @default(now())
+  updatedAt  DateTime     @updatedAt
+}
+
+model GoogleAnalyticsSetting {
+  id              String       @id @default(cuid())
+  siteId          String       @unique
+  site            SiteSettings @relation(fields: [siteId], references: [id], onDelete: Cascade)
+  gaMeasurementId String?
+  createdAt       DateTime     @default(now())
+  updatedAt       DateTime     @updatedAt
 }
