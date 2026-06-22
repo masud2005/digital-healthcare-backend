@@ -110,6 +110,19 @@ enum IncidentStatus {
   CLOSED
 }
 
+enum MessageStatus {
+  SENT
+  DELIVERED
+  READ
+  FAILED
+}
+
+enum MessageType {
+  TEXT
+  ATTACHMENT
+  PROPOSAL
+}
+
 enum OrderStatus {
   PENDING
   CONFIRMED
@@ -160,6 +173,13 @@ enum PaymentStatus {
   REFUNDED
   CANCELLED
   PROCESSING
+}
+
+enum ProposalStatus {
+  PENDING
+  ACCEPTED
+  REJECTED
+  EXPIRED
 }
 
 enum ProviderLicenseSource {

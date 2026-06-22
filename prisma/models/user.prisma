@@ -36,9 +36,13 @@ model User {
   // Compliance
   complianceConfirmations ComplianceConfirmation[]
 
-  createdAt DateTime  @default(now())
-  updatedAt DateTime  @updatedAt
-  deletedAt DateTime?
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+  deletedAt     DateTime?
+  messages             Message[]
+  patientConversations  Conversation[] @relation("PatientConversations")
+  providerConversations Conversation[] @relation("ProviderConversations")
+  publicKey             UserPublicKey?
 
   @@index([status])
   @@index([categoryId])

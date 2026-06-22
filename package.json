@@ -8,6 +8,8 @@
     "scripts": {
         "build": "nest build",
         "lint": "eslint . --ext .ts",
+        "test": "jest",
+        "test:watch": "jest --watch",
         "dev": "npm run prisma:generate && npm run prisma:migrate && npm run prisma:seed && nest start --watch",
         "start:prod": "node dist/main",
         "start:web": "node dist/main",
@@ -36,7 +38,9 @@
         "@nestjs/config": "^4.0.2",
         "@nestjs/core": "^11.0.1",
         "@nestjs/platform-express": "^11.0.1",
+        "@nestjs/platform-socket.io": "^11.1.27",
         "@nestjs/swagger": "^11.2.1",
+        "@nestjs/websockets": "^11.1.27",
         "@prisma/adapter-pg": "^7.2.0",
         "@prisma/client": "^7.2.0",
         "@softvence/mail": "^0.0.5",

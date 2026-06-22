@@ -17,9 +17,10 @@ model Category {
   allowedStates     StateCoverage[]    @relation("StateAllowedCategories")
   subscriptions     Subscription[]
 
-  createdAt   DateTime     @default(now())
-  updatedAt   DateTime     @updatedAt
-  paymentPlan PaymentPlan?
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+  paymentPlan   PaymentPlan?
+  conversations Conversation[]
 
   @@index([status])
   @@index([name])

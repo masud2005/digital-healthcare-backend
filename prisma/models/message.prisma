@@ -1,0 +1,61 @@
+// Stores each user's RSA public key for E2E encryption
+model UserPublicKey {
+    id        String   @id @default(uuid())
+    userId    String   @unique
+    publicKey String   @db.Text // PEM-encoded RSA public key
+    createdAt DateTime @default(now())
+    updatedAt DateTime @updatedAt
+
+    user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model Conversation {
+    id         String   @id @default(uuid())
+    serviceID  String
+    patientId  String
+    providerId String
+    createdAt  DateTime @default(now())
+
+    // Relations
+    service     Category     @relation(fields: [serviceID], references: [id])
+    patient     User         @relation("PatientConversations", fields: [patientId], references: [id])
+    provider    User         @relation("ProviderConversations", fields: [providerId], references: [id])
+    messages    Message[]
+    attachments Attachment[]
+}
+
+model Message {
+    id             String      @id @default(uuid())
+    conversationId String
+    senderId       String
+    // E2E encrypted — server never sees plaintext
+    // Each field holds ciphertext encrypted with the respective recipient's public key
+    senderCopy     String      @db.Text // encrypted with sender's own public key (for sender's inbox)
+    recipientCopy  String      @db.Text // encrypted with recipient's public key
+    iv             String      // AES-GCM IV (hex), used for symmetric layer
+    encryptedKey   String      @db.Text // AES key encrypted with recipient's RSA public key (hybrid encryption)
+    messageType    MessageType @default(TEXT)
+    createdAt      DateTime    @default(now())
+
+    // Relations
+    conversation Conversation @relation(fields: [conversationId], references: [id])
+    sender       User         @relation(fields: [senderId], references: [id])
+    proposals    Proposal[]
+
+    @@index([conversationId, createdAt])
+    @@index([senderId])
+}
+
+model Proposal {
+    id           String         @id @default(uuid())
+    messageId    String
+    title        String // 'Personalized Weight Loss Consultation'
+    description  String?        @db.Text
+    fee          Decimal        @db.Decimal(10, 2)
+    proposalDate DateTime?
+    status       ProposalStatus @default(PENDING)
+    updatedAt    DateTime       @updatedAt
+
+    // Relations
+    message Message @relation(fields: [messageId], references: [id])
+}

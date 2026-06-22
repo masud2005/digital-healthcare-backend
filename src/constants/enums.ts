@@ -195,3 +195,12 @@ export const subscriptionStatus = [
     "TRIALING",
 ] as const;
 export type SubscriptionStatus = (typeof subscriptionStatus)[number];
+
+export const messageType = ["TEXT", "ATTACHMENT", "PROPOSAL"] as const;
+export type MessageType = (typeof messageType)[number];
+
+export const messageStatus = ["SENT", "DELIVERED", "READ", "FAILED"] as const;
+export type MessageStatus = (typeof messageStatus)[number];
+
+export const proposalStatus = ["PENDING", "ACCEPTED", "REJECTED", "EXPIRED"] as const;
+export type ProposalStatus = (typeof proposalStatus)[number];

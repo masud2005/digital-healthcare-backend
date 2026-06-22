@@ -1,0 +1,399 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<title>Message Module — Browser Test Tool</title>
+<script src="https://cdn.socket.io/4.8.1/socket.io.min.js"></script>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: monospace; background: #0d1117; color: #c9d1d9; padding: 20px; }
+  h1 { color: #58a6ff; margin-bottom: 20px; font-size: 18px; }
+  h2 { color: #8b949e; font-size: 13px; text-transform: uppercase; letter-spacing: 1px; margin: 16px 0 8px; }
+  .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  .card { background: #161b22; border: 1px solid #30363d; border-radius: 8px; padding: 14px; }
+  .card.full { grid-column: 1 / -1; }
+  label { font-size: 11px; color: #8b949e; display: block; margin-bottom: 4px; }
+  input, textarea, select {
+    width: 100%; background: #0d1117; border: 1px solid #30363d; border-radius: 4px;
+    color: #c9d1d9; padding: 6px 8px; font-family: monospace; font-size: 12px;
+  }
+  textarea { resize: vertical; min-height: 60px; }
+  button {
+    margin-top: 10px; padding: 7px 14px; border: none; border-radius: 4px;
+    background: #238636; color: #fff; cursor: pointer; font-size: 12px; font-family: monospace;
+  }
+  button:hover { background: #2ea043; }
+  button.secondary { background: #21262d; border: 1px solid #30363d; }
+  button.secondary:hover { background: #30363d; }
+  button.danger { background: #da3633; }
+  button.danger:hover { background: #f85149; }
+  .log {
+    background: #0d1117; border: 1px solid #30363d; border-radius: 4px;
+    padding: 10px; font-size: 11px; max-height: 200px; overflow-y: auto;
+    white-space: pre-wrap; word-break: break-all;
+  }
+  .log .ok  { color: #3fb950; }
+  .log .err { color: #f85149; }
+  .log .inf { color: #58a6ff; }
+  .log .ws  { color: #d2a8ff; }
+  .badge { display: inline-block; padding: 2px 8px; border-radius: 10px; font-size: 10px; margin-left: 6px; }
+  .badge.connected { background: #1a4731; color: #3fb950; }
+  .badge.disconnected { background: #3d1f1f; color: #f85149; }
+  .row { display: flex; gap: 8px; align-items: flex-end; }
+  .row > * { flex: 1; }
+  .row button { flex: 0 0 auto; margin-top: 0; align-self: flex-end; }
+  .tag { font-size: 10px; color: #8b949e; margin-bottom: 10px; }
+</style>
+</head>
+<body>
+
+<h1>🔐 Message Module — Browser Test Tool</h1>
+
+<div class="grid">
+
+  <!-- CONFIG -->
+  <div class="card">
+    <h2>⚙️ Config</h2>
+    <label>Base URL</label>
+    <input id="baseUrl" value="http://localhost:3031" />
+    <label style="margin-top:8px">Patient Token</label>
+    <input id="patientToken" placeholder="Bearer token (without 'Bearer ')" />
+    <label style="margin-top:8px">Doctor Token</label>
+    <input id="doctorToken" placeholder="Bearer token (without 'Bearer ')" />
+    <label style="margin-top:8px">Conversation ID</label>
+    <input id="conversationId" placeholder="Auto-filled after create conversation" />
+    <label style="margin-top:8px">Service ID (Category UUID)</label>
+    <input id="serviceId" placeholder="Valid category UUID from DB" />
+  </div>
+
+  <!-- STEP 1: RSA KEYS -->
+  <div class="card">
+    <h2>🔑 Step 1 — Generate RSA Key Pairs</h2>
+    <div class="tag">Runs in browser using Web Crypto API. Private keys NEVER leave this page.</div>
+    <button onclick="generateKeys()">Generate Keys for Patient & Doctor</button>
+    <div style="margin-top:10px">
+      <label>Patient Public Key (PEM)</label>
+      <textarea id="patientPublicKey" rows="4" readonly></textarea>
+      <label style="margin-top:6px">Doctor Public Key (PEM)</label>
+      <textarea id="doctorPublicKey" rows="4" readonly></textarea>
+    </div>
+    <div id="keyLog" class="log" style="margin-top:8px; max-height:60px"></div>
+  </div>
+
+  <!-- STEP 2: REGISTER KEYS -->
+  <div class="card">
+    <h2>📤 Step 2 — Register Public Keys</h2>
+    <div class="tag">POST /message/keys/register</div>
+    <button onclick="registerKey('patient')">Register Patient Key</button>
+    <button onclick="registerKey('doctor')" style="margin-left:8px">Register Doctor Key</button>
+    <div id="registerLog" class="log" style="margin-top:8px"></div>
+  </div>
+
+  <!-- STEP 3: FETCH KEY -->
+  <div class="card">
+    <h2>🔎 Step 3 — Fetch a User's Public Key</h2>
+    <div class="tag">GET /message/keys/:userId</div>
+    <label>User ID to fetch</label>
+    <div class="row">
+      <input id="fetchKeyUserId" placeholder="UUID of the user" />
+      <button onclick="fetchPublicKey()">Fetch</button>
+    </div>
+    <div id="fetchKeyLog" class="log" style="margin-top:8px"></div>
+  </div>
+
+  <!-- STEP 4: CREATE CONVERSATION -->
+  <div class="card">
+    <h2>💬 Step 4 — Create Conversation</h2>
+    <div class="tag">POST /message/conversation — both users must have keys registered</div>
+    <label>Patient ID</label>
+    <input id="patientId" placeholder="Patient UUID" />
+    <label style="margin-top:6px">Doctor (Provider) ID</label>
+    <input id="doctorId" placeholder="Doctor UUID" />
+    <button onclick="createConversation()">Create Conversation</button>
+    <div id="conversationLog" class="log" style="margin-top:8px"></div>
+  </div>
+
+  <!-- STEP 5: GET CONVERSATIONS -->
+  <div class="card">
+    <h2>📋 Step 5 — Get My Conversations</h2>
+    <div class="tag">GET /message/conversations</div>
+    <label>As</label>
+    <select id="listConvAs">
+      <option value="patient">Patient</option>
+      <option value="doctor">Doctor</option>
+    </select>
+    <button onclick="getConversations()">List Conversations</button>
+    <div id="listConvLog" class="log" style="margin-top:8px"></div>
+  </div>
+
+  <!-- STEP 6: WEBSOCKET -->
+  <div class="card full">
+    <h2>🔌 Step 6 — WebSocket Real-time Chat <span id="wsPatientBadge" class="badge disconnected">Patient: Disconnected</span> <span id="wsDoctorBadge" class="badge disconnected">Doctor: Disconnected</span></h2>
+    <div class="tag">Socket.IO namespace: /chat — connect both users, join conversation, send messages</div>
+    <div style="display:flex; gap:8px; flex-wrap:wrap">
+      <button onclick="wsConnect('patient')">Connect Patient</button>
+      <button onclick="wsConnect('doctor')">Connect Doctor</button>
+      <button onclick="wsJoin('patient')" class="secondary">Join Conv (Patient)</button>
+      <button onclick="wsJoin('doctor')" class="secondary">Join Conv (Doctor)</button>
+      <button onclick="wsDisconnect('patient')" class="danger">Disconnect Patient</button>
+      <button onclick="wsDisconnect('doctor')" class="danger">Disconnect Doctor</button>
+    </div>
+    <div style="margin-top:12px">
+      <label>Message Plaintext (Patient → Doctor)</label>
+      <div class="row">
+        <input id="msgPlaintext" value="Hello Doctor, I need help!" />
+        <button onclick="sendEncryptedMessage()">Encrypt & Send</button>
+      </div>
+    </div>
+    <div id="wsLog" class="log" style="margin-top:8px; max-height:260px"></div>
+  </div>
+
+  <!-- STEP 7: GET MESSAGES -->
+  <div class="card">
+    <h2>📜 Step 7 — Get Message History</h2>
+    <div class="tag">GET /message/conversations/:id/messages</div>
+    <label>As</label>
+    <select id="getMsgAs">
+      <option value="patient">Patient</option>
+      <option value="doctor">Doctor</option>
+    </select>
+    <label style="margin-top:6px">Cursor (optional)</label>
+    <input id="msgCursor" placeholder="Last message ID for pagination" />
+    <button onclick="getMessages()">Get Messages</button>
+    <div id="messagesLog" class="log" style="margin-top:8px"></div>
+  </div>
+
+  <!-- DECRYPT -->
+  <div class="card">
+    <h2>🔓 Decrypt a Message</h2>
+    <div class="tag">Paste fields from a received message to decrypt</div>
+    <label>Decrypt as</label>
+    <select id="decryptAs">
+      <option value="patient">Patient (use senderCopy)</option>
+      <option value="doctor">Doctor (use recipientCopy)</option>
+    </select>
+    <label style="margin-top:6px">Ciphertext (base64)</label>
+    <input id="decryptCiphertext" placeholder="senderCopy or recipientCopy" />
+    <label style="margin-top:6px">Encrypted AES Key (base64)</label>
+    <input id="decryptEncKey" placeholder="encryptedKey" />
+    <label style="margin-top:6px">IV (hex)</label>
+    <input id="decryptIv" placeholder="iv" />
+    <button onclick="decryptMsg()">Decrypt</button>
+    <div id="decryptLog" class="log" style="margin-top:8px"></div>
+  </div>
+
+</div>
+
+<script>
+// ── State ─────────────────────────────────────────────────────────────────────
+const state = {
+  patient: { cryptoKey: null, publicKeyPem: null, socket: null },
+  doctor:  { cryptoKey: null, publicKeyPem: null, socket: null },
+};
+
+// ── Helpers ───────────────────────────────────────────────────────────────────
+function log(id, msg, type = "inf") {
+  const el = document.getElementById(id);
+  const line = document.createElement("div");
+  line.className = type;
+  line.textContent = `[${new Date().toLocaleTimeString()}] ${msg}`;
+  el.appendChild(line);
+  el.scrollTop = el.scrollHeight;
+}
+
+function get(id) { return document.getElementById(id).value.trim(); }
+function set(id, val) { document.getElementById(id).value = val; }
+
+async function apiFetch(method, path, token, body) {
+  const res = await fetch(get("baseUrl") + "/api/v1" + path, {
+    method,
+    headers: { "Content-Type": "application/json", ...(token ? { Authorization: "Bearer " + token } : {}) },
+    body: body ? JSON.stringify(body) : undefined,
+  });
+  return res.json();
+}
+
+// ── PEM ↔ ArrayBuffer ─────────────────────────────────────────────────────────
+function pemToBuffer(pem) {
+  const b64 = pem.replace(/-----.*?-----/g, "").replace(/\s/g, "");
+  return Uint8Array.from(atob(b64), c => c.charCodeAt(0)).buffer;
+}
+
+function bufferToPem(buf, type) {
+  const b64 = btoa(String.fromCharCode(...new Uint8Array(buf)));
+  const lines = b64.match(/.{1,64}/g).join("\n");
+  return `-----BEGIN ${type}-----\n${lines}\n-----END ${type}-----`;
+}
+
+// ── Step 1: Generate RSA Key Pairs ────────────────────────────────────────────
+async function generateKeys() {
+  for (const role of ["patient", "doctor"]) {
+    const pair = await crypto.subtle.generateKey(
+      { name: "RSA-OAEP", modulusLength: 2048, publicExponent: new Uint8Array([1, 0, 1]), hash: "SHA-256" },
+      true, ["encrypt", "decrypt"]
+    );
+    state[role].cryptoKey = pair;
+    const pubBuf = await crypto.subtle.exportKey("spki", pair.publicKey);
+    state[role].publicKeyPem = bufferToPem(pubBuf, "PUBLIC KEY");
+    set(`${role}PublicKey`, state[role].publicKeyPem);
+  }
+  log("keyLog", "✅ RSA-2048 key pairs generated for Patient & Doctor", "ok");
+}
+
+// ── Step 2: Register Public Keys ──────────────────────────────────────────────
+async function registerKey(role) {
+  const pem = get(`${role}PublicKey`);
+  if (!pem) return log("registerLog", `No ${role} public key — generate keys first`, "err");
+  const token = get(`${role}Token`);
+  if (!token) return log("registerLog", `No ${role} token`, "err");
+  const res = await apiFetch("POST", "/message/keys/register", token, { publicKey: pem });
+  log("registerLog", `${role.toUpperCase()}: ${JSON.stringify(res)}`, res.success ? "ok" : "err");
+}
+
+// ── Step 3: Fetch Public Key ──────────────────────────────────────────────────
+async function fetchPublicKey() {
+  const userId = get("fetchKeyUserId");
+  const token = get("patientToken");
+  const res = await apiFetch("GET", `/message/keys/${userId}`, token);
+  log("fetchKeyLog", JSON.stringify(res, null, 2), res.success ? "ok" : "err");
+}
+
+// ── Step 4: Create Conversation ───────────────────────────────────────────────
+async function createConversation() {
+  const token = get("patientToken");
+  const body = { serviceID: get("serviceId"), patientId: get("patientId"), providerId: get("doctorId") };
+  const res = await apiFetch("POST", "/message/conversation", token, body);
+  log("conversationLog", JSON.stringify(res, null, 2), res.success ? "ok" : "err");
+  if (res.success && res.data?.id) {
+    set("conversationId", res.data.id);
+    log("conversationLog", `✅ conversationId saved: ${res.data.id}`, "ok");
+  }
+}
+
+// ── Step 5: Get Conversations ─────────────────────────────────────────────────
+async function getConversations() {
+  const role = get("listConvAs");
+  const token = get(`${role}Token`);
+  const res = await apiFetch("GET", "/message/conversations", token);
+  log("listConvLog", JSON.stringify(res, null, 2), res.success ? "ok" : "err");
+}
+
+// ── Step 7: Get Messages ──────────────────────────────────────────────────────
+async function getMessages() {
+  const role = get("getMsgAs");
+  const token = get(`${role}Token`);
+  const convId = get("conversationId");
+  const cursor = get("msgCursor");
+  const path = `/message/conversations/${convId}/messages` + (cursor ? `?cursor=${cursor}` : "");
+  const res = await apiFetch("GET", path, token);
+  log("messagesLog", JSON.stringify(res, null, 2), res.success ? "ok" : "err");
+}
+
+// ── WebSocket ─────────────────────────────────────────────────────────────────
+function wsConnect(role) {
+  const token = get(`${role}Token`);
+  if (!token) return log("wsLog", `No ${role} token`, "err");
+  if (state[role].socket?.connected) return log("wsLog", `${role} already connected`, "inf");
+
+  const socket = io(get("baseUrl") + "/chat", { auth: { token }, transports: ["websocket"] }); // Socket.IO doesn't use /api/v1 prefix
+  state[role].socket = socket;
+
+  socket.on("connect", () => {
+    document.getElementById(`ws${role.charAt(0).toUpperCase()+role.slice(1)}Badge`).className = "badge connected";
+    document.getElementById(`ws${role.charAt(0).toUpperCase()+role.slice(1)}Badge`).textContent = `${role.charAt(0).toUpperCase()+role.slice(1)}: Connected`;
+    log("wsLog", `✅ ${role} connected (id: ${socket.id})`, "ok");
+  });
+  socket.on("disconnect", () => {
+    document.getElementById(`ws${role.charAt(0).toUpperCase()+role.slice(1)}Badge`).className = "badge disconnected";
+    document.getElementById(`ws${role.charAt(0).toUpperCase()+role.slice(1)}Badge`).textContent = `${role.charAt(0).toUpperCase()+role.slice(1)}: Disconnected`;
+    log("wsLog", `🔴 ${role} disconnected`, "err");
+  });
+  socket.on("connect_error", e => log("wsLog", `${role} connect error: ${e.message}`, "err"));
+  socket.on("joined_conversation", d => log("wsLog", `${role} joined_conversation: ${JSON.stringify(d)}`, "ws"));
+  socket.on("left_conversation",   d => log("wsLog", `${role} left_conversation: ${JSON.stringify(d)}`, "ws"));
+  socket.on("new_message",         d => log("wsLog", `📨 new_message → ${role}: ${JSON.stringify(d)}`, "ws"));
+  socket.on("user_typing",         d => log("wsLog", `✍️ user_typing: ${JSON.stringify(d)}`, "ws"));
+  socket.on("user_stop_typing",    d => log("wsLog", `🛑 user_stop_typing: ${JSON.stringify(d)}`, "ws"));
+  socket.on("error",               d => log("wsLog", `WS error: ${JSON.stringify(d)}`, "err"));
+}
+
+function wsJoin(role) {
+  const convId = get("conversationId");
+  if (!convId) return log("wsLog", "Set conversationId first", "err");
+  if (!state[role].socket?.connected) return log("wsLog", `${role} not connected`, "err");
+  state[role].socket.emit("join_conversation", { conversationId: convId });
+  log("wsLog", `${role} emitted join_conversation`, "ws");
+}
+
+function wsDisconnect(role) {
+  state[role].socket?.disconnect();
+}
+
+// ── Hybrid Encrypt (RSA-OAEP + AES-256-GCM) ──────────────────────────────────
+async function hybridEncrypt(plaintext, recipientPublicKeyPem, senderCryptoKey) {
+  const enc = new TextEncoder();
+  const aesKey = await crypto.subtle.generateKey({ name: "AES-GCM", length: 256 }, true, ["encrypt", "decrypt"]);
+  const iv = crypto.getRandomValues(new Uint8Array(12));
+  const cipherBuf = await crypto.subtle.encrypt({ name: "AES-GCM", iv }, aesKey, enc.encode(plaintext));
+  const rawAes = await crypto.subtle.exportKey("raw", aesKey);
+
+  // Import recipient RSA public key
+  const recipientKey = await crypto.subtle.importKey("spki", pemToBuffer(recipientPublicKeyPem), { name: "RSA-OAEP", hash: "SHA-256" }, false, ["encrypt"]);
+  const encryptedKey = await crypto.subtle.encrypt({ name: "RSA-OAEP" }, recipientKey, rawAes);
+
+  // Encrypt AES key for sender as well (senderCopy uses same ciphertext but sender's own public key wraps AES key)
+  const senderPubBuf = await crypto.subtle.exportKey("spki", senderCryptoKey.publicKey);
+  const senderPubKey = await crypto.subtle.importKey("spki", senderPubBuf, { name: "RSA-OAEP", hash: "SHA-256" }, false, ["encrypt"]);
+  await crypto.subtle.encrypt({ name: "RSA-OAEP" }, senderPubKey, rawAes); // senderEncKey (not sent here, for demo)
+
+  return {
+    senderCopy:    btoa(String.fromCharCode(...new Uint8Array(cipherBuf))),
+    recipientCopy: btoa(String.fromCharCode(...new Uint8Array(cipherBuf))),
+    iv: Array.from(iv).map(b => b.toString(16).padStart(2, "0")).join(""),
+    encryptedKey:  btoa(String.fromCharCode(...new Uint8Array(encryptedKey))),
+  };
+}
+
+async function sendEncryptedMessage() {
+  const convId = get("conversationId");
+  const plaintext = get("msgPlaintext");
+  const doctorPem = get("doctorPublicKey");
+  if (!convId) return log("wsLog", "Set conversationId first", "err");
+  if (!doctorPem) return log("wsLog", "Generate keys first (need doctor public key)", "err");
+  if (!state.patient.cryptoKey) return log("wsLog", "Generate keys first", "err");
+  if (!state.patient.socket?.connected) return log("wsLog", "Connect patient WebSocket first", "err");
+
+  const payload = await hybridEncrypt(plaintext, doctorPem, state.patient.cryptoKey);
+  const dto = { conversationId: convId, ...payload, messageType: "TEXT" };
+  state.patient.socket.emit("send_message", dto);
+  log("wsLog", `📤 Patient sent encrypted message: "${plaintext}"`, "ok");
+  log("wsLog", `Payload: ${JSON.stringify(dto)}`, "inf");
+}
+
+// ── Decrypt ───────────────────────────────────────────────────────────────────
+async function decryptMsg() {
+  const role = get("decryptAs").split(" ")[0]; // "patient" or "doctor"
+  const cryptoKey = state[role].cryptoKey;
+  if (!cryptoKey) return log("decryptLog", `${role} crypto key not found — generate keys first`, "err");
+
+  const cipherB64 = get("decryptCiphertext");
+  const encKeyB64 = get("decryptEncKey");
+  const ivHex     = get("decryptIv");
+  if (!cipherB64 || !encKeyB64 || !ivHex) return log("decryptLog", "Fill all fields", "err");
+
+  try {
+    const encKeyBuf  = Uint8Array.from(atob(encKeyB64), c => c.charCodeAt(0));
+    const rawAes     = await crypto.subtle.decrypt({ name: "RSA-OAEP" }, cryptoKey.privateKey, encKeyBuf);
+    const aesKey     = await crypto.subtle.importKey("raw", rawAes, { name: "AES-GCM" }, false, ["decrypt"]);
+    const iv         = Uint8Array.from(ivHex.match(/.{2}/g), h => parseInt(h, 16));
+    const cipherBuf  = Uint8Array.from(atob(cipherB64), c => c.charCodeAt(0));
+    const plainBuf   = await crypto.subtle.decrypt({ name: "AES-GCM", iv }, aesKey, cipherBuf);
+    const plaintext  = new TextDecoder().decode(plainBuf);
+    log("decryptLog", `✅ Decrypted: "${plaintext}"`, "ok");
+  } catch (e) {
+    log("decryptLog", `❌ Decryption failed: ${e.message}`, "err");
+  }
+}
+</script>
+</body>
+</html>

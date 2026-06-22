@@ -30,6 +30,9 @@ model Attachment {
   contactLeadResponse   ContactLead?     @relation("ContactLeadResponseAttachment")
   testimonial           Testimonial?
 
+  conversationId String?
+  conversation   Conversation? @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+
   sideEffectReportId String?           @map("side_effect_report_id")
   sideEffectReport   SideEffectReport? @relation(fields: [sideEffectReportId], references: [id], onDelete: Cascade)
 
@@ -40,4 +43,5 @@ model Attachment {
   @@index([uploadedById, context])
   @@index([productId])
   @@index([sideEffectReportId])
+  @@index([conversationId])
 }
