@@ -25,6 +25,9 @@ model Payment {
   orderId String?
   order   Order?  @relation(fields: [orderId], references: [id], onDelete: SetNull)
 
+  proposalId String?
+  proposal   Proposal? @relation(fields: [proposalId], references: [id], onDelete: SetNull)
+
   discountId String?
   discount   Discount? @relation(fields: [discountId], references: [id], onDelete: SetNull)
 

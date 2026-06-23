@@ -8,7 +8,7 @@ import { ApiBearerAuth, ApiOperation, ApiQuery, ApiTags } from "@nestjs/swagger"
 import { CreateConversationDto, GetConversationsQueryDto, RegisterPublicKeyDto } from "./dto/message.dto";
 import { MessageService } from "./message.service";
 
-@ApiTags("Message")
+@ApiTags("(Patient / Doctor) Message")
 @ApiBearerAuth()
 @UseGuards(JwtAuthGuard, RolesGuard)
 @Roles("DOCTOR", "PATIENT")

@@ -58,5 +58,6 @@ model Proposal {
     updatedAt    DateTime       @updatedAt
 
     // Relations
-    message Message @relation(fields: [messageId], references: [id])
+    message  Message   @relation(fields: [messageId], references: [id])
+    payments Payment[]
 }

@@ -5,8 +5,9 @@ import { DoctorModule } from "./(doctor)/doctor.module";
 import { PatientModule } from "./(patient)/patient.module";
 import { AuthModule } from "./auth/auth.module";
 import { MessageModule } from "./message/message.module";
+import { ProposalModule } from "./message/proposal/proposal.module";
 
 @Module({
-    imports: [AdminModule, ComplianceModule, DoctorModule, PatientModule, AuthModule, MessageModule],
+    imports: [AdminModule, ComplianceModule, DoctorModule, PatientModule, AuthModule, MessageModule, ProposalModule],
 })
 export class MainModule {}
