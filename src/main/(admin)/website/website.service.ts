@@ -15,7 +15,7 @@ export class WebsiteService implements OnModuleInit {
     ) {}
 
     async onModuleInit() {
-        // await this.seedSettings();
+        await this.seedSettings();
     }
 
     async seedSettings() {
@@ -71,36 +71,18 @@ export class WebsiteService implements OnModuleInit {
             }
         }
 
-        // Map flat social link fields back to relational schema format
-        const socialLinks = dbSettings.socialLinks || [];
-        const mappedSocialLinks: any[] = [];
-
-        if (payload.facebookUrl !== undefined) {
-            const existing = socialLinks.find(s => s.platform === "facebook");
-            mappedSocialLinks.push({ id: existing?.id, platform: "facebook", url: payload.facebookUrl });
+        // Map social link array back to relational schema format
+        if (payload.socialLinks !== undefined) {
+            const existingSocialLinks = dbSettings.socialLinks || [];
+            updateData.socialLinks = payload.socialLinks.map((s: any) => {
+                const existing = existingSocialLinks.find(el => el.name === s.name);
+                return {
+                    id: existing?.id,
+                    name: s.name,
+                    url: s.url,
+                };
+            });
         }
-        if (payload.instagramUrl !== undefined) {
-            const existing = socialLinks.find(s => s.platform === "instagram");
-            mappedSocialLinks.push({ id: existing?.id, platform: "instagram", url: payload.instagramUrl });
-        }
-        if (payload.twitterUrl !== undefined) {
-            const existing = socialLinks.find(s => s.platform === "twitter");
-            mappedSocialLinks.push({ id: existing?.id, platform: "twitter", url: payload.twitterUrl });
-        }
-        if (payload.linkedinUrl !== undefined) {
-            const existing = socialLinks.find(s => s.platform === "linkedin");
-            mappedSocialLinks.push({ id: existing?.id, platform: "linkedin", url: payload.linkedinUrl });
-        }
-
-        if (mappedSocialLinks.length > 0) {
-            updateData.socialLinks = mappedSocialLinks;
-        }
-
-        // Remove flat fields from updateData before sending to repository
-        delete updateData.facebookUrl;
-        delete updateData.instagramUrl;
-        delete updateData.twitterUrl;
-        delete updateData.linkedinUrl;
 
         const updated = await this.websiteRepository.updateSettings(dbSettings.id, updateData);
         return this.resolveSettingsImages(updated!);
@@ -117,31 +99,31 @@ export class WebsiteService implements OnModuleInit {
             ]);
 
         const socialLinks = settings.socialLinks || [];
-        const facebookUrl = socialLinks.find((s: any) => s.platform === "facebook")?.url || null;
-        const instagramUrl = socialLinks.find((s: any) => s.platform === "instagram")?.url || null;
-        const twitterUrl = socialLinks.find((s: any) => s.platform === "twitter")?.url || null;
-        const linkedinUrl = socialLinks.find((s: any) => s.platform === "linkedin")?.url || null;
 
-        const { socialLinks: _, contactInfo, googleAnalytics, ...settingsWithoutSocialLinks } = settings;
+        const { contactInfo, googleAnalytics, ...settingsWithoutRelations } = settings;
 
         return {
-            ...settingsWithoutSocialLinks,
-            ...contactInfo,
-            gaMeasurementId: googleAnalytics?.gaMeasurementId || null,
+            ...settingsWithoutRelations,
             whiteLogo,
             blackLogo,
             faviconLight,
             faviconDark,
             socialPreview,
-            whiteLogoUrl: whiteLogo?.fileUrl || null,
-            blackLogoUrl: blackLogo?.fileUrl || null,
-            faviconLightUrl: faviconLight?.fileUrl || null,
-            faviconDarkUrl: faviconDark?.fileUrl || null,
-            socialPreviewUrl: socialPreview?.fileUrl || null,
-            facebookUrl,
-            instagramUrl,
-            twitterUrl,
-            linkedinUrl,
+            contactInfo: contactInfo ? {
+                siteId: contactInfo.siteId,
+                phone: contactInfo.phone,
+                email: contactInfo.email,
+                openHours: contactInfo.openHours,
+                closedDays: contactInfo.closedDays,
+            } : null,
+            googleAnalytics: googleAnalytics ? {
+                siteId: googleAnalytics.siteId,
+                gaMeasurementId: googleAnalytics.gaMeasurementId,
+            } : null,
+            socialLinks: socialLinks.map((s: any) => ({
+                name: s.name,
+                url: s.url,
+            })),
         };
     }
 

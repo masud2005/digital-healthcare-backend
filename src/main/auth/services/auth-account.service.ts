@@ -1,3 +1,4 @@
+import { StorageService } from "@global/storage/storage.service";
 import { SystemHealthService } from "@main/(compliance)/system-healthar/system-health.service";
 import {
     BadRequestException,
@@ -6,7 +7,6 @@ import {
     NotFoundException,
     UnauthorizedException,
 } from "@nestjs/common";
-import { StorageService } from "@global/storage/storage.service";
 import { AuditLogService } from "../../(compliance)/audit-log/audit-log.service";
 import { AuthRepository } from "../auth.repository";
 import { LoginDto } from "../dto/login.dto";
@@ -120,7 +120,7 @@ export class AuthAccountService {
 
             return {
                 success: true,
-                message: "Credentials verified. OTP verification required.",
+                message: "Credentials verified. OTP verification method to verify.",
                 data: {
                     userId: user.id,
                     status: "OTP_REQUIRED",
@@ -294,15 +294,22 @@ export class AuthAccountService {
             success: true,
             statusCode: 200,
             message: "Communication preferences fetched successfully",
-            data: pref ?? { emailNotifications: true, smsNotifications: true, pushNotifications: true },
+            data: pref ?? {
+                emailNotifications: true,
+                smsNotifications: true,
+                pushNotifications: true,
+            },
         };
     }
 
-    async updatePreference(userId: string, dto: {
-        emailNotifications?: boolean;
-        smsNotifications?: boolean;
-        pushNotifications?: boolean;
-    }) {
+    async updatePreference(
+        userId: string,
+        dto: {
+            emailNotifications?: boolean;
+            smsNotifications?: boolean;
+            pushNotifications?: boolean;
+        },
+    ) {
         const data = await this.authRepository.upsertPreference(userId, dto);
 
         return {

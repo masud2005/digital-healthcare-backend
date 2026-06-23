@@ -16,45 +16,10 @@ export class OfficeLocationDto {
     @IsString()
     address: string;
 
-    @ApiPropertyOptional({ example: "Colorado Springs" })
-    @IsOptional()
-    @IsString()
-    city?: string;
-
-    @ApiPropertyOptional({ example: "CO" })
-    @IsOptional()
-    @IsString()
-    state?: string;
-
-    @ApiPropertyOptional({ example: "80907" })
-    @IsOptional()
-    @IsString()
-    zipCode?: string;
-
     @ApiPropertyOptional({ example: true })
     @IsOptional()
     @IsBoolean()
     isActive?: boolean;
-
-    @ApiPropertyOptional({ example: "https://facebook.com/office" })
-    @IsOptional()
-    @IsString()
-    facebookUrl?: string;
-
-    @ApiPropertyOptional({ example: "https://instagram.com/office" })
-    @IsOptional()
-    @IsString()
-    instagramUrl?: string;
-
-    @ApiPropertyOptional({ example: "https://twitter.com/office" })
-    @IsOptional()
-    @IsString()
-    twitterUrl?: string;
-
-    @ApiPropertyOptional({ example: "https://linkedin.com/office" })
-    @IsOptional()
-    @IsString()
-    linkedinUrl?: string;
 }
 
 export class UpdateOfficeAddressesDto {
