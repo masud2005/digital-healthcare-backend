@@ -1,24 +1,21 @@
-import { ApiPropertyOptional } from "@nestjs/swagger";
-import { IsOptional, IsString } from "class-validator";
+import { ApiProperty } from "@nestjs/swagger";
+import { Type } from "class-transformer";
+import { IsArray, IsString, ValidateNested } from "class-validator";
+
+export class SocialLinkDto {
+    @ApiProperty({ example: "facebook" })
+    @IsString()
+    name: string;
+
+    @ApiProperty({ example: "https://facebook.com/wlmmd" })
+    @IsString()
+    url: string;
+}
 
 export class UpdateSocialLinksDto {
-    @ApiPropertyOptional({ example: "https://facebook.com/wlmmd" })
-    @IsOptional()
-    @IsString()
-    facebookUrl?: string;
-
-    @ApiPropertyOptional({ example: "https://instagram.com/wlmmd" })
-    @IsOptional()
-    @IsString()
-    instagramUrl?: string;
-
-    @ApiPropertyOptional({ example: "https://twitter.com/wlmmd" })
-    @IsOptional()
-    @IsString()
-    twitterUrl?: string;
-
-    @ApiPropertyOptional({ example: "https://linkedin.com/wlmmd" })
-    @IsOptional()
-    @IsString()
-    linkedinUrl?: string;
+    @ApiProperty({ type: [SocialLinkDto] })
+    @IsArray()
+    @ValidateNested({ each: true })
+    @Type(() => SocialLinkDto)
+    socialLinks: SocialLinkDto[];
 }

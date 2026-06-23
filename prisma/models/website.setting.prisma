@@ -38,28 +38,19 @@ model OfficeLocation {
   // Location Details
   name    String // e.g. "Colorado Springs", "Cherry Creek"
   address String // e.g. "1625 Medical Center Point, Suite 120"
-  city    String?
-  state   String?
-  zipCode String?
 
   isActive Boolean @default(true) // To toggle visibility without deleting
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
-
-  // Optional: If you need social links per location
-  facebookUrl  String?
-  instagramUrl String?
-  twitterUrl   String?
-  linkedinUrl  String?
 }
 
 model SocialLink {
-  id       String       @id @default(cuid())
-  siteId   String
-  site     SiteSettings @relation(fields: [siteId], references: [id])
-  platform String // "facebook", "twitter", etc.
-  url      String
+  id     String       @id @default(cuid())
+  siteId String
+  site   SiteSettings @relation(fields: [siteId], references: [id])
+  name   String // "facebook", "twitter", etc.
+  url    String
 }
 
 model ContactInfo {

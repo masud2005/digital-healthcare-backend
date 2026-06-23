@@ -2,11 +2,19 @@ export const DEFAULT_WEBSITE_SETTINGS = {
     title: "Weight Loss MD",
     metaDescription:
         "Weight loss is about more than diet and exercise alone. Weight Loss MD provides medical support to help you overcome these challenges",
-    phone: "(720) 277-9614",
-    email: "info@wlmd.net",
-    openHours: "Mon - Fri : 9AM - 2PM, 3PM - 6PM",
-    closedDays: "Sat - Sun",
-    gaMeasurementId: "G-XXXXXXXXXX",
+    contactInfo: {
+        create: {
+            phone: "(720) 277-9614",
+            email: "info@wlmd.net",
+            openHours: "Mon - Fri : 9AM - 2PM, 3PM - 6PM",
+            closedDays: "Sat - Sun",
+        },
+    },
+    googleAnalytics: {
+        create: {
+            gaMeasurementId: "G-XXXXXXXXXX",
+        },
+    },
     offices: {
         create: [
             {
@@ -33,10 +41,11 @@ export const DEFAULT_WEBSITE_SETTINGS = {
     },
     socialLinks: {
         create: [
-            { platform: "facebook", url: "https://" },
-            { platform: "instagram", url: "https://" },
-            { platform: "twitter", url: "https://" },
-            { platform: "linkedin", url: "https://" },
+            { name: "facebook", url: "https://" },
+            { name: "instagram", url: "https://" },
+            { name: "twitter", url: "https://" },
+            { name: "linkedin", url: "https://" },
         ],
     },
 };
+
