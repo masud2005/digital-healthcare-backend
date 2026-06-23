@@ -88,6 +88,29 @@ export class WebsiteService implements OnModuleInit {
         return this.resolveSettingsImages(updated!);
     }
 
+    async updateOfficeAddress(officeId: string | undefined, payload: any) {
+        const dbSettings = await this.websiteRepository.findSettings();
+        if (!dbSettings) {
+            throw new Error("Settings not found");
+        }
+
+        if (officeId) {
+            await this.websiteRepository.updateOffice(officeId, {
+                name: payload.name,
+                address: payload.address,
+                isActive: payload.isActive,
+            });
+        } else {
+            await this.websiteRepository.createOffice(dbSettings.id, {
+                name: payload.name,
+                address: payload.address,
+                isActive: payload.isActive ?? true,
+            });
+        }
+
+        return this.getSettings();
+    }
+
     private async resolveSettingsImages(settings: any) {
         const [whiteLogo, blackLogo, faviconLight, faviconDark, socialPreview] =
             await Promise.all([
