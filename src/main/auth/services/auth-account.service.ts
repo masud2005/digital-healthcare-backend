@@ -8,6 +8,7 @@ import {
     UnauthorizedException,
 } from "@nestjs/common";
 import { AuditLogService } from "../../(compliance)/audit-log/audit-log.service";
+import { NotificationService } from "../../notification/notification.service";
 import { AuthRepository } from "../auth.repository";
 import { LoginDto } from "../dto/login.dto";
 import { RegisterDto } from "../dto/register.dto";
@@ -22,6 +23,7 @@ export class AuthAccountService {
         private readonly systemHealthService: SystemHealthService,
         private readonly auditLogService: AuditLogService,
         private readonly storageService: StorageService,
+        private readonly notificationService: NotificationService,
     ) {}
 
     async register(payload: RegisterDto) {
@@ -64,6 +66,16 @@ export class AuthAccountService {
                 activityType: "Login",
                 event: "New user registered — OTP verification pending",
                 status: "SUCCESS",
+            })
+            .catch(() => {});
+
+        // Notify all admins about new registration
+        this.notificationService
+            .sendToAdmins({
+                title: "New User Registered",
+                message: `A new patient has registered with email: ${email}. OTP verification is pending.`,
+                actionType: "USER_REGISTERED",
+                referenceId: user.id,
             })
             .catch(() => {});
 

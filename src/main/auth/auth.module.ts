@@ -4,6 +4,7 @@ import { StorageModule } from "@global/storage/storage.module";
 import { SystemHealthModule } from "@main/(compliance)/system-healthar/system-health.module";
 import { Module } from "@nestjs/common";
 import { AuditLogModule } from "../(compliance)/audit-log/audit-log.module";
+import { NotificationModule } from "../notification/notification.module";
 import { AuthRepository } from "./auth.repository";
 import { AuthAccountController } from "./controllers/auth-account.controller";
 import { AuthOtpController } from "./controllers/auth-otp.controller";
@@ -20,7 +21,7 @@ import { AuthSharedService } from "./services/auth-shared.service";
 import { AuthService } from "./services/auth.service";
 
 @Module({
-    imports: [PrismaModule, SystemHealthModule, AuditLogModule, MailModule, StorageModule],
+    imports: [PrismaModule, SystemHealthModule, AuditLogModule, MailModule, StorageModule, NotificationModule],
     controllers: [
         AuthAccountController,
         AuthOtpController,

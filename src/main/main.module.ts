@@ -7,8 +7,9 @@ import { PublicModule } from "./(public)/public.module";
 import { AuthModule } from "./auth/auth.module";
 import { MessageModule } from "./message/message.module";
 import { ProposalModule } from "./message/proposal/proposal.module";
+import { NotificationModule } from "./notification/notification.module";
 
 @Module({
-    imports: [AdminModule, ComplianceModule, DoctorModule, PatientModule, AuthModule, MessageModule, ProposalModule, PublicModule]
+    imports: [AdminModule, ComplianceModule, DoctorModule, PatientModule, AuthModule, MessageModule, ProposalModule, NotificationModule, PublicModule]
 })
 export class MainModule {}
