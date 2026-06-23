@@ -1,10 +1,10 @@
 import { Roles } from "@common/decorators";
 import { JwtAuthGuard, RolesGuard } from "@common/guards";
-import { Body, Controller, Get, Patch, UseGuards } from "@nestjs/common";
+import { Body, Controller, Get, Headers, Patch, UseGuards } from "@nestjs/common";
 import { ApiBearerAuth, ApiOkResponse, ApiOperation, ApiTags } from "@nestjs/swagger";
 import { UpdateContactInfoDto } from "./dto/update-contact-info.dto";
 import { UpdateGoogleAnalyticsDto } from "./dto/update-google-analytics.dto";
-import { UpdateOfficeAddressesDto } from "./dto/update-office-addresses.dto";
+import { OfficeLocationDto } from "./dto/update-office-addresses.dto";
 import { UpdateSiteSettingsDto } from "./dto/update-site-settings.dto";
 import { UpdateSocialLinksDto } from "./dto/update-social-links.dto";
 import { WebsiteSettingsResponseDto } from "./dto/website-settings-response.dto";
@@ -33,13 +33,16 @@ export class WebsiteController {
     }
 
     @Patch("office-addresses")
-    @ApiOperation({ summary: "Update office addresses" })
+    @ApiOperation({ summary: "Update a single office address" })
     @ApiOkResponse({ type: WebsiteSettingsResponseDto })
     @ApiBearerAuth()
     @UseGuards(JwtAuthGuard, RolesGuard)
     @Roles("ADMIN")
-    updateOfficeAddresses(@Body() payload: UpdateOfficeAddressesDto) {
-        return this.websiteService.updateSettings(payload);
+    updateOfficeAddress(
+        @Headers("id") officeId: string,
+        @Body() payload: OfficeLocationDto,
+    ) {
+        return this.websiteService.updateOfficeAddress(officeId, payload);
     }
 
     @Patch("contact-info")

@@ -1,8 +1,16 @@
 import { ApiProperty } from "@nestjs/swagger";
 import { Type } from "class-transformer";
-import { IsArray, IsString, ValidateNested } from "class-validator";
+import { IsArray, IsOptional, IsString, ValidateNested } from "class-validator";
 
 export class SocialLinkDto {
+    @IsOptional()
+    @IsString()
+    id?: string;
+
+    @IsOptional()
+    @IsString()
+    siteId?: string;
+
     @ApiProperty({ example: "facebook" })
     @IsString()
     name: string;

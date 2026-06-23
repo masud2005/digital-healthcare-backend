@@ -162,4 +162,20 @@ export class WebsiteRepository {
             });
         });
     }
+
+    async updateOffice(officeId: string, data: any) {
+        return this.prisma.officeLocation.update({
+            where: { id: officeId },
+            data,
+        });
+    }
+
+    async createOffice(siteId: string, data: any) {
+        return this.prisma.officeLocation.create({
+            data: {
+                ...data,
+                siteId,
+            },
+        });
+    }
 }
