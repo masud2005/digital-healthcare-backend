@@ -1,3 +1,4 @@
+import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
 import { IsDateString, IsDecimal, IsEnum, IsOptional, IsString, IsUUID, ValidateNested } from "class-validator";
 import { Type } from "class-transformer";
 
@@ -8,87 +9,101 @@ export enum MessageType {
 }
 
 export class CreateConversationDto {
+    @ApiProperty({ example: "uuid-of-service-category" })
     @IsUUID()
     serviceID: string;
 
+    @ApiProperty({ example: "uuid-of-patient" })
     @IsUUID()
     patientId: string;
 
+    @ApiProperty({ example: "uuid-of-doctor" })
     @IsUUID()
     providerId: string;
 }
 
 export class RegisterPublicKeyDto {
+    @ApiProperty({
+        example: "-----BEGIN PUBLIC KEY-----\nMIIBIjANBgkq...\n-----END PUBLIC KEY-----",
+        description: "PEM-encoded RSA public key for E2E encryption",
+    })
     @IsString()
-    publicKey: string; // PEM-encoded RSA public key from client
+    publicKey: string;
 }
 
 export class GetPublicKeyDto {
+    @ApiProperty({ example: "uuid-of-user" })
     @IsUUID()
     userId: string;
 }
 
 export class ProposalDto {
+    @ApiProperty({ example: "Personalized Weight Loss Consultation" })
     @IsString()
     title: string;
 
+    @ApiPropertyOptional({ example: "A tailored 4-week consultation plan." })
     @IsString()
     @IsOptional()
     description?: string;
 
+    @ApiProperty({ example: "150.00", description: "Proposal fee as decimal string" })
     @IsDecimal()
-    fee: string; // e.g. "150.00"
+    fee: string;
 
+    @ApiPropertyOptional({ example: "2025-08-01T00:00:00.000Z" })
     @IsDateString()
     @IsOptional()
     proposalDate?: string;
 }
 
-/**
- * Client performs hybrid encryption before sending:
- * 1. Generate random AES-256-GCM key
- * 2. Encrypt plaintext with AES key → produces ciphertext
- * 3. Encrypt AES key with recipient's RSA public key → encryptedKey
- * 4. Encrypt same plaintext with sender's own RSA public key → senderCopy
- * 5. Send all fields below to server — server stores ciphertext ONLY
- */
 export class SendMessageDto {
+    @ApiProperty({ example: "uuid-of-conversation" })
     @IsUUID()
     conversationId: string;
 
+    @ApiProperty({ description: "Ciphertext encrypted with sender's own public key" })
     @IsString()
-    senderCopy: string; // ciphertext encrypted with sender's public key
+    senderCopy: string;
 
+    @ApiProperty({ description: "Ciphertext encrypted with recipient's public key" })
     @IsString()
-    recipientCopy: string; // ciphertext encrypted with recipient's public key
+    recipientCopy: string;
 
+    @ApiProperty({ example: "a1b2c3d4...", description: "AES-GCM IV in hex" })
     @IsString()
-    iv: string; // AES-GCM IV (hex)
+    iv: string;
 
+    @ApiProperty({ description: "AES key encrypted with recipient's RSA public key" })
     @IsString()
-    encryptedKey: string; // AES key encrypted with recipient's RSA public key
+    encryptedKey: string;
 
+    @ApiPropertyOptional({ enum: MessageType, example: MessageType.TEXT })
     @IsEnum(MessageType)
     @IsOptional()
     messageType?: MessageType;
 
+    @ApiPropertyOptional({ type: () => ProposalDto, description: "Required when messageType is PROPOSAL" })
     @ValidateNested()
     @Type(() => ProposalDto)
     @IsOptional()
-    proposal?: ProposalDto; // required when messageType is PROPOSAL
+    proposal?: ProposalDto;
 
+    @ApiPropertyOptional({ example: "uuid-of-attachment", description: "Required when messageType is ATTACHMENT" })
     @IsUUID()
     @IsOptional()
-    attachmentId?: string; // required when messageType is ATTACHMENT
+    attachmentId?: string;
 }
 
 export class JoinConversationDto {
+    @ApiProperty({ example: "uuid-of-conversation" })
     @IsUUID()
     conversationId: string;
 }
 
 export class GetConversationsQueryDto {
+    @ApiPropertyOptional({ example: "John", description: "Search by patient name, doctor name, or category name" })
     @IsString()
     @IsOptional()
-    search?: string; // patient name, doctor name, or category name
+    search?: string;
 }

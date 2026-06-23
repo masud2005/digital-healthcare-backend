@@ -142,12 +142,26 @@ export class MessageService {
         if (!info) throw new NotFoundException("No active subscription found for this service");
 
         return {
+            subscriptionId: info.id,
             serviceName: info.category.name,
             serviceFees: info.paymentPlan.price,
             serviceDuration: info.paymentPlan.billingCycle,
             serviceStart: info.startDate,
             nextBillingDate: info.nextBillingDate,
         };
+    }
+
+    async cancelSubscription(conversationId: string, userId: string) {
+        const conversation = await this.repo.findConversation(conversationId);
+        if (!conversation) throw new NotFoundException("Conversation not found");
+        if (conversation.patientId !== userId && conversation.providerId !== userId) {
+            throw new ForbiddenException("Access denied");
+        }
+
+        const info = await this.repo.findServiceInfo(conversation.patientId, conversation.serviceID);
+        if (!info) throw new NotFoundException("No active subscription found for this service");
+
+        return this.repo.cancelSubscription(info.id);
     }
 
     async getConversationFiles(conversationId: string, userId: string) {

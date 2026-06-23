@@ -3,8 +3,8 @@ import { CurrentUser } from "@common/decorators/current-user.decorator";
 import { RolesGuard } from "@common/guards";
 import { JwtAuthGuard } from "@common/guards/jwt-auth.guard";
 import type { AuthenticatedUser } from "@main/auth/auth.types";
-import { Body, Controller, Get, Param, Post, Query, UseGuards } from "@nestjs/common";
-import { ApiBearerAuth, ApiOperation, ApiQuery, ApiTags } from "@nestjs/swagger";
+import { Body, Controller, Get, Param, Patch, Post, Query, UseGuards } from "@nestjs/common";
+import { ApiBearerAuth, ApiBody, ApiOperation, ApiQuery, ApiTags } from "@nestjs/swagger";
 import { CreateConversationDto, GetConversationsQueryDto, RegisterPublicKeyDto } from "./dto/message.dto";
 import { MessageService } from "./message.service";
 
@@ -20,6 +20,7 @@ export class MessageController {
 
     @Post("keys/register")
     @ApiOperation({ summary: "Register or update RSA public key for E2E encryption" })
+    @ApiBody({ type: RegisterPublicKeyDto })
     async registerPublicKey(@CurrentUser() user: AuthenticatedUser, @Body() dto: RegisterPublicKeyDto) {
         const data = await this.messageService.registerPublicKey(user.id, dto);
         return { success: true, statusCode: 201, message: "Public key registered", data: { userId: data.userId } };
@@ -36,6 +37,7 @@ export class MessageController {
 
     @Post("conversation")
     @ApiOperation({ summary: "Create a new conversation (both users must have registered public keys)" })
+    @ApiBody({ type: CreateConversationDto })
     async createConversation(@Body() dto: CreateConversationDto) {
         const data = await this.messageService.createConversation(dto);
         return { success: true, statusCode: 201, message: "Conversation created", data };
@@ -66,6 +68,13 @@ export class MessageController {
     async getServiceInfo(@Param("conversationId") conversationId: string, @CurrentUser() user: AuthenticatedUser) {
         const data = await this.messageService.getServiceInfo(conversationId, user.id);
         return { success: true, statusCode: 200, message: "Service info retrieved", data };
+    }
+
+    @Patch("conversations/:conversationId/cancel-subscription")
+    @ApiOperation({ summary: "Cancel the active subscription linked to a conversation" })
+    async cancelSubscription(@Param("conversationId") conversationId: string, @CurrentUser() user: AuthenticatedUser) {
+        await this.messageService.cancelSubscription(conversationId, user.id);
+        return { success: true, statusCode: 200, message: "Subscription cancelled successfully" };
     }
 
     @Get("conversations/:conversationId/files")

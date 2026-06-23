@@ -111,11 +111,19 @@ export class MessageRepository {
             where: { userId: patientId, categoryId, status: "ACTIVE" },
             orderBy: { createdAt: "desc" },
             select: {
+                id: true,
                 startDate: true,
                 nextBillingDate: true,
                 paymentPlan: { select: { price: true, billingCycle: true } },
                 category: { select: { name: true } },
             },
+        });
+    }
+
+    cancelSubscription(subscriptionId: string) {
+        return this.prisma.subscription.update({
+            where: { id: subscriptionId },
+            data: { status: "CANCELLED", cancelledAt: new Date() },
         });
     }
 
