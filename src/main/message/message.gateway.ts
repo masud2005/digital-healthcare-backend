@@ -14,6 +14,7 @@ import jwt from "jsonwebtoken";
 import { Server, Socket } from "socket.io";
 import { JoinConversationDto, SendMessageDto } from "./dto/message.dto";
 import { MessageService } from "./message.service";
+import { OnlineStore } from "./online.store";
 import { WsExceptionFilter } from "./ws-exception.filter";
 
 @WebSocketGateway({ cors: { origin: "*" }, namespace: "/chat" })
@@ -26,7 +27,12 @@ export class MessageGateway implements OnGatewayConnection, OnGatewayDisconnect 
     constructor(
         private readonly prisma: PrismaService,
         private readonly messageService: MessageService,
+        private readonly onlineStore: OnlineStore,
     ) {}
+
+    isOnline(userId: string): boolean {
+        return this.onlineStore.isOnline(userId);
+    }
 
     async handleConnection(client: Socket) {
         try {
@@ -48,7 +54,11 @@ export class MessageGateway implements OnGatewayConnection, OnGatewayDisconnect 
             if (!session || session.user.status !== "ACTIVE") throw new WsException("Unauthorized");
 
             client.data.user = { id: session.user.id, name: session.user.name };
+            this.onlineStore.add(session.user.id);
             client.join(`user:${session.user.id}`);
+
+            // Notify all conversation rooms this user is part of
+            this.server.emit("user_online", { userId: session.user.id });
         } catch {
             client.emit("error", { message: "Unauthorized" });
             client.disconnect();
@@ -57,7 +67,10 @@ export class MessageGateway implements OnGatewayConnection, OnGatewayDisconnect 
 
     handleDisconnect(client: Socket) {
         const user = client.data.user;
-        if (user) client.leave(`user:${user.id}`);
+        if (!user) return;
+        this.onlineStore.remove(user.id);
+        client.leave(`user:${user.id}`);
+        this.server.emit("user_offline", { userId: user.id });
     }
 
     @SubscribeMessage("join_conversation")

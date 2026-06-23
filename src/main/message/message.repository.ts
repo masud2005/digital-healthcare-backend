@@ -36,22 +36,102 @@ export class MessageRepository {
         return this.prisma.conversation.findUnique({
             where: { id: conversationId },
             include: {
-                patient: { select: { id: true, name: true } },
-                provider: { select: { id: true, name: true } },
+                patient: {
+                    select: {
+                        id: true,
+                        name: true,
+                        patientProfile: { select: { name: true, avatar: { select: { id: true, fileUrl: true } } } },
+                    },
+                },
+                provider: {
+                    select: {
+                        id: true,
+                        name: true,
+                        doctorProfile: { select: { name: true, title: true, avatar: { select: { id: true, fileUrl: true } } } },
+                    },
+                },
+                service: { select: { id: true, name: true } },
             },
         });
     }
 
-    findUserConversations(userId: string) {
+    findUserConversations(userId: string, search?: string) {
         return this.prisma.conversation.findMany({
-            where: { OR: [{ patientId: userId }, { providerId: userId }] },
+            where: {
+                OR: [{ patientId: userId }, { providerId: userId }],
+                ...(search && {
+                    OR: [
+                        { patient: { patientProfile: { name: { contains: search, mode: "insensitive" } } } },
+                        { provider: { doctorProfile: { name: { contains: search, mode: "insensitive" } } } },
+                        { service: { name: { contains: search, mode: "insensitive" } } },
+                    ],
+                }),
+            },
             include: {
-                patient: { select: { id: true, name: true } },
-                provider: { select: { id: true, name: true } },
-                // return last message (still encrypted — client decrypts)
-                messages: { orderBy: { createdAt: "desc" }, take: 1, select: { id: true, createdAt: true, messageType: true, senderId: true } },
+                patient: {
+                    select: {
+                        id: true,
+                        name: true,
+                        patientProfile: { select: { name: true, avatar: { select: { id: true, fileUrl: true } } } },
+                    },
+                },
+                provider: {
+                    select: {
+                        id: true,
+                        name: true,
+                        doctorProfile: { select: { name: true, title: true, avatar: { select: { id: true, fileUrl: true } } } },
+                    },
+                },
+                service: { select: { id: true, name: true } },
+                messages: {
+                    orderBy: { createdAt: "desc" },
+                    take: 1,
+                    select: { id: true, createdAt: true, messageType: true, senderId: true },
+                },
             },
             orderBy: { createdAt: "desc" },
+        });
+    }
+
+    findLatestSubmission(patientId: string, categoryId: string) {
+        return this.prisma.assessmentSubmission.findFirst({
+            where: { userId: patientId, assessment: { categoryId } },
+            orderBy: { createdAt: "desc" },
+            select: {
+                id: true,
+                submissionCode: true,
+                status: true,
+                assessment: { select: { id: true, title: true } },
+            },
+        });
+    }
+
+    findServiceInfo(patientId: string, categoryId: string) {
+        return this.prisma.subscription.findFirst({
+            where: { userId: patientId, categoryId, status: "ACTIVE" },
+            orderBy: { createdAt: "desc" },
+            select: {
+                startDate: true,
+                nextBillingDate: true,
+                paymentPlan: { select: { price: true, billingCycle: true } },
+                category: { select: { name: true } },
+            },
+        });
+    }
+
+    findConversationFiles(conversationId: string) {
+        return this.prisma.attachment.findMany({
+            where: { message: { conversationId } },
+            orderBy: { createdAt: "desc" },
+            select: {
+                id: true,
+                fileName: true,
+                fileUrl: true,
+                fileType: true,
+                fileSize: true,
+                createdAt: true,
+                uploadedById: true,
+            },
         });
     }
 
@@ -74,6 +154,12 @@ export class MessageRepository {
                 messageType: true,
                 createdAt: true,
                 sender: { select: { id: true, name: true } },
+                proposals: {
+                    select: { id: true, title: true, description: true, fee: true, proposalDate: true, status: true, updatedAt: true },
+                },
+                attachments: {
+                    select: { id: true, fileName: true, fileUrl: true, fileType: true, fileSize: true },
+                },
             },
         });
     }
@@ -88,6 +174,19 @@ export class MessageRepository {
                 iv: dto.iv,
                 encryptedKey: dto.encryptedKey,
                 messageType: dto.messageType ?? "TEXT",
+                ...(dto.proposal && {
+                    proposals: {
+                        create: {
+                            title: dto.proposal.title,
+                            description: dto.proposal.description,
+                            fee: dto.proposal.fee,
+                            proposalDate: dto.proposal.proposalDate ? new Date(dto.proposal.proposalDate) : undefined,
+                        },
+                    },
+                }),
+                ...(dto.attachmentId && {
+                    attachments: { connect: { id: dto.attachmentId } },
+                }),
             },
             select: {
                 id: true,
@@ -100,6 +199,12 @@ export class MessageRepository {
                 messageType: true,
                 createdAt: true,
                 sender: { select: { id: true, name: true } },
+                proposals: {
+                    select: { id: true, title: true, description: true, fee: true, proposalDate: true, status: true, updatedAt: true },
+                },
+                attachments: {
+                    select: { id: true, fileName: true, fileUrl: true, fileType: true, fileSize: true },
+                },
             },
         });
     }

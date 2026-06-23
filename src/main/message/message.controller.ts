@@ -1,14 +1,17 @@
+import { Roles } from "@common/decorators";
 import { CurrentUser } from "@common/decorators/current-user.decorator";
+import { RolesGuard } from "@common/guards";
 import { JwtAuthGuard } from "@common/guards/jwt-auth.guard";
 import type { AuthenticatedUser } from "@main/auth/auth.types";
 import { Body, Controller, Get, Param, Post, Query, UseGuards } from "@nestjs/common";
 import { ApiBearerAuth, ApiOperation, ApiQuery, ApiTags } from "@nestjs/swagger";
-import { CreateConversationDto, RegisterPublicKeyDto } from "./dto/message.dto";
+import { CreateConversationDto, GetConversationsQueryDto, RegisterPublicKeyDto } from "./dto/message.dto";
 import { MessageService } from "./message.service";
 
 @ApiTags("Message")
 @ApiBearerAuth()
-@UseGuards(JwtAuthGuard)
+@UseGuards(JwtAuthGuard, RolesGuard)
+@Roles("DOCTOR", "PATIENT")
 @Controller("message")
 export class MessageController {
     constructor(private readonly messageService: MessageService) {}
@@ -40,8 +43,9 @@ export class MessageController {
 
     @Get("conversations")
     @ApiOperation({ summary: "Get all conversations for the current user" })
-    async getMyConversations(@CurrentUser() user: AuthenticatedUser) {
-        const data = await this.messageService.getMyConversations(user.id);
+    @ApiQuery({ name: "search", required: false, description: "Search by patient name, doctor name, or category name" })
+    async getMyConversations(@CurrentUser() user: AuthenticatedUser, @Query() query: GetConversationsQueryDto) {
+        const data = await this.messageService.getMyConversations(user.id, query.search);
         return { success: true, statusCode: 200, message: "Conversations retrieved", data };
     }
 
@@ -55,5 +59,19 @@ export class MessageController {
     ) {
         const data = await this.messageService.getMessages(conversationId, user.id, cursor);
         return { success: true, statusCode: 200, message: "Messages retrieved", data };
+    }
+
+    @Get("conversations/:conversationId/service-info")
+    @ApiOperation({ summary: "Get service/subscription info for a conversation" })
+    async getServiceInfo(@Param("conversationId") conversationId: string, @CurrentUser() user: AuthenticatedUser) {
+        const data = await this.messageService.getServiceInfo(conversationId, user.id);
+        return { success: true, statusCode: 200, message: "Service info retrieved", data };
+    }
+
+    @Get("conversations/:conversationId/files")
+    @ApiOperation({ summary: "Get all uploaded files in a conversation, grouped by patient and provider" })
+    async getConversationFiles(@Param("conversationId") conversationId: string, @CurrentUser() user: AuthenticatedUser) {
+        const data = await this.messageService.getConversationFiles(conversationId, user.id);
+        return { success: true, statusCode: 200, message: "Files retrieved", data };
     }
 }

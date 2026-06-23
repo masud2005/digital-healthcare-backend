@@ -33,6 +33,9 @@ model Attachment {
   conversationId String?
   conversation   Conversation? @relation(fields: [conversationId], references: [id], onDelete: Cascade)
 
+  messageId String?
+  message   Message? @relation(fields: [messageId], references: [id], onDelete: Cascade)
+
   sideEffectReportId String?           @map("side_effect_report_id")
   sideEffectReport   SideEffectReport? @relation(fields: [sideEffectReportId], references: [id], onDelete: Cascade)
 

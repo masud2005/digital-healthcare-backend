@@ -1,11 +1,19 @@
 import { BadRequestException, ForbiddenException, Injectable, NotFoundException } from "@nestjs/common";
 import { createPublicKey } from "crypto";
+import { AttachmentService } from "@global/attachment/attachment.service";
+import { StorageService } from "@global/storage/storage.service";
 import { MessageRepository } from "./message.repository";
+import { OnlineStore } from "./online.store";
 import { CreateConversationDto, RegisterPublicKeyDto, SendMessageDto } from "./dto/message.dto";
 
 @Injectable()
 export class MessageService {
-    constructor(private readonly repo: MessageRepository) {}
+    constructor(
+        private readonly repo: MessageRepository,
+        private readonly attachmentService: AttachmentService,
+        private readonly storageService: StorageService,
+        private readonly onlineStore: OnlineStore,
+    ) {}
 
     // ── Public Key ─────────────────────────────────────────────────────────
 
@@ -40,8 +48,46 @@ export class MessageService {
         return this.repo.createConversation(dto);
     }
 
-    getMyConversations(userId: string) {
-        return this.repo.findUserConversations(userId);
+    async getMyConversations(userId: string, search?: string) {
+        const conversations = await this.repo.findUserConversations(userId, search);
+
+        return Promise.all(
+            conversations.map(async (conv) => {
+                const submission = await this.repo.findLatestSubmission(conv.patientId, conv.serviceID);
+
+                const resolveAvatar = async (fileUrl: string | null | undefined) =>
+                    fileUrl ? this.storageService.getSignedUrl(fileUrl) : null;
+
+                const patientAvatar = conv.patient.patientProfile?.avatar?.fileUrl;
+                const providerAvatar = conv.provider.doctorProfile?.avatar?.fileUrl;
+
+                return {
+                    ...conv,
+                    patient: {
+                        id: conv.patient.id,
+                        name: conv.patient.patientProfile?.name ?? conv.patient.name,
+                        avatar: await resolveAvatar(patientAvatar),
+                    },
+                    provider: {
+                        id: conv.provider.id,
+                        name: conv.provider.doctorProfile?.name ?? conv.provider.name,
+                        title: conv.provider.doctorProfile?.title ?? null,
+                        avatar: await resolveAvatar(providerAvatar),
+                    },
+                    service: conv.service,
+                    submission: submission
+                        ? {
+                              id: submission.id,
+                              submissionCode: submission.submissionCode,
+                              status: submission.status,
+                              assessment: submission.assessment,
+                          }
+                        : null,
+                    isPatientOnline: this.onlineStore.isOnline(conv.patientId),
+                    isProviderOnline: this.onlineStore.isOnline(conv.providerId),
+                };
+            }),
+        );
     }
 
     async getMessages(conversationId: string, userId: string, cursor?: string) {
@@ -52,7 +98,86 @@ export class MessageService {
             throw new ForbiddenException("Access denied");
         }
 
-        return this.repo.getMessages(conversationId, cursor);
+        const resolveAvatar = async (fileUrl: string | null | undefined) =>
+            fileUrl ? this.storageService.getSignedUrl(fileUrl) : null;
+
+        const submission = await this.repo.findLatestSubmission(conversation.patientId, conversation.serviceID);
+
+        const enrichedConversation = {
+            ...conversation,
+            patient: {
+                id: conversation.patient.id,
+                name: conversation.patient.patientProfile?.name ?? conversation.patient.name,
+                avatar: await resolveAvatar(conversation.patient.patientProfile?.avatar?.fileUrl),
+            },
+            provider: {
+                id: conversation.provider.id,
+                name: conversation.provider.doctorProfile?.name ?? conversation.provider.name,
+                title: conversation.provider.doctorProfile?.title ?? null,
+                avatar: await resolveAvatar(conversation.provider.doctorProfile?.avatar?.fileUrl),
+            },
+            service: conversation.service,
+            submission: submission
+                ? { id: submission.id, submissionCode: submission.submissionCode, status: submission.status, assessment: submission.assessment }
+                : null,
+            isPatientOnline: this.onlineStore.isOnline(conversation.patientId),
+            isProviderOnline: this.onlineStore.isOnline(conversation.providerId),
+        };
+
+        const messages = await this.repo.getMessages(conversationId, cursor);
+        return {
+            conversation: enrichedConversation,
+            messages: await this.resolveMessageAttachments(messages),
+        };
+    }
+
+    async getServiceInfo(conversationId: string, userId: string) {
+        const conversation = await this.repo.findConversation(conversationId);
+        if (!conversation) throw new NotFoundException("Conversation not found");
+        if (conversation.patientId !== userId && conversation.providerId !== userId) {
+            throw new ForbiddenException("Access denied");
+        }
+
+        const info = await this.repo.findServiceInfo(conversation.patientId, conversation.serviceID);
+        if (!info) throw new NotFoundException("No active subscription found for this service");
+
+        return {
+            serviceName: info.category.name,
+            serviceFees: info.paymentPlan.price,
+            serviceDuration: info.paymentPlan.billingCycle,
+            serviceStart: info.startDate,
+            nextBillingDate: info.nextBillingDate,
+        };
+    }
+
+    async getConversationFiles(conversationId: string, userId: string) {
+        const conversation = await this.repo.findConversation(conversationId);
+        if (!conversation) throw new NotFoundException("Conversation not found");
+        if (conversation.patientId !== userId && conversation.providerId !== userId) {
+            throw new ForbiddenException("Access denied");
+        }
+
+        const files = await this.repo.findConversationFiles(conversationId);
+
+        const resolved = await Promise.all(
+            files.map(async (f) => ({ ...f, fileUrl: await this.storageService.getSignedUrl(f.fileUrl) })),
+        );
+
+        const patientName = conversation.patient.patientProfile?.name ?? conversation.patient.name;
+        const providerName = conversation.provider.doctorProfile?.name ?? conversation.provider.name;
+
+        return {
+            patient: {
+                id: conversation.patientId,
+                name: patientName,
+                files: resolved.filter((f) => f.uploadedById === conversation.patientId),
+            },
+            provider: {
+                id: conversation.providerId,
+                name: providerName,
+                files: resolved.filter((f) => f.uploadedById === conversation.providerId),
+            },
+        };
     }
 
     // ── Messages ───────────────────────────────────────────────────────────
@@ -70,6 +195,42 @@ export class MessageService {
             throw new BadRequestException("Missing encryption fields");
         }
 
-        return this.repo.createMessage(dto, senderId);
+        if (dto.messageType === "PROPOSAL" && !dto.proposal) {
+            throw new BadRequestException("proposal object is required when messageType is PROPOSAL");
+        }
+
+        if (dto.proposal && dto.messageType !== "PROPOSAL") {
+            throw new BadRequestException("messageType must be PROPOSAL when proposal object is provided");
+        }
+
+        if (dto.messageType === "ATTACHMENT" && !dto.attachmentId) {
+            throw new BadRequestException("attachmentId is required when messageType is ATTACHMENT");
+        }
+
+        if (dto.attachmentId && dto.messageType !== "ATTACHMENT") {
+            throw new BadRequestException("messageType must be ATTACHMENT when attachmentId is provided");
+        }
+
+        if (dto.attachmentId) {
+            const attachment = await this.attachmentService.findOne(dto.attachmentId);
+            if (!attachment) throw new NotFoundException("Attachment not found");
+        }
+
+        const message = await this.repo.createMessage(dto, senderId);
+        return this.resolveMessageAttachments(message);
+    }
+
+    // ── Helpers ────────────────────────────────────────────────────────────
+
+    private async resolveMessageAttachments<T extends { attachments: { fileUrl: string }[] }>(input: T): Promise<T>;
+    private async resolveMessageAttachments<T extends { attachments: { fileUrl: string }[] }>(input: T[]): Promise<T[]>;
+    private async resolveMessageAttachments(input: any): Promise<any> {
+        const resolve = async (msg: { attachments: { fileUrl: string }[] }) => ({
+            ...msg,
+            attachments: await Promise.all(
+                msg.attachments.map(async (a) => ({ ...a, fileUrl: await this.storageService.getSignedUrl(a.fileUrl) })),
+            ),
+        });
+        return Array.isArray(input) ? Promise.all(input.map(resolve)) : resolve(input);
     }
 }

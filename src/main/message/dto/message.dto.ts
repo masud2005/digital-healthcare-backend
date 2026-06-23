@@ -1,4 +1,5 @@
-import { IsEnum, IsOptional, IsString, IsUUID } from "class-validator";
+import { IsDateString, IsDecimal, IsEnum, IsOptional, IsString, IsUUID, ValidateNested } from "class-validator";
+import { Type } from "class-transformer";
 
 export enum MessageType {
     TEXT = "TEXT",
@@ -25,6 +26,22 @@ export class RegisterPublicKeyDto {
 export class GetPublicKeyDto {
     @IsUUID()
     userId: string;
+}
+
+export class ProposalDto {
+    @IsString()
+    title: string;
+
+    @IsString()
+    @IsOptional()
+    description?: string;
+
+    @IsDecimal()
+    fee: string; // e.g. "150.00"
+
+    @IsDateString()
+    @IsOptional()
+    proposalDate?: string;
 }
 
 /**
@@ -54,9 +71,24 @@ export class SendMessageDto {
     @IsEnum(MessageType)
     @IsOptional()
     messageType?: MessageType;
+
+    @ValidateNested()
+    @Type(() => ProposalDto)
+    @IsOptional()
+    proposal?: ProposalDto; // required when messageType is PROPOSAL
+
+    @IsUUID()
+    @IsOptional()
+    attachmentId?: string; // required when messageType is ATTACHMENT
 }
 
 export class JoinConversationDto {
     @IsUUID()
     conversationId: string;
+}
+
+export class GetConversationsQueryDto {
+    @IsString()
+    @IsOptional()
+    search?: string; // patient name, doctor name, or category name
 }
