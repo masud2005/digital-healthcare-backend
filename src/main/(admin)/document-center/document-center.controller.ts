@@ -1,6 +1,14 @@
 import { Roles } from "@common/decorators";
 import { JwtAuthGuard, RolesGuard } from "@common/guards";
-import { Controller, Get, HttpStatus, Param, ParseUUIDPipe, Query, UseGuards } from "@nestjs/common";
+import {
+    Controller,
+    Get,
+    HttpStatus,
+    Param,
+    ParseUUIDPipe,
+    Query,
+    UseGuards,
+} from "@nestjs/common";
 import { ApiBearerAuth, ApiOperation, ApiTags } from "@nestjs/swagger";
 import { DocumentCenterService } from "./document-center.service";
 import { DocumentQueryDto } from "./dto/document-query.dto";

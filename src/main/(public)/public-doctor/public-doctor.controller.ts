@@ -2,7 +2,7 @@ import { Controller, Get, HttpStatus } from "@nestjs/common";
 import { ApiOkResponse, ApiOperation, ApiTags } from "@nestjs/swagger";
 import { PublicDoctorService } from "./public-doctor.service";
 
-@ApiTags("Public Doctors")
+@ApiTags("(Public) Doctors")
 @Controller("public/doctors")
 export class PublicDoctorController {
     constructor(private readonly publicDoctorService: PublicDoctorService) {}
@@ -16,6 +16,19 @@ export class PublicDoctorController {
             success: true,
             statusCode: HttpStatus.OK,
             message: "Active doctors fetched successfully",
+            data,
+        };
+    }
+
+    @Get("list")
+    @ApiOperation({ summary: "Get all active doctors with just name and id" })
+    @ApiOkResponse({ description: "Simple list of active doctors" })
+    async getActiveDoctorsList() {
+        const data = await this.publicDoctorService.getActiveDoctorsList();
+        return {
+            success: true,
+            statusCode: HttpStatus.OK,
+            message: "Active doctors list fetched successfully",
             data,
         };
     }
