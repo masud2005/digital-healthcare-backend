@@ -3,11 +3,12 @@ import { AdminModule } from "./(admin)/admin.module";
 import { ComplianceModule } from "./(compliance)/compliance.module";
 import { DoctorModule } from "./(doctor)/doctor.module";
 import { PatientModule } from "./(patient)/patient.module";
+import { PublicModule } from "./(public)/public.module";
 import { AuthModule } from "./auth/auth.module";
 import { MessageModule } from "./message/message.module";
 import { ProposalModule } from "./message/proposal/proposal.module";
 
 @Module({
-    imports: [AdminModule, ComplianceModule, DoctorModule, PatientModule, AuthModule, MessageModule, ProposalModule],
+    imports: [AdminModule, ComplianceModule, DoctorModule, PatientModule, AuthModule, MessageModule, ProposalModule, PublicModule]
 })
 export class MainModule {}
