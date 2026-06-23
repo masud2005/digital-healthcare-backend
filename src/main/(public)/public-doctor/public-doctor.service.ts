@@ -45,4 +45,33 @@ export class PublicDoctorService {
             })),
         );
     }
+
+    async getActiveDoctorsList() {
+        const doctors = await this.prisma.doctorProfile.findMany({
+            where: {
+                deletedAt: null,
+                user: {
+                    deletedAt: null,
+                    status: "ACTIVE",
+                    userRoles: {
+                        some: {
+                            role: { name: "DOCTOR" },
+                        },
+                    },
+                },
+            },
+            select: {
+                id: true,
+                name: true,
+            },
+            orderBy: {
+                createdAt: "desc",
+            },
+        });
+
+        return doctors.map((doctor) => ({
+            id: doctor.id,
+            name: doctor.name,
+        }));
+    }
 }
