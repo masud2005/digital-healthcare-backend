@@ -1,5 +1,7 @@
-import { Body, Controller, Get, Put } from "@nestjs/common";
-import { ApiOkResponse, ApiOperation, ApiTags } from "@nestjs/swagger";
+import { Roles } from "@common/decorators";
+import { JwtAuthGuard, RolesGuard } from "@common/guards";
+import { Body, Controller, Get, Put, UseGuards } from "@nestjs/common";
+import { ApiBearerAuth, ApiOkResponse, ApiOperation, ApiTags } from "@nestjs/swagger";
 import { HomePageContentResponseDto } from "./dto/homepage-response.dto";
 import {
     UpdateAboutSectionDto,
@@ -27,6 +29,9 @@ export class HomePageController {
     @Put("hero")
     @ApiOperation({ summary: "Update Hero section" })
     @ApiOkResponse({ type: HomePageContentResponseDto })
+    @ApiBearerAuth()
+    @UseGuards(JwtAuthGuard, RolesGuard)
+    @Roles("ADMIN")
     updateHeroSection(@Body() payload: UpdateHeroSectionDto) {
         return this.homePageService.updateHeroSection(payload);
     }
@@ -34,6 +39,9 @@ export class HomePageController {
     @Put("banner")
     @ApiOperation({ summary: "Update Banner section" })
     @ApiOkResponse({ type: HomePageContentResponseDto })
+    @ApiBearerAuth()
+    @UseGuards(JwtAuthGuard, RolesGuard)
+    @Roles("ADMIN")
     updateBannerSection(@Body() payload: UpdateBannerSectionDto) {
         return this.homePageService.updateBannerSection(payload);
     }
@@ -41,6 +49,9 @@ export class HomePageController {
     @Put("about")
     @ApiOperation({ summary: "Update About section" })
     @ApiOkResponse({ type: HomePageContentResponseDto })
+    @ApiBearerAuth()
+    @UseGuards(JwtAuthGuard, RolesGuard)
+    @Roles("ADMIN")
     updateAboutSection(@Body() payload: UpdateAboutSectionDto) {
         return this.homePageService.updateAboutSection(payload);
     }
@@ -48,6 +59,9 @@ export class HomePageController {
     @Put("product")
     @ApiOperation({ summary: "Update Product section" })
     @ApiOkResponse({ type: HomePageContentResponseDto })
+    @ApiBearerAuth()
+    @UseGuards(JwtAuthGuard, RolesGuard)
+    @Roles("ADMIN")
     updateProductSection(@Body() payload: UpdateProductSectionDto) {
         return this.homePageService.updateProductSection(payload);
     }
@@ -62,6 +76,9 @@ export class HomePageController {
     @Put("testimonials")
     @ApiOperation({ summary: "Update Testimonials section" })
     @ApiOkResponse({ type: HomePageContentResponseDto })
+    @ApiBearerAuth()
+    @UseGuards(JwtAuthGuard, RolesGuard)
+    @Roles("ADMIN")
     updateTestimonialsSection(@Body() payload: UpdateTestimonialsSectionDto) {
         return this.homePageService.updateTestimonialsSection(payload);
     }
@@ -69,6 +86,9 @@ export class HomePageController {
     @Put("pricing")
     @ApiOperation({ summary: "Update Pricing section" })
     @ApiOkResponse({ type: HomePageContentResponseDto })
+    @ApiBearerAuth()
+    @UseGuards(JwtAuthGuard, RolesGuard)
+    @Roles("ADMIN")
     updatePricingSection(@Body() payload: UpdatePricingSectionDto) {
         return this.homePageService.updatePricingSection(payload);
     }
