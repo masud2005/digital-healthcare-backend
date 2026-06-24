@@ -47,7 +47,24 @@ export class MessageService {
         if (!patientKey) throw new BadRequestException("Patient has not registered a public key");
         if (!providerKey) throw new BadRequestException("Doctor has not registered a public key");
 
+        // Check if conversation already exists
+        const existingConversation = await this.repo.findExistingConversation(
+            dto.patientId,
+            dto.providerId,
+            dto.serviceID
+        );
+
+        if (existingConversation) {
+            return existingConversation;
+        }
+
         return this.repo.createConversation(dto);
+    }
+
+    async autoCreateConversation(patientId: string, providerId: string, serviceID: string) {
+        const existing = await this.repo.findExistingConversation(patientId, providerId, serviceID);
+        if (existing) return existing;
+        return this.repo.createConversation({ patientId, providerId, serviceID });
     }
 
     async getMyConversations(userId: string, search?: string) {

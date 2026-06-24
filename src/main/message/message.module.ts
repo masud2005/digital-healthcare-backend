@@ -12,5 +12,6 @@ import { OnlineStore } from "./online.store";
     imports: [PrismaModule, StorageModule, NotificationModule],
     controllers: [MessageController],
     providers: [MessageGateway, MessageService, MessageRepository, OnlineStore],
+    exports: [MessageService],
 })
 export class MessageModule {}

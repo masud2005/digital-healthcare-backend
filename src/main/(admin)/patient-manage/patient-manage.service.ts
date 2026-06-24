@@ -7,6 +7,7 @@ import { PatientManageRepository } from "./patient-manage.repository";
 import { UserStatus } from "@prisma/client";
 import { NotificationService } from "../../notification/notification.service";
 import { PrismaService } from "@global/prisma/prisma.service";
+import { MessageService } from "@main/message/message.service";
 
 @Injectable()
 export class PatientManageService {
@@ -16,6 +17,7 @@ export class PatientManageService {
         private readonly assessmentSubmissionService: AssessmentSubmissionService,
         private readonly notificationService: NotificationService,
         private readonly prisma: PrismaService,
+        private readonly messageService: MessageService,
     ) {}
 
     async findAssessmentSubmissionById(submissionId: string) {
@@ -78,6 +80,15 @@ export class PatientManageService {
         if (!doctor) throw new NotFoundException("Doctor not found");
 
         await this.repo.assignDoctor(submissionId, doctor.userId);
+
+        // Auto-create conversation
+        if (submission.assessment?.categoryId) {
+            await this.messageService.autoCreateConversation(
+                submission.userId,
+                doctor.userId,
+                submission.assessment.categoryId
+            );
+        }
 
         // Fetch patient name
         const patient = await this.prisma.user.findUnique({

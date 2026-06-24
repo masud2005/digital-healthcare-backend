@@ -32,6 +32,16 @@ export class MessageRepository {
         });
     }
 
+    findExistingConversation(patientId: string, providerId: string, serviceID: string) {
+        return this.prisma.conversation.findFirst({
+            where: { patientId, providerId, serviceID },
+            include: {
+                patient: { select: { id: true, name: true } },
+                provider: { select: { id: true, name: true } },
+            },
+        });
+    }
+
     findConversation(conversationId: string) {
         return this.prisma.conversation.findUnique({
             where: { id: conversationId },
