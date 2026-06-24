@@ -5,6 +5,8 @@ import { PatientAssessmentQueryDto } from "./dto/assessment-query.dto";
 import { PatientQueryDto } from "./dto/patient-query.dto";
 import { PatientManageRepository } from "./patient-manage.repository";
 import { UserStatus } from "@prisma/client";
+import { NotificationService } from "../../notification/notification.service";
+import { PrismaService } from "@global/prisma/prisma.service";
 
 @Injectable()
 export class PatientManageService {
@@ -12,6 +14,8 @@ export class PatientManageService {
         private readonly repo: PatientManageRepository,
         private readonly storageService: StorageService,
         private readonly assessmentSubmissionService: AssessmentSubmissionService,
+        private readonly notificationService: NotificationService,
+        private readonly prisma: PrismaService,
     ) {}
 
     async findAssessmentSubmissionById(submissionId: string) {
@@ -74,6 +78,23 @@ export class PatientManageService {
         if (!doctor) throw new NotFoundException("Doctor not found");
 
         await this.repo.assignDoctor(submissionId, doctor.userId);
+
+        // Fetch patient name
+        const patient = await this.prisma.user.findUnique({
+            where: { id: submission.userId },
+            select: { name: true, patientProfile: { select: { name: true } } },
+        });
+        const patientName = patient?.patientProfile?.name ?? patient?.name ?? "A patient";
+
+        // Notify Doctor
+        await this.notificationService.send({
+            userId: doctor.userId,
+            title: "New Assessment Assigned",
+            message: `An admin has assigned an assessment for ${patientName} to you.`,
+            actionType: "ASSESSMENT_ASSIGNED",
+            referenceId: submissionId,
+        });
+
         return { submissionId, doctorId };
     }
 

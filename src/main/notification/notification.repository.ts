@@ -40,4 +40,18 @@ export class NotificationRepository {
             select: { userId: true },
         });
     }
+
+    findDoctorUserIds() {
+        return this.prisma.userRole.findMany({
+            where: { role: { name: "DOCTOR" } },
+            select: { userId: true },
+        });
+    }
+
+    findPatientUserIds() {
+        return this.prisma.userRole.findMany({
+            where: { role: { name: "PATIENT" } },
+            select: { userId: true },
+        });
+    }
 }

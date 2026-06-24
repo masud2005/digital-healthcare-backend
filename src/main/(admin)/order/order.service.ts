@@ -1,10 +1,14 @@
 import { BadRequestException, Injectable, NotFoundException } from "@nestjs/common";
 import { OrderQueryDto, UpdateOrderDto } from "./dto/order.dto";
 import { AdminOrderRepository } from "./order.repository";
+import { NotificationService } from "../../notification/notification.service";
 
 @Injectable()
 export class AdminOrderService {
-    constructor(private readonly orderRepository: AdminOrderRepository) {}
+    constructor(
+        private readonly orderRepository: AdminOrderRepository,
+        private readonly notificationService: NotificationService,
+    ) {}
 
     async findAll(query: OrderQueryDto) {
         const { orders, total, page, limit } = await this.orderRepository.findAll(query);
@@ -113,6 +117,17 @@ export class AdminOrderService {
         }
 
         await this.orderRepository.update(id, dto);
+
+        if (dto.status) {
+            // Notify Patient
+            await this.notificationService.send({
+                userId: order.userId,
+                title: "Order Status Updated",
+                message: `Your order #${order.orderNumber} status has been updated to ${dto.status}.`,
+                actionType: "ORDER_STATUS_UPDATED",
+                referenceId: order.id,
+            });
+        }
 
         return { message: "Order updated successfully" };
     }

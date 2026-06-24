@@ -1,6 +1,8 @@
 import { BadRequestException, ForbiddenException, Injectable, NotFoundException, UnprocessableEntityException } from "@nestjs/common";
 import type { AcceptProposalDto } from "./dto/proposal.dto";
 import { ProposalRepository } from "./proposal.repository";
+import { NotificationService } from "../../notification/notification.service";
+import { PrismaService } from "@global/prisma/prisma.service";
 
 function detectCardBrand(cardNumber: string): string {
     const num = cardNumber.replace(/\s+/g, "");
@@ -36,7 +38,11 @@ function validateCard(cardNumber: string, expiryDate: string, cvv: string) {
 
 @Injectable()
 export class ProposalService {
-    constructor(private readonly repo: ProposalRepository) {}
+    constructor(
+        private readonly repo: ProposalRepository,
+        private readonly notificationService: NotificationService,
+        private readonly prisma: PrismaService,
+    ) {}
 
     async rejectProposal(proposalId: string, userId: string) {
         const proposal = await this.repo.findById(proposalId);
@@ -49,7 +55,38 @@ export class ProposalService {
         if (proposal.status === "ACCEPTED") throw new BadRequestException("Accepted proposals cannot be rejected.");
         if (proposal.status === "EXPIRED") throw new BadRequestException("Expired proposals cannot be rejected.");
 
-        return this.repo.rejectProposal(proposalId);
+        const result = await this.repo.rejectProposal(proposalId);
+
+        // Fetch names
+        const patient = await this.prisma.user.findUnique({
+            where: { id: userId },
+            select: { name: true, patientProfile: { select: { name: true } } },
+        });
+        const doctor = await this.prisma.user.findUnique({
+            where: { id: providerId },
+            select: { name: true, doctorProfile: { select: { name: true } } },
+        });
+        const patientName = patient?.patientProfile?.name ?? patient?.name ?? "A patient";
+        const doctorName = doctor?.doctorProfile?.name ?? doctor?.name ?? "a doctor";
+
+        // Notify Doctor
+        await this.notificationService.send({
+            userId: providerId,
+            title: "Proposal Rejected",
+            message: `${patientName} has rejected your proposal.`,
+            actionType: "PROPOSAL_REJECTED",
+            referenceId: proposalId,
+        });
+
+        // Notify Admins
+        await this.notificationService.sendToAdmins({
+            title: "Proposal Rejected",
+            message: `${patientName} has rejected ${doctorName}'s proposal.`,
+            actionType: "PROPOSAL_REJECTED",
+            referenceId: proposalId,
+        });
+
+        return result;
     }
 
     async acceptProposal(proposalId: string, userId: string, dto: AcceptProposalDto) {
@@ -77,6 +114,37 @@ export class ProposalService {
             last4,
             brand,
             paymentMethod: dto.paymentMethod,
+        });
+
+        const { providerId } = proposal.message.conversation;
+
+        // Fetch names
+        const patient = await this.prisma.user.findUnique({
+            where: { id: userId },
+            select: { name: true, patientProfile: { select: { name: true } } },
+        });
+        const doctor = await this.prisma.user.findUnique({
+            where: { id: providerId },
+            select: { name: true, doctorProfile: { select: { name: true } } },
+        });
+        const patientName = patient?.patientProfile?.name ?? patient?.name ?? "A patient";
+        const doctorName = doctor?.doctorProfile?.name ?? doctor?.name ?? "a doctor";
+
+        // Notify Doctor
+        await this.notificationService.send({
+            userId: providerId,
+            title: "Proposal Accepted",
+            message: `${patientName} has accepted your proposal.`,
+            actionType: "PROPOSAL_ACCEPTED",
+            referenceId: proposalId,
+        });
+
+        // Notify Admins
+        await this.notificationService.sendToAdmins({
+            title: "Proposal Accepted",
+            message: `${patientName} has accepted ${doctorName}'s proposal.`,
+            actionType: "PROPOSAL_ACCEPTED",
+            referenceId: proposalId,
         });
 
         return { proposalId, transactionId: payment.transactionId, amount: payment.amount, status: "success" };

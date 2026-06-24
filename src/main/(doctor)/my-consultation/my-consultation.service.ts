@@ -3,12 +3,16 @@ import { BadRequestException, Injectable } from "@nestjs/common";
 import { SubmissionStatus } from "@prisma/client";
 import { ConsultationTab, UpdateConsultationStatusDto } from "./dto/my-consultation.dto";
 import { DoctorMyConsultationRepository } from "./my-consultation.repository";
+import { NotificationService } from "../../notification/notification.service";
+import { PrismaService } from "@global/prisma/prisma.service";
 
 @Injectable()
 export class DoctorMyConsultationService {
     constructor(
         private readonly myConsultationRepository: DoctorMyConsultationRepository,
         private readonly storageService: StorageService,
+        private readonly notificationService: NotificationService,
+        private readonly prisma: PrismaService,
     ) {}
 
     async getMyConsultations(userId: string, tab?: ConsultationTab, page?: number, limit?: number) {
@@ -82,11 +86,42 @@ export class DoctorMyConsultationService {
             throw new BadRequestException("Doctor notes are mandatory when rejecting or requesting a refill.");
         }
 
-        return this.myConsultationRepository.updateConsultationStatus(
+        const result = await this.myConsultationRepository.updateConsultationStatus(
             submissionId,
             doctorId,
             status as SubmissionStatus,
             doctorNotes,
         );
+
+        // Fetch names
+        const patient = await this.prisma.user.findUnique({
+            where: { id: result.userId },
+            select: { name: true, patientProfile: { select: { name: true } } },
+        });
+        const doctor = await this.prisma.user.findUnique({
+            where: { id: doctorId },
+            select: { name: true, doctorProfile: { select: { name: true } } },
+        });
+        const patientName = patient?.patientProfile?.name ?? patient?.name ?? "A patient";
+        const doctorName = doctor?.doctorProfile?.name ?? doctor?.name ?? "A doctor";
+
+        // Notify Patient
+        await this.notificationService.send({
+            userId: result.userId,
+            title: "Assessment Status Updated",
+            message: `${doctorName} has updated your assessment status to ${status}.`,
+            actionType: "ASSESSMENT_STATUS_UPDATED",
+            referenceId: submissionId,
+        });
+
+        // Notify Admins
+        await this.notificationService.sendToAdmins({
+            title: "Assessment Status Updated",
+            message: `${doctorName} has updated the assessment status of ${patientName} to ${status}.`,
+            actionType: "ASSESSMENT_STATUS_UPDATED",
+            referenceId: submissionId,
+        });
+
+        return result;
     }
 }

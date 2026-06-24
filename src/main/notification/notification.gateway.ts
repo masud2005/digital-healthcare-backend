@@ -21,7 +21,7 @@ export class NotificationGateway implements OnGatewayConnection, OnGatewayDiscon
                 (client.handshake.headers?.authorization as string)?.slice(7);
             if (!token) throw new Error("Missing token");
 
-            const payload = jwt.verify(token, process.env.JWT_SECRET || "change_this_secret") as {
+            const payload = jwt.verify(token, process.env.JWT_SECRET) as {
                 sub: string;
                 sid: string;
             };

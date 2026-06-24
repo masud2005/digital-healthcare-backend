@@ -5,6 +5,7 @@ import { StorageService } from "@global/storage/storage.service";
 import { MessageRepository } from "./message.repository";
 import { OnlineStore } from "./online.store";
 import { CreateConversationDto, RegisterPublicKeyDto, SendMessageDto } from "./dto/message.dto";
+import { NotificationService } from "../notification/notification.service";
 
 @Injectable()
 export class MessageService {
@@ -13,6 +14,7 @@ export class MessageService {
         private readonly attachmentService: AttachmentService,
         private readonly storageService: StorageService,
         private readonly onlineStore: OnlineStore,
+        private readonly notificationService: NotificationService,
     ) {}
 
     // ── Public Key ─────────────────────────────────────────────────────────
@@ -161,7 +163,29 @@ export class MessageService {
         const info = await this.repo.findServiceInfo(conversation.patientId, conversation.serviceID);
         if (!info) throw new NotFoundException("No active subscription found for this service");
 
-        return this.repo.cancelSubscription(info.id);
+        const result = await this.repo.cancelSubscription(info.id);
+
+        const patientName = conversation.patient.patientProfile?.name ?? conversation.patient.name;
+        const serviceName = info.category.name;
+
+        // Notify Doctor
+        await this.notificationService.send({
+            userId: conversation.providerId,
+            title: "Subscription Cancelled",
+            message: `Patient ${patientName} has cancelled their subscription for ${serviceName}.`,
+            actionType: "SUBSCRIPTION_CANCELLED",
+            referenceId: info.id,
+        });
+
+        // Notify Admins
+        await this.notificationService.sendToAdmins({
+            title: "Subscription Cancelled",
+            message: `Patient ${patientName} has cancelled their subscription for ${serviceName}.`,
+            actionType: "SUBSCRIPTION_CANCELLED",
+            referenceId: info.id,
+        });
+
+        return result;
     }
 
     async getConversationFiles(conversationId: string, userId: string) {
@@ -231,6 +255,39 @@ export class MessageService {
         }
 
         const message = await this.repo.createMessage(dto, senderId);
+        
+        const recipientId = conversation.patientId === senderId ? conversation.providerId : conversation.patientId;
+        const senderName = conversation.patientId === senderId 
+            ? (conversation.patient.patientProfile?.name ?? conversation.patient.name)
+            : (conversation.provider.doctorProfile?.name ?? conversation.provider.name);
+
+        if (dto.messageType === "PROPOSAL") {
+            await this.notificationService.send({
+                userId: recipientId,
+                title: "New Proposal",
+                message: `You received a new proposal from ${senderName}.`,
+                actionType: "NEW_PROPOSAL",
+                referenceId: message.id,
+            });
+
+            if (conversation.providerId === senderId) {
+                await this.notificationService.sendToAdmins({
+                    title: "Proposal Sent",
+                    message: `Doctor ${senderName} sent a proposal.`,
+                    actionType: "PROPOSAL_SENT",
+                    referenceId: message.id,
+                });
+            }
+        } else {
+            await this.notificationService.send({
+                userId: recipientId,
+                title: "New Message",
+                message: `You have a new message from ${senderName}.`,
+                actionType: "NEW_MESSAGE",
+                referenceId: message.id,
+            });
+        }
+
         return this.resolveMessageAttachments(message);
     }
 

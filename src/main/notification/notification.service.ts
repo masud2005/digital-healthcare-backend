@@ -30,6 +30,18 @@ export class NotificationService {
         await Promise.all(admins.map((a) => this.send({ ...data, userId: a.userId })));
     }
 
+    /** Send to all doctors at once */
+    async sendToDoctors(data: Omit<SendNotificationPayload, "userId">) {
+        const doctors = await this.repo.findDoctorUserIds();
+        await Promise.all(doctors.map((d) => this.send({ ...data, userId: d.userId })));
+    }
+
+    /** Send to all patients at once */
+    async sendToPatients(data: Omit<SendNotificationPayload, "userId">) {
+        const patients = await this.repo.findPatientUserIds();
+        await Promise.all(patients.map((p) => this.send({ ...data, userId: p.userId })));
+    }
+
     async getMyNotifications(userId: string) {
         const [notifications, unreadCount] = await Promise.all([
             this.repo.findAllByUser(userId),

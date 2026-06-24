@@ -2,6 +2,8 @@ import { BadRequestException, ConflictException, Injectable, NotFoundException, 
 import { CartRepository } from "../cart/cart.repository";
 import type { CheckoutDto } from "./dto/checkout.dto";
 import { PaymentRepository } from "./payment.repository";
+import { NotificationService } from "../../notification/notification.service";
+import { PrismaService } from "@global/prisma/prisma.service";
 
 const SHIPPING_CHARGE = 20;
 
@@ -66,6 +68,8 @@ export class PaymentService {
     constructor(
         private readonly paymentRepository: PaymentRepository,
         private readonly cartRepository: CartRepository,
+        private readonly notificationService: NotificationService,
+        private readonly prisma: PrismaService,
     ) {}
 
     async checkout(userId: string, dto: CheckoutDto) {
@@ -267,7 +271,7 @@ export class PaymentService {
         const brand = detectCardBrand(dto.paymentInfo.cardNumber);
 
         // 11. Execute transaction
-        return this.paymentRepository.executeCheckoutTransaction(userId, dto.submissionId, cart, {
+        const result = await this.paymentRepository.executeCheckoutTransaction(userId, dto.submissionId, cart, {
             subtotal,
             discountAmount,
             shippingCharge,
@@ -283,5 +287,31 @@ export class PaymentService {
             last4,
             brand,
         });
+
+        // Fetch user for notification
+        const user = await this.prisma.user.findUnique({
+            where: { id: userId },
+            select: { name: true, patientProfile: { select: { name: true } } },
+        });
+        const patientName = user?.patientProfile?.name ?? user?.name ?? "A patient";
+
+        // Notifications
+        await this.notificationService.sendToAdmins({
+            title: "Payment Successful",
+            message: `${patientName} has successfully made a payment of $${total}.`,
+            actionType: "PAYMENT_SUCCESS",
+            referenceId: result.transactionId,
+        });
+
+        if (dto.submissionId && submission) {
+            await this.notificationService.sendToAdmins({
+                title: "New Assessment Submitted",
+                message: `${patientName} has submitted a new assessment (Code: ${submission.submissionCode}).`,
+                actionType: "ASSESSMENT_SUBMITTED",
+                referenceId: dto.submissionId,
+            });
+        }
+
+        return result;
     }
 }

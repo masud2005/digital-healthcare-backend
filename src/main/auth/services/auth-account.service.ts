@@ -73,7 +73,7 @@ export class AuthAccountService {
         this.notificationService
             .sendToAdmins({
                 title: "New User Registered",
-                message: `A new patient has registered with email: ${email}. OTP verification is pending.`,
+                message: `A new patient has registered with email: ${email}.]`,
                 actionType: "USER_REGISTERED",
                 referenceId: user.id,
             })
