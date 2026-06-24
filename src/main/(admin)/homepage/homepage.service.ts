@@ -2,7 +2,15 @@ import { Injectable, Logger, OnModuleInit } from "@nestjs/common";
 import { StorageService } from "@global/storage/storage.service";
 import { AttachmentService } from "@global/attachment/attachment.service";
 import { HomePageRepository } from "./homepage.repository";
-import { UpdateHomePageContentDto } from "./dto/update-homepage.dto";
+import {
+    UpdateAboutSectionDto,
+    UpdateBannerSectionDto,
+    UpdateHeroSectionDto,
+    UpdateHowItWorksSectionDto,
+    UpdatePricingSectionDto,
+    UpdateProductSectionDto,
+    UpdateTestimonialsSectionDto,
+} from "./dto/update-sections.dto";
 import { DEFAULT_HOMEPAGE_CONTENT } from "./homepage-seed.data";
 
 @Injectable()
@@ -41,18 +49,17 @@ export class HomePageService implements OnModuleInit {
         return this.resolveImages(content!);
     }
 
-    async updateContent(payload: UpdateHomePageContentDto) {
+    async updateHeroSection(payload: UpdateHeroSectionDto) {
         const content = await this.getContent();
         const updateData: any = { ...payload };
 
-        // Clean up and update context of main images
         const attachmentFieldsWithContext: Record<string, string> = {
             heroImageId: "HERO_IMAGE",
             heroBadgeImageId: "HERO_BADGE_IMAGE",
         };
 
         for (const [field, context] of Object.entries(attachmentFieldsWithContext)) {
-            const newId = payload[field as keyof UpdateHomePageContentDto];
+            const newId = payload[field as keyof UpdateHeroSectionDto];
             const oldId = content[field as keyof typeof content];
             if (newId !== undefined && newId !== oldId) {
                 if (oldId && typeof oldId === "string") {
@@ -64,7 +71,32 @@ export class HomePageService implements OnModuleInit {
             }
         }
 
-        // Clean up step icons if they changed or steps were deleted, and set contexts
+        const updated = await this.homePageRepository.updateContent(content.id, updateData);
+        return this.resolveImages(updated!);
+    }
+
+    async updateBannerSection(payload: UpdateBannerSectionDto) {
+        const content = await this.getContent();
+        const updated = await this.homePageRepository.updateContent(content.id, payload);
+        return this.resolveImages(updated!);
+    }
+
+    async updateAboutSection(payload: UpdateAboutSectionDto) {
+        const content = await this.getContent();
+        const updated = await this.homePageRepository.updateContent(content.id, payload);
+        return this.resolveImages(updated!);
+    }
+
+    async updateProductSection(payload: UpdateProductSectionDto) {
+        const content = await this.getContent();
+        const updated = await this.homePageRepository.updateContent(content.id, payload);
+        return this.resolveImages(updated!);
+    }
+
+    async updateHowItWorksSection(payload: UpdateHowItWorksSectionDto) {
+        const content = await this.getContent();
+        const updateData: any = { ...payload };
+
         if (payload.howItWorksSteps !== undefined && content.howItWorksSteps) {
             for (const incomingStep of payload.howItWorksSteps) {
                 if (incomingStep.id) {
@@ -92,6 +124,18 @@ export class HomePageService implements OnModuleInit {
         }
 
         const updated = await this.homePageRepository.updateContent(content.id, updateData);
+        return this.resolveImages(updated!);
+    }
+
+    async updateTestimonialsSection(payload: UpdateTestimonialsSectionDto) {
+        const content = await this.getContent();
+        const updated = await this.homePageRepository.updateContent(content.id, payload);
+        return this.resolveImages(updated!);
+    }
+
+    async updatePricingSection(payload: UpdatePricingSectionDto) {
+        const content = await this.getContent();
+        const updated = await this.homePageRepository.updateContent(content.id, payload);
         return this.resolveImages(updated!);
     }
 
