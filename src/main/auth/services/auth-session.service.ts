@@ -19,7 +19,7 @@ export class AuthSessionService {
 
     async createAuthenticatedResponse(
         user: AuthUser,
-        flowAttemptId: string,
+        flowAttemptId: string | undefined | null,
         context: AuthRequestContext,
     ) {
         const refreshRaw = randomBytes(48).toString("hex");
@@ -122,6 +122,40 @@ export class AuthSessionService {
         return {
             success: true,
             message: "Logged out successfully",
+        };
+    }
+
+    async refresh(refreshToken: string, context: AuthRequestContext) {
+        if (!refreshToken) {
+            throw new UnauthorizedException("Missing refresh token");
+        }
+
+        const refreshHash = this.authSharedService.hashValue(refreshToken);
+        const session = await this.authRepository.findActiveSessionByRefreshTokenHash(refreshHash);
+
+        if (!session || session.user.status !== "ACTIVE") {
+            throw new UnauthorizedException("Invalid or expired refresh token");
+        }
+
+        // Revoke the old session to prevent reuse
+        await this.authRepository.revokeSessionById(session.id, "ROTATED");
+
+        // Create a new session
+        const auth = await this.createAuthenticatedResponse(
+            session.user,
+            session.flowAttemptId ?? null,
+            context,
+        );
+
+        return {
+            success: true,
+            message: "Token refreshed successfully",
+            data: {
+                accessToken: auth.accessToken,
+                tokenType: auth.tokenType,
+                user: auth.user,
+            },
+            refreshToken: auth.refreshToken,
         };
     }
 

@@ -14,6 +14,7 @@ import { LoginDto } from "../dto/login.dto";
 import { RegisterDto } from "../dto/register.dto";
 import { UpdateProfileDto } from "../dto/update-profile.dto";
 import { AuthSharedService } from "./auth-shared.service";
+import { AuthSessionService } from "./auth-session.service";
 
 @Injectable()
 export class AuthAccountService {
@@ -24,6 +25,7 @@ export class AuthAccountService {
         private readonly auditLogService: AuditLogService,
         private readonly storageService: StorageService,
         private readonly notificationService: NotificationService,
+        private readonly authSessionService: AuthSessionService,
     ) {}
 
     async register(payload: RegisterDto) {
@@ -89,7 +91,7 @@ export class AuthAccountService {
         };
     }
 
-    async login(payload: LoginDto) {
+    async login(payload: LoginDto, context?: any) {
         try {
             const email = this.authSharedService.normalizeEmail(payload.email);
             const user = await this.authRepository.findUserByEmail(email);
@@ -129,6 +131,25 @@ export class AuthAccountService {
             }
 
             await this.systemHealthService.recordLoginAttempt(true).catch(() => {});
+
+            if (!user.mfaEnabled) {
+                await this.authRepository.markLastLogin(user.id);
+                const auth = await this.authSessionService.createAuthenticatedResponse(
+                    user,
+                    null,
+                    context ?? {},
+                );
+                return {
+                    success: true,
+                    message: "Login successful",
+                    data: {
+                        accessToken: auth.accessToken,
+                        tokenType: auth.tokenType,
+                        user: auth.user,
+                    },
+                    refreshToken: auth.refreshToken,
+                };
+            }
 
             return {
                 success: true,

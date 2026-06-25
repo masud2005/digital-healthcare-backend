@@ -437,6 +437,21 @@ export class AuthRepository {
         });
     }
 
+    findActiveSessionByRefreshTokenHash(refreshTokenHash: string) {
+        return this.prisma.authSession.findFirst({
+            where: {
+                refreshTokenHash,
+                revokedAt: null,
+                expiresAt: { gt: new Date() },
+            },
+            include: {
+                user: {
+                    select: userSelect,
+                },
+            },
+        });
+    }
+
     findActiveSessionsByUserId(userId: string) {
         return this.prisma.authSession.findMany({
             where: {
