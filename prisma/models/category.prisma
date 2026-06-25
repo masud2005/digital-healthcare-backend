@@ -10,12 +10,15 @@ model Category {
   icon   Attachment? @relation(fields: [iconId], references: [id], onDelete: Cascade)
 
   // Relations
-  products          Product[]
-  assessments       Assessment[]
-  patients          User[]
-  sideEffectReports SideEffectReport[]
-  allowedStates     StateCoverage[]    @relation("StateAllowedCategories")
-  subscriptions     Subscription[]
+  products                 Product[]
+  assessments              Assessment[]
+  patients                 User[]
+  sideEffectReports        SideEffectReport[]
+  allowedStates            StateCoverage[]    @relation("StateAllowedCategories")
+  subscriptions            Subscription[]
+  homePageFeaturedService1 HomePageContent[]  @relation("AboutFeaturedService1")
+  homePageFeaturedService2 HomePageContent[]  @relation("AboutFeaturedService2")
+  homePageFeaturedService3 HomePageContent[]  @relation("AboutFeaturedService3")
 
   createdAt     DateTime       @default(now())
   updatedAt     DateTime       @updatedAt

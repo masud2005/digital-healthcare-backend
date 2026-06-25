@@ -2,113 +2,59 @@ export const DEFAULT_HOMEPAGE_CONTENT = {
     heroTitle: "Medical Weight Loss That Works",
     heroDescription:
         "Weight Loss MD provides comprehensive medical weight management programs designed by physicians to help you achieve sustainable, healthy weight loss.",
-    heroBadgeText: "Trusted by 10,000+ patients",
-    heroBadgeLink: "/about",
     heroButtonText: "Get Started",
     heroButtonLink: "/contact",
     heroButtonNewTab: false,
 
-    bannerTitle: "Start Your Weight Loss Journey Today",
-    bannerDescription:
+    assessmentTitle: "Start Your Weight Loss Journey Today",
+    assessmentDescription:
         "Physician-supervised programs tailored to your unique needs. Get personalized care from board-certified weight loss specialists.",
 
-    aboutSubtitle: "About Us",
     aboutTitle: "Colorado's Premier Medical Weight Loss Clinic",
     aboutDescription:
         "Weight Loss MD has been helping patients across Colorado achieve their weight loss goals through evidence-based medical treatments and personalized care plans. Our board-certified physicians provide comprehensive support every step of the way.",
-    aboutPrimaryButtonText: "Learn More",
-    aboutPrimaryButtonLink: "/about",
-    aboutPrimaryButtonNewTab: false,
-    aboutSecondaryButtonText: "Book Appointment",
-    aboutSecondaryButtonLink: "/contact",
-    aboutSecondaryButtonNewTab: false,
-    aboutBullets: [
-        "Board-certified physicians",
-        "Personalized treatment plans",
-        "FDA-approved medications",
-        "Ongoing support and monitoring",
-    ],
+    aboutButtonText: "Learn More",
+    aboutButtonLink: "/about",
+    aboutButtonNewTab: false,
 
-    productTitle: "Our Weight Loss Programs",
-    productButtonLink: "/services",
-    productButtonNewTab: false,
+    providersTitle: "Meet our expert providers",
+    providersButtonText: "Book an Consultation",
+    providersButtonLink: "https://weightlossmd.com/contact",
+    providersButtonNewTab: true,
 
     howItWorksTitle: "How It Works",
-    howItWorksSteps: {
-        create: [
-            {
-                title: "Initial Consultation",
-                description:
-                    "Schedule a comprehensive evaluation with our physicians to assess your health history and weight loss goals.",
-                order: 1,
-            },
-            {
-                title: "Personalized Plan",
-                description:
-                    "Receive a customized weight loss plan including dietary guidance, lifestyle recommendations, and medical treatments.",
-                order: 2,
-            },
-            {
-                title: "Medical Treatment",
-                description:
-                    "Access FDA-approved medications and treatments prescribed by our board-certified weight loss physicians.",
-                order: 3,
-            },
-            {
-                title: "Ongoing Support",
-                description:
-                    "Regular check-ins with your medical team to track progress, adjust your plan, and celebrate your success.",
-                order: 4,
-            },
-            {
-                title: "Long-term Success",
-                description:
-                    "Develop sustainable habits and receive the tools you need to maintain your weight loss results for life.",
-                order: 5,
-            },
-        ],
-    },
+    howItWorksStep1Title: "Complete Your Medical Intake",
+    howItWorksStep1Description: "Share your health history and goals",
+    howItWorksStep2Title: "Provider Evaluation",
+    howItWorksStep2Description: "A licensed medical provider reviews your information",
+    howItWorksStep3Title: "Personalized Treatment Plan",
+    howItWorksStep3Description: "Based on your individual needs and clinical assessment",
+    howItWorksStep4Title: "Ongoing Support & Monitoring",
+    howItWorksStep4Description: "Adjustments made as appropriate over time",
 
     testimonialTitle: "Patient Success Stories",
-    testimonialSubtitle: "Real Results from Real Patients",
-    testimonialDescription:
-        "Hear from our patients who have transformed their lives with Weight Loss MD's physician-supervised programs.",
-    testimonialButtonLink: "/testimonials",
-    testimonialButtonNewTab: false,
+    testimonialCardTitle: "Read from Hundreds of success stories",
+    testimonialCardDescription: "See how Weight Loss MD has helped people feel stronger, healthier, and more balanced.",
+    testimonialButtonText: "Book intake session",
+    testimonialButtonLink: "https://weightlossmd.com/contact",
+    testimonialButtonNewTab: true,
 
-    pricingTitle: "Transparent Pricing",
-    pricingSubtitle: "Investment in Your Health",
-    pricingDescription:
-        "We believe quality medical weight loss care should be accessible. Our programs offer flexible options to fit your budget and goals.",
-    pricingButtonLink: "/pricing",
-    pricingButtonNewTab: false,
-    faqs: {
-        create: [
-            {
-                question: "How much does the program cost?",
-                answer: "Program costs vary based on the treatment plan selected. We offer flexible payment options and financing. Contact us for a personalized quote.",
-                order: 1,
-            },
-            {
-                question: "Does insurance cover weight loss treatment?",
-                answer: "Some insurance plans cover medically supervised weight loss. Our team can help verify your benefits and maximize your coverage.",
-                order: 2,
-            },
-            {
-                question: "How quickly will I see results?",
-                answer: "Most patients begin seeing results within the first 2-4 weeks. Individual results vary based on your personalized treatment plan and adherence.",
-                order: 3,
-            },
-            {
-                question: "Are the medications safe?",
-                answer: "All medications prescribed by our physicians are FDA-approved. Our doctors carefully evaluate each patient's medical history before prescribing.",
-                order: 4,
-            },
-            {
-                question: "Do I need to visit the clinic in person?",
-                answer: "We offer both in-person and telehealth appointments for your convenience. Initial consultations are typically in-person to ensure a comprehensive evaluation.",
-                order: 5,
-            },
-        ],
-    },
+    faqTitle: "Frequently asked questions",
+    faqCardTitle: "Still have a Question?",
+    faqCardDescription: "Everything you need to know before getting started.",
+    faqButtonText: "Book intake session",
+    faqButtonLink: "https://weightlossmd.com/contact",
+    faqButtonNewTab: true,
+    faqQuestion1: "What weight loss treatments do you offer?",
+    faqAnswer1: "We offer medically supervised weight loss programs that may include GLP-1 medications such as semaglutide and tirzepatide, appetite suppressants, B12 injections, lipotropic injections, nutritional guidance, and personalized wellness support. Treatment plans are customized based on your health goals and medical history.",
+    faqQuestion2: "How do GLP-1 medications help with weight loss?",
+    faqAnswer2: "GLP-1 medications mimic a natural hormone that targets areas of the brain that regulate appetite and food intake, helping you feel fuller longer.",
+    faqQuestion3: "What is the difference between semaglutide and tirzepatide?",
+    faqAnswer3: "Semaglutide is a single receptor agonist (GLP-1), while tirzepatide is a dual receptor agonist (GLP-1 and GIP), which may offer enhanced weight loss efficacy.",
+    faqQuestion4: "Do I need a prescription for weight loss medications?",
+    faqAnswer4: "Yes, all medical weight loss medications require a prescription from a licensed healthcare provider after a thorough medical evaluation.",
+    faqQuestion5: "Do you offer in-person consultations?",
+    faqAnswer5: "Yes, we offer both in-person consultations at our clinic locations and convenient telehealth options.",
+    faqQuestion6: "How do I get started?",
+    faqAnswer6: "Getting started is easy! Simply book an intake session online or contact our office to schedule your initial evaluation.",
 };

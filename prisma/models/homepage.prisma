@@ -2,90 +2,84 @@ model HomePageContent {
   id String @id @default(cuid())
 
   // Hero Section
-  heroImageId      String?     @unique @map("hero_image_id")
-  heroImage        Attachment? @relation("HeroImage", fields: [heroImageId], references: [id], onDelete: Cascade)
+  heroMediaId      String?     @unique @map("hero_media_id")
+  heroMedia        Attachment? @relation("HeroMedia", fields: [heroMediaId], references: [id], onDelete: Cascade)
   heroBadgeImageId String?     @unique @map("hero_badge_image_id")
   heroBadgeImage   Attachment? @relation("HeroBadgeImage", fields: [heroBadgeImageId], references: [id], onDelete: Cascade)
-  heroBadgeText    String?     @map("hero_badge_text")
-  heroBadgeLink    String?     @map("hero_badge_link")
   heroTitle        String?     @map("hero_title")
   heroDescription  String?     @map("hero_description") @db.Text
   heroButtonText   String?     @map("hero_button_text")
   heroButtonLink   String?     @map("hero_button_link")
   heroButtonNewTab Boolean     @default(false) @map("hero_button_new_tab")
 
-  // Banner Section
-  bannerTitle       String? @map("banner_title")
-  bannerDescription String? @map("banner_description") @db.Text
+  // Assessment Section
+  assessmentTitle       String? @map("assessment_title")
+  assessmentDescription String? @map("assessment_description") @db.Text
 
   // About Us Section
-  aboutSubtitle              String?  @map("about_subtitle")
-  aboutTitle                 String?  @map("about_title")
-  aboutDescription           String?  @map("about_description") @db.Text
-  aboutPrimaryButtonText     String?  @map("about_primary_button_text")
-  aboutPrimaryButtonLink     String?  @map("about_primary_button_link")
-  aboutPrimaryButtonNewTab   Boolean  @default(false) @map("about_primary_button_new_tab")
-  aboutSecondaryButtonText   String?  @map("about_secondary_button_text")
-  aboutSecondaryButtonLink   String?  @map("about_secondary_button_link")
-  aboutSecondaryButtonNewTab Boolean  @default(false) @map("about_secondary_button_new_tab")
-  aboutBullets               String[] @map("about_bullets")
+  aboutTitle              String?     @map("about_title")
+  aboutDescription        String?     @map("about_description") @db.Text
+  aboutFeaturedService1Id String?     @map("about_featured_service_1_id")
+  aboutFeaturedService1   Category?   @relation("AboutFeaturedService1", fields: [aboutFeaturedService1Id], references: [id], onDelete: SetNull)
+  aboutFeaturedService2Id String?     @map("about_featured_service_2_id")
+  aboutFeaturedService2   Category?   @relation("AboutFeaturedService2", fields: [aboutFeaturedService2Id], references: [id], onDelete: SetNull)
+  aboutFeaturedService3Id String?     @map("about_featured_service_3_id")
+  aboutFeaturedService3   Category?   @relation("AboutFeaturedService3", fields: [aboutFeaturedService3Id], references: [id], onDelete: SetNull)
+  aboutButtonText         String?     @map("about_button_text")
+  aboutButtonLink         String?     @map("about_button_link")
+  aboutButtonNewTab       Boolean     @default(false) @map("about_button_new_tab")
+  aboutMediaId            String?     @unique @map("about_media_id")
+  aboutMedia              Attachment? @relation("AboutMedia", fields: [aboutMediaId], references: [id], onDelete: Cascade)
 
-  // Product Section
-  productTitle        String? @map("product_title")
-  productButtonLink   String? @map("product_button_link")
-  productButtonNewTab Boolean @default(false) @map("product_button_new_tab")
+  // Providers Section
+  providersTitle        String? @map("providers_title")
+  providersButtonText   String? @map("providers_button_text")
+  providersButtonLink   String? @map("providers_button_link")
+  providersButtonNewTab Boolean @default(false) @map("providers_button_new_tab")
 
   // How It Works Section
-  howItWorksTitle String?          @map("how_it_works_title")
-  howItWorksSteps HowItWorksStep[]
+  howItWorksTitle            String? @map("how_it_works_title")
+  howItWorksStep1Title       String? @map("how_it_works_step_1_title")
+  howItWorksStep1Description String? @map("how_it_works_step_1_description") @db.Text
+  howItWorksStep2Title       String? @map("how_it_works_step_2_title")
+  howItWorksStep2Description String? @map("how_it_works_step_2_description") @db.Text
+  howItWorksStep3Title       String? @map("how_it_works_step_3_title")
+  howItWorksStep3Description String? @map("how_it_works_step_3_description") @db.Text
+  howItWorksStep4Title       String? @map("how_it_works_step_4_title")
+  howItWorksStep4Description String? @map("how_it_works_step_4_description") @db.Text
 
-  // Testimonials Section
-  testimonialTitle        String? @map("testimonial_title")
-  testimonialSubtitle     String? @map("testimonial_subtitle")
-  testimonialDescription  String? @map("testimonial_description") @db.Text
-  testimonialButtonLink   String? @map("testimonial_button_link")
-  testimonialButtonNewTab Boolean @default(false) @map("testimonial_button_new_tab")
+  // Testimonial Section
+  testimonialTitle           String? @map("testimonial_title")
+  testimonialCardTitle       String? @map("testimonial_card_title")
+  testimonialCardDescription String? @map("testimonial_card_description") @db.Text
+  testimonialButtonText      String? @map("testimonial_button_text")
+  testimonialButtonLink      String? @map("testimonial_button_link")
+  testimonialButtonNewTab    Boolean @default(false) @map("testimonial_button_new_tab")
 
-  // Pricing Section
-  pricingTitle        String?       @map("pricing_title")
-  pricingSubtitle     String?       @map("pricing_subtitle")
-  pricingDescription  String?       @map("pricing_description") @db.Text
-  pricingButtonLink   String?       @map("pricing_button_link")
-  pricingButtonNewTab Boolean       @default(false) @map("pricing_button_new_tab")
-  faqs                HomePageFaq[]
+  // FAQ's Section
+  faqTitle           String?     @map("faq_title")
+  faqCardTitle       String?     @map("faq_card_title")
+  faqCardDescription String?     @map("faq_card_description") @db.Text
+  faqButtonText      String?     @map("faq_button_text")
+  faqButtonLink      String?     @map("faq_button_link")
+  faqButtonNewTab    Boolean     @default(false) @map("faq_button_new_tab")
+  faqCardMediaId     String?     @unique @map("faq_card_media_id")
+  faqCardMedia       Attachment? @relation("FaqCardMedia", fields: [faqCardMediaId], references: [id], onDelete: Cascade)
+  faqQuestion1       String?     @map("faq_question_1")
+  faqAnswer1         String?     @map("faq_answer_1") @db.Text
+  faqQuestion2       String?     @map("faq_question_2")
+  faqAnswer2         String?     @map("faq_answer_2") @db.Text
+  faqQuestion3       String?     @map("faq_question_3")
+  faqAnswer3         String?     @map("faq_answer_3") @db.Text
+  faqQuestion4       String?     @map("faq_question_4")
+  faqAnswer4         String?     @map("faq_answer_4") @db.Text
+  faqQuestion5       String?     @map("faq_question_5")
+  faqAnswer5         String?     @map("faq_answer_5") @db.Text
+  faqQuestion6       String?     @map("faq_question_6")
+  faqAnswer6         String?     @map("faq_answer_6") @db.Text
 
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
 
   @@map("homepage_content")
-}
-
-model HowItWorksStep {
-  id                String          @id @default(cuid())
-  homePageContentId String          @map("homepage_content_id")
-  homePageContent   HomePageContent @relation(fields: [homePageContentId], references: [id], onDelete: Cascade)
-  title             String          @map("title")
-  description       String?         @map("description") @db.Text
-  iconId            String?         @unique @map("icon_id")
-  icon              Attachment?     @relation("HowItWorksStepIcon", fields: [iconId], references: [id], onDelete: Cascade)
-  order             Int             @default(0) @map("order")
-
-  createdAt DateTime @default(now()) @map("created_at")
-  updatedAt DateTime @updatedAt @map("updated_at")
-
-  @@map("how_it_works_steps")
-}
-
-model HomePageFaq {
-  id                String          @id @default(cuid())
-  homePageContentId String          @map("homepage_content_id")
-  homePageContent   HomePageContent @relation(fields: [homePageContentId], references: [id], onDelete: Cascade)
-  question          String          @map("question")
-  answer            String          @map("answer") @db.Text
-  order             Int             @default(0) @map("order")
-
-  createdAt DateTime @default(now()) @map("created_at")
-  updatedAt DateTime @updatedAt @map("updated_at")
-
-  @@map("homepage_faqs")
 }
