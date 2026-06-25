@@ -1,6 +1,7 @@
 import { AttachmentModule } from "@global/attachment/attachment.module";
 import { PrismaModule } from "@global/prisma/prisma.module";
 import { StorageModule } from "@global/storage/storage.module";
+import { MailModule } from "@global/mail/mail.module";
 import { Module } from "@nestjs/common";
 import { ManageDoctorController } from "./controllers/manage-doctor.controller";
 import { ManageDoctorRepository } from "./manage-doctor.repository";
@@ -8,7 +9,7 @@ import { DoctorMailService } from "./services/doctor-mail.service";
 import { ManageDoctorService } from "./services/manage-doctor.service";
 
 @Module({
-    imports: [PrismaModule, StorageModule, AttachmentModule],
+    imports: [PrismaModule, StorageModule, AttachmentModule, MailModule],
     controllers: [ManageDoctorController],
     providers: [ManageDoctorService, ManageDoctorRepository, DoctorMailService],
 })
