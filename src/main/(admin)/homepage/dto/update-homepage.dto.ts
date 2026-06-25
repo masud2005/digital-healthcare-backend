@@ -1,83 +1,18 @@
 import { ApiPropertyOptional } from "@nestjs/swagger";
-import { Transform, Type } from "class-transformer";
-import {
-    IsArray,
-    IsBoolean,
-    IsInt,
-    IsOptional,
-    IsString,
-    Min,
-    ValidateNested,
-} from "class-validator";
-
-export class HowItWorksStepDto {
-    @ApiPropertyOptional({ description: "Existing step ID (for updates)" })
-    @IsOptional()
-    @IsString()
-    id?: string;
-
-    @ApiPropertyOptional()
-    @IsString()
-    title: string;
-
-    @ApiPropertyOptional()
-    @IsOptional()
-    @IsString()
-    description?: string;
-
-    @ApiPropertyOptional({ example: "7f4145d8-087e-4d33-82bd-0f65d3fbdb4f" })
-    @IsOptional()
-    @IsString()
-    iconId?: string;
-
-    @ApiPropertyOptional()
-    @IsOptional()
-    @IsInt()
-    @Min(0)
-    order?: number;
-}
-
-export class HomePageFaqDto {
-    @ApiPropertyOptional({ description: "Existing FAQ ID (for updates)" })
-    @IsOptional()
-    @IsString()
-    id?: string;
-
-    @ApiPropertyOptional()
-    @IsString()
-    question: string;
-
-    @ApiPropertyOptional()
-    @IsString()
-    answer: string;
-
-    @ApiPropertyOptional()
-    @IsOptional()
-    @IsInt()
-    @Min(0)
-    order?: number;
-}
+import { Transform } from "class-transformer";
+import { IsBoolean, IsOptional, IsString } from "class-validator";
 
 export class UpdateHomePageContentDto {
+    // Hero Section
     @ApiPropertyOptional({ example: "7f4145d8-087e-4d33-82bd-0f65d3fbdb4f" })
     @IsOptional()
     @IsString()
-    heroImageId?: string;
+    heroMediaId?: string;
 
     @ApiPropertyOptional({ example: "7f4145d8-087e-4d33-82bd-0f65d3fbdb4f" })
     @IsOptional()
     @IsString()
     heroBadgeImageId?: string;
-
-    @ApiPropertyOptional()
-    @IsOptional()
-    @IsString()
-    heroBadgeText?: string;
-
-    @ApiPropertyOptional()
-    @IsOptional()
-    @IsString()
-    heroBadgeLink?: string;
 
     @ApiPropertyOptional()
     @IsOptional()
@@ -105,23 +40,18 @@ export class UpdateHomePageContentDto {
     @IsBoolean()
     heroButtonNewTab?: boolean;
 
-    // Banner Section
+    // Assessment Section
     @ApiPropertyOptional()
     @IsOptional()
     @IsString()
-    bannerTitle?: string;
+    assessmentTitle?: string;
 
     @ApiPropertyOptional()
     @IsOptional()
     @IsString()
-    bannerDescription?: string;
+    assessmentDescription?: string;
 
-    // About Section
-    @ApiPropertyOptional()
-    @IsOptional()
-    @IsString()
-    aboutSubtitle?: string;
-
+    // About Us Section
     @ApiPropertyOptional()
     @IsOptional()
     @IsString()
@@ -135,67 +65,60 @@ export class UpdateHomePageContentDto {
     @ApiPropertyOptional()
     @IsOptional()
     @IsString()
-    aboutPrimaryButtonText?: string;
+    aboutFeaturedService1Id?: string;
 
     @ApiPropertyOptional()
     @IsOptional()
     @IsString()
-    aboutPrimaryButtonLink?: string;
+    aboutFeaturedService2Id?: string;
+
+    @ApiPropertyOptional()
+    @IsOptional()
+    @IsString()
+    aboutFeaturedService3Id?: string;
+
+    @ApiPropertyOptional()
+    @IsOptional()
+    @IsString()
+    aboutButtonText?: string;
+
+    @ApiPropertyOptional()
+    @IsOptional()
+    @IsString()
+    aboutButtonLink?: string;
 
     @ApiPropertyOptional()
     @IsOptional()
     @Transform(({ value }) => value === "true" || value === true)
     @IsBoolean()
-    aboutPrimaryButtonNewTab?: boolean;
+    aboutButtonNewTab?: boolean;
+
+    @ApiPropertyOptional({ example: "7f4145d8-087e-4d33-82bd-0f65d3fbdb4f" })
+    @IsOptional()
+    @IsString()
+    aboutMediaId?: string;
+
+    // Providers Section
+    @ApiPropertyOptional()
+    @IsOptional()
+    @IsString()
+    providersTitle?: string;
 
     @ApiPropertyOptional()
     @IsOptional()
     @IsString()
-    aboutSecondaryButtonText?: string;
+    providersButtonText?: string;
 
     @ApiPropertyOptional()
     @IsOptional()
     @IsString()
-    aboutSecondaryButtonLink?: string;
+    providersButtonLink?: string;
 
     @ApiPropertyOptional()
     @IsOptional()
     @Transform(({ value }) => value === "true" || value === true)
     @IsBoolean()
-    aboutSecondaryButtonNewTab?: boolean;
-
-    @ApiPropertyOptional({ type: [String] })
-    @IsOptional()
-    @Transform(({ value }) => {
-        if (typeof value === "string") {
-            try {
-                return JSON.parse(value);
-            } catch {
-                return value;
-            }
-        }
-        return value;
-    })
-    @IsArray()
-    @IsString({ each: true })
-    aboutBullets?: string[];
-
-    // Product Section
-    @ApiPropertyOptional()
-    @IsOptional()
-    @IsString()
-    productTitle?: string;
-
-    @ApiPropertyOptional()
-    @IsOptional()
-    @IsString()
-    productButtonLink?: string;
-
-    @ApiPropertyOptional()
-    @IsOptional()
-    @Transform(({ value }) => value === "true" || value === true)
-    @IsBoolean()
-    productButtonNewTab?: boolean;
+    providersButtonNewTab?: boolean;
 
     // How It Works Section
     @ApiPropertyOptional()
@@ -203,24 +126,47 @@ export class UpdateHomePageContentDto {
     @IsString()
     howItWorksTitle?: string;
 
-    @ApiPropertyOptional({ type: [HowItWorksStepDto] })
+    @ApiPropertyOptional()
     @IsOptional()
-    @Transform(({ value }) => {
-        if (typeof value === "string") {
-            try {
-                return JSON.parse(value);
-            } catch {
-                return value;
-            }
-        }
-        return value;
-    })
-    @IsArray()
-    @ValidateNested({ each: true })
-    @Type(() => HowItWorksStepDto)
-    howItWorksSteps?: HowItWorksStepDto[];
+    @IsString()
+    howItWorksStep1Title?: string;
 
-    // Testimonials Section
+    @ApiPropertyOptional()
+    @IsOptional()
+    @IsString()
+    howItWorksStep1Description?: string;
+
+    @ApiPropertyOptional()
+    @IsOptional()
+    @IsString()
+    howItWorksStep2Title?: string;
+
+    @ApiPropertyOptional()
+    @IsOptional()
+    @IsString()
+    howItWorksStep2Description?: string;
+
+    @ApiPropertyOptional()
+    @IsOptional()
+    @IsString()
+    howItWorksStep3Title?: string;
+
+    @ApiPropertyOptional()
+    @IsOptional()
+    @IsString()
+    howItWorksStep3Description?: string;
+
+    @ApiPropertyOptional()
+    @IsOptional()
+    @IsString()
+    howItWorksStep4Title?: string;
+
+    @ApiPropertyOptional()
+    @IsOptional()
+    @IsString()
+    howItWorksStep4Description?: string;
+
+    // Testimonial Section
     @ApiPropertyOptional()
     @IsOptional()
     @IsString()
@@ -229,12 +175,17 @@ export class UpdateHomePageContentDto {
     @ApiPropertyOptional()
     @IsOptional()
     @IsString()
-    testimonialSubtitle?: string;
+    testimonialCardTitle?: string;
 
     @ApiPropertyOptional()
     @IsOptional()
     @IsString()
-    testimonialDescription?: string;
+    testimonialCardDescription?: string;
+
+    @ApiPropertyOptional()
+    @IsOptional()
+    @IsString()
+    testimonialButtonText?: string;
 
     @ApiPropertyOptional()
     @IsOptional()
@@ -247,47 +198,100 @@ export class UpdateHomePageContentDto {
     @IsBoolean()
     testimonialButtonNewTab?: boolean;
 
-    // Pricing Section
+    // FAQ's Section
     @ApiPropertyOptional()
     @IsOptional()
     @IsString()
-    pricingTitle?: string;
+    faqTitle?: string;
 
     @ApiPropertyOptional()
     @IsOptional()
     @IsString()
-    pricingSubtitle?: string;
+    faqCardTitle?: string;
 
     @ApiPropertyOptional()
     @IsOptional()
     @IsString()
-    pricingDescription?: string;
+    faqCardDescription?: string;
 
     @ApiPropertyOptional()
     @IsOptional()
     @IsString()
-    pricingButtonLink?: string;
+    faqButtonText?: string;
+
+    @ApiPropertyOptional()
+    @IsOptional()
+    @IsString()
+    faqButtonLink?: string;
 
     @ApiPropertyOptional()
     @IsOptional()
     @Transform(({ value }) => value === "true" || value === true)
     @IsBoolean()
-    pricingButtonNewTab?: boolean;
+    faqButtonNewTab?: boolean;
 
-    @ApiPropertyOptional({ type: [HomePageFaqDto] })
+    @ApiPropertyOptional({ example: "7f4145d8-087e-4d33-82bd-0f65d3fbdb4f" })
     @IsOptional()
-    @Transform(({ value }) => {
-        if (typeof value === "string") {
-            try {
-                return JSON.parse(value);
-            } catch {
-                return value;
-            }
-        }
-        return value;
-    })
-    @IsArray()
-    @ValidateNested({ each: true })
-    @Type(() => HomePageFaqDto)
-    faqs?: HomePageFaqDto[];
+    @IsString()
+    faqCardMediaId?: string;
+
+    @ApiPropertyOptional()
+    @IsOptional()
+    @IsString()
+    faqQuestion1?: string;
+
+    @ApiPropertyOptional()
+    @IsOptional()
+    @IsString()
+    faqAnswer1?: string;
+
+    @ApiPropertyOptional()
+    @IsOptional()
+    @IsString()
+    faqQuestion2?: string;
+
+    @ApiPropertyOptional()
+    @IsOptional()
+    @IsString()
+    faqAnswer2?: string;
+
+    @ApiPropertyOptional()
+    @IsOptional()
+    @IsString()
+    faqQuestion3?: string;
+
+    @ApiPropertyOptional()
+    @IsOptional()
+    @IsString()
+    faqAnswer3?: string;
+
+    @ApiPropertyOptional()
+    @IsOptional()
+    @IsString()
+    faqQuestion4?: string;
+
+    @ApiPropertyOptional()
+    @IsOptional()
+    @IsString()
+    faqAnswer4?: string;
+
+    @ApiPropertyOptional()
+    @IsOptional()
+    @IsString()
+    faqQuestion5?: string;
+
+    @ApiPropertyOptional()
+    @IsOptional()
+    @IsString()
+    faqAnswer5?: string;
+
+    @ApiPropertyOptional()
+    @IsOptional()
+    @IsString()
+    faqQuestion6?: string;
+
+    @ApiPropertyOptional()
+    @IsOptional()
+    @IsString()
+    faqAnswer6?: string;
 }

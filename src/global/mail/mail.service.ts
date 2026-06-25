@@ -27,6 +27,12 @@ export class MailService implements OnModuleInit {
         }
     }
 
+    assertConfigured() {
+        if (!this.transporter && process.env.MAIL_LOG_OTP_WHEN_UNCONFIGURED !== "true") {
+            throw new ServiceUnavailableException("Email provider is not configured");
+        }
+    }
+
     private createTransporter() {
         const host = process.env.SMTP_HOST?.trim();
         const user = process.env.SMTP_USER?.trim();
