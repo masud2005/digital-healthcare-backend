@@ -156,6 +156,8 @@ export class AuthAccountService {
                 message: "Credentials verified. OTP verification method to verify.",
                 data: {
                     userId: user.id,
+                    email: user.email,
+                    phone: user.phone,
                     status: "OTP_REQUIRED",
                 },
             };

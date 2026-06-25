@@ -1,7 +1,7 @@
 import { Body, Controller, Post, Req, Res } from "@nestjs/common";
 import { ApiCreatedResponse, ApiExtraModels, ApiOkResponse, ApiOperation, ApiTags, getSchemaPath } from "@nestjs/swagger";
 import type { Request, Response } from "express";
-import { AuthOtpResponseDto, AuthRegisterResponseDto, AuthResponseDto } from "../dto/auth-response.dto";
+import { AuthLoginResponseDto, AuthOtpResponseDto, AuthRegisterResponseDto, AuthResponseDto } from "../dto/auth-response.dto";
 import { LoginDto } from "../dto/login.dto";
 import { RegisterDto } from "../dto/register.dto";
 import { getRequestContext, setRefreshCookieAndReturnBody } from "./auth-controller.utils";
@@ -24,13 +24,13 @@ export class AuthAccountController {
     }
 
     @Post("login")
-    @ApiExtraModels(AuthOtpResponseDto, AuthResponseDto)
+    @ApiExtraModels(AuthLoginResponseDto, AuthResponseDto)
     @ApiOperation({ summary: "Verify login credentials and send login OTP or direct login" })
     @ApiOkResponse({
         description: "Returns OTP challenge if MFA is enabled, or Auth tokens if MFA is disabled",
         schema: {
             oneOf: [
-                { $ref: getSchemaPath(AuthOtpResponseDto) },
+                { $ref: getSchemaPath(AuthLoginResponseDto) },
                 { $ref: getSchemaPath(AuthResponseDto) },
             ],
         },

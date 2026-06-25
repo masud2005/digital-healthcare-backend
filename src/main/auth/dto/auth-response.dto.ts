@@ -59,11 +59,15 @@ export class AuthLoginResponseDto extends AuthMessageResponseDto {
     @ApiProperty({
         example: {
             userId: "uuid",
+            email: "user@gmail.com",
+            phone: "+8801700000000",
             status: "OTP_REQUIRED",
         },
     })
     data!: {
         userId: string;
+        email: string;
+        phone: string | null;
         status: string;
     };
 }
