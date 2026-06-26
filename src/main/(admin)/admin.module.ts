@@ -1,4 +1,5 @@
 import { Module } from "@nestjs/common";
+import { CommunicationTemplateModule } from "./communication-template/communication-template.module";
 import { AssessmentModule } from "./assessment/assessment.module";
 import { DocumentCenterModule } from "./document-center/document-center.module";
 import { CategoryModule } from "./category/category.module";
@@ -32,6 +33,7 @@ import { WebsiteModule } from "./website/website.module";
         DiscountModule,
         HomePageModule,
         DocumentCenterModule,
+        CommunicationTemplateModule,
     ],
 })
 export class AdminModule {}

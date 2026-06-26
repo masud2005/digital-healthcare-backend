@@ -66,6 +66,21 @@ enum CategoryStatus {
   DISABLED
 }
 
+enum CommunicationAction {
+  OTP_LOGIN
+  OTP_REGISTER
+  OTP_FORGOT_PASSWORD
+  DOCTOR_CREDENTIALS
+  CONTACT_LEAD_REPLY
+  ORDER_CONFIRMATION
+  PAYMENT_RECEIPT
+}
+
+enum CommunicationChannel {
+  EMAIL
+  SMS
+}
+
 enum ConsentSource {
   WEB
   MOBILE

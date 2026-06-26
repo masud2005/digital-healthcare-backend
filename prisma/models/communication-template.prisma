@@ -1,0 +1,52 @@
+model MessageTemplate {
+  id             String               @id @default(uuid()) @db.Uuid
+  action         CommunicationAction  @unique
+  channel        CommunicationChannel @default(EMAIL)
+  subject        String?
+  headerTitle    String?
+  headerSubtitle String?              @db.Text
+  content        String               @db.Text
+
+  // Info Cards (Template Specific)
+  infoCard1Title String?
+  infoCard1Text  String? @db.Text
+  infoCard2Title String?
+  infoCard2Text  String? @db.Text
+
+  showInfoCards Boolean  @default(true)
+  isActive      Boolean  @default(true)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+}
+
+model SmsTemplate {
+  id        String               @id @default(uuid()) @db.Uuid
+  action    CommunicationAction  @unique
+  channel   CommunicationChannel @default(SMS)
+  content   String               @db.Text
+  isActive  Boolean              @default(true)
+  createdAt DateTime             @default(now())
+  updatedAt DateTime             @updatedAt
+}
+
+model EmailLayout {
+  id       String  @id @default(uuid()) @db.Uuid
+  name     String  @unique @default("DEFAULT")
+  isActive Boolean @default(true)
+
+  // Brand & Header Section
+  logoId         String?     @unique
+  logo           Attachment? @relation("EmailLayoutLogo", fields: [logoId], references: [id])
+  isBlack        Boolean     @default(true)
+  brandName      String      @default("WEIGHTLOSSMD")
+  headerTitle    String      @default("System Notification")
+  headerSubtitle String      @default("We have an important update regarding your account.") @db.Text
+
+  // Footer Section
+  footerCompanyName String @default("WeightLossMD Support")
+  footerEmail       String @default("support@weightlossmd.com")
+  footerTagline     String @default("This is an automated message. Please do not reply to this email.") @db.Text
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}

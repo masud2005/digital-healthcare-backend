@@ -112,6 +112,22 @@ export class StorageService implements OnModuleInit {
         await this.s3.send(command);
     }
 
+    /**
+     * 📥 Download a file from MinIO and return its buffer.
+     * Useful for fetching files to attach them directly into emails as CID.
+     */
+    async getFileBuffer(key: string): Promise<Buffer> {
+        const command = new GetObjectCommand({
+            Bucket: this.bucket,
+            Key: key,
+        });
+
+        const response = await this.s3.send(command);
+        const byteArray = await response.Body?.transformToByteArray();
+        if (!byteArray) throw new Error("Failed to read file body from S3");
+        return Buffer.from(byteArray);
+    }
+
     private generateFileKey(originalName: string): string {
         const date = new Date().toISOString().split("T")[0];
 

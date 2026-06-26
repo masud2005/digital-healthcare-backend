@@ -6,7 +6,7 @@ import {
 } from "@nestjs/common";
 import { StorageService } from "@global/storage/storage.service";
 import { AttachmentService } from "@global/attachment/attachment.service";
-import { MailService } from "@global/mail/mail.service";
+import { CommunicationService } from "@global/communication/communication.service";
 import { ExportService } from "@global/export/export.service";
 import { ContactLeadsRepository } from "./contact-leads.repository";
 import { ContactLeadQueryDto } from "./dto/contact-lead-query.dto";
@@ -25,7 +25,7 @@ export class ContactLeadsService {
         private readonly contactLeadsRepository: ContactLeadsRepository,
         private readonly storageService: StorageService,
         private readonly attachmentService: AttachmentService,
-        private readonly mailService: MailService,
+        private readonly communicationService: CommunicationService,
         private readonly exportService: ExportService,
         private readonly incidentService: IncidentService,
     ) {}
@@ -177,10 +177,15 @@ export class ContactLeadsService {
                 responseAttachmentId,
             });
 
-            await this.mailService.sendMail({
+            await this.communicationService.dispatch({
+                action: "CONTACT_LEAD_REPLY",
+                channel: "EMAIL",
                 to: lead.email,
-                subject: payload.subject,
-                text: payload.message,
+                payload: {
+                    name: lead.fullName,
+                    subject: payload.subject,
+                    message: payload.message,
+                },
                 attachments: file
                     ? [
                           {

@@ -6,6 +6,7 @@ import path from "path";
 import { adminSeed } from "./adminSeed";
 import { systemHealthSeed } from "./systemHealthSeed";
 import { consentSeed } from "./consentSeed";
+import { communicationTemplateSeed } from "./communicationTemplateSeed";
 
 expand(config({ path: path.resolve(process.cwd(), ".env") }));
 
@@ -18,6 +19,7 @@ async function main() {
     await adminSeed(prisma);
     // await systemHealthSeed(prisma);
     // await consentSeed(prisma);
+    await communicationTemplateSeed(prisma);
     console.log("✅ Prisma seed finished");
 }
 

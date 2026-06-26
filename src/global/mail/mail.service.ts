@@ -61,7 +61,7 @@ export class MailService implements OnModuleInit {
         subject: string;
         text?: string;
         html?: string;
-        attachments?: Array<{ filename: string; content: Buffer }>;
+        attachments?: Array<{ filename: string; content: Buffer; cid?: string }>;
     }) {
         if (!this.transporter) {
             if (process.env.MAIL_LOG_OTP_WHEN_UNCONFIGURED === "true") {

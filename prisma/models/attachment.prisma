@@ -29,6 +29,7 @@ model Attachment {
   contactLead           ContactLead?     @relation("ContactLeadAttachment")
   contactLeadResponse   ContactLead?     @relation("ContactLeadResponseAttachment")
   testimonial           Testimonial?
+  emailLayout           EmailLayout?     @relation("EmailLayoutLogo")
 
   conversationId String?
   conversation   Conversation? @relation(fields: [conversationId], references: [id], onDelete: Cascade)

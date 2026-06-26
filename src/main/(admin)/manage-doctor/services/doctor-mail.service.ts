@@ -1,24 +1,24 @@
 import { Injectable } from "@nestjs/common";
-import { MailService } from "@global/mail/mail.service";
-import { buildDoctorCredentialEmail } from "../templates/doctor-credential-email-template";
+import { CommunicationService } from "@global/communication/communication.service";
 
 @Injectable()
 export class DoctorMailService {
-    constructor(private readonly mailService: MailService) {}
+    constructor(private readonly communicationService: CommunicationService) {}
 
     assertReady() {
-        this.mailService.assertConfigured();
+        // Validation could be added here if needed, but CommunicationService handles failures internally.
     }
 
     async sendCredentials(input: { name: string; email: string; password: string }) {
-        this.assertReady();
-        const { subject, text, html } = buildDoctorCredentialEmail(input);
-
-        await this.mailService.sendMail({
+        await this.communicationService.dispatch({
+            action: "DOCTOR_CREDENTIALS",
+            channel: "EMAIL",
             to: input.email,
-            subject,
-            text,
-            html,
+            payload: {
+                name: input.name,
+                email: input.email,
+                password: input.password,
+            },
         });
     }
 }

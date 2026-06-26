@@ -204,3 +204,17 @@ export type MessageStatus = (typeof messageStatus)[number];
 
 export const proposalStatus = ["PENDING", "ACCEPTED", "REJECTED", "EXPIRED"] as const;
 export type ProposalStatus = (typeof proposalStatus)[number];
+
+export const communicationChannel = ["EMAIL", "SMS"] as const;
+export type CommunicationChannel = (typeof communicationChannel)[number];
+
+export const communicationAction = [
+    "OTP_LOGIN",
+    "OTP_REGISTER",
+    "OTP_FORGOT_PASSWORD",
+    "DOCTOR_CREDENTIALS",
+    "CONTACT_LEAD_REPLY",
+    "ORDER_CONFIRMATION",
+    "PAYMENT_RECEIPT",
+] as const;
+export type CommunicationAction = (typeof communicationAction)[number];
