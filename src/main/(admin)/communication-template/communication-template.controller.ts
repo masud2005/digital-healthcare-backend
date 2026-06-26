@@ -1,13 +1,15 @@
 import { Roles } from "@common/decorators";
-import { Body, Controller, Get, Param, Patch, Query } from "@nestjs/common";
+import { Body, Controller, Get, Param, Patch, Query, UseGuards } from "@nestjs/common";
 import { ApiTags, ApiOperation, ApiBearerAuth, ApiQuery } from "@nestjs/swagger";
 import { CommunicationChannel, CommunicationAction } from "@prisma/client";
 import { CommunicationTemplateService } from "./communication-template.service";
 import { UpdateTemplateDto } from "./dto/update-template.dto";
 import { UpdateLayoutDto } from "./dto/update-layout.dto";
+import { JwtAuthGuard, RolesGuard } from "@common/guards";
 
 @ApiTags("(Admin) Communication Templates")
 @ApiBearerAuth()
+@UseGuards(JwtAuthGuard, RolesGuard)
 @Roles("ADMIN")
 @Controller("admin/communication-templates")
 export class CommunicationTemplateController {
