@@ -25,10 +25,6 @@ export async function communicationTemplateSeed(prisma: PrismaClient) {
     });
 
     // ─── Seed Message Templates ────────────────────────────────────────────────
-    // NOTE: 'content' is the body message admin can edit.
-    // - Use {{name}} for recipient name
-    // - Use {{code}} for OTP (will be auto-rendered as a styled code box)
-    // - Use {{email}}, {{password}}, {{message}}, {{subject}} for other variables
 
     const templates: {
         action: CommunicationAction;
