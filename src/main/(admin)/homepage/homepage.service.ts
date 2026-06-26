@@ -4,11 +4,11 @@ import { AttachmentService } from "@global/attachment/attachment.service";
 import { HomePageRepository } from "./homepage.repository";
 import {
     UpdateAboutSectionDto,
-    UpdateBannerSectionDto,
+    UpdateAssessmentSectionDto,
     UpdateHeroSectionDto,
     UpdateHowItWorksSectionDto,
-    UpdatePricingSectionDto,
-    UpdateProductSectionDto,
+    UpdateFaqSectionDto,
+    UpdateProvidersSectionDto,
     UpdateTestimonialsSectionDto,
 } from "./dto/update-sections.dto";
 import { DEFAULT_HOMEPAGE_CONTENT } from "./homepage-seed.data";
@@ -49,18 +49,16 @@ export class HomePageService implements OnModuleInit {
         return this.resolveImages(content!);
     }
 
-    async updateHeroSection(payload: UpdateHeroSectionDto) {
-        const content = await this.getContent();
+    private async handleAttachmentsUpdate(
+        content: any,
+        payload: any,
+        attachmentFieldsWithContext: Record<string, string>,
+    ) {
         const updateData: any = { ...payload };
 
-        const attachmentFieldsWithContext: Record<string, string> = {
-            heroImageId: "HERO_IMAGE",
-            heroBadgeImageId: "HERO_BADGE_IMAGE",
-        };
-
         for (const [field, context] of Object.entries(attachmentFieldsWithContext)) {
-            const newId = payload[field as keyof UpdateHeroSectionDto];
-            const oldId = content[field as keyof typeof content];
+            const newId = payload[field];
+            const oldId = content[field];
             if (newId !== undefined && newId !== oldId) {
                 if (oldId && typeof oldId === "string") {
                     await this.attachmentService.remove(oldId).catch(() => {});
@@ -70,12 +68,21 @@ export class HomePageService implements OnModuleInit {
                 }
             }
         }
+        return updateData;
+    }
+
+    async updateHeroSection(payload: UpdateHeroSectionDto) {
+        const content = await this.getContent();
+        const updateData = await this.handleAttachmentsUpdate(content, payload, {
+            heroMediaId: "HERO_IMAGE",
+            heroBadgeImageId: "HERO_BADGE_IMAGE",
+        });
 
         const updated = await this.homePageRepository.updateContent(content.id, updateData);
         return this.resolveImages(updated!);
     }
 
-    async updateBannerSection(payload: UpdateBannerSectionDto) {
+    async updateAssessmentSection(payload: UpdateAssessmentSectionDto) {
         const content = await this.getContent();
         const updated = await this.homePageRepository.updateContent(content.id, payload);
         return this.resolveImages(updated!);
@@ -83,11 +90,15 @@ export class HomePageService implements OnModuleInit {
 
     async updateAboutSection(payload: UpdateAboutSectionDto) {
         const content = await this.getContent();
-        const updated = await this.homePageRepository.updateContent(content.id, payload);
+        const updateData = await this.handleAttachmentsUpdate(content, payload, {
+            aboutMediaId: "ABOUT_IMAGE",
+        });
+
+        const updated = await this.homePageRepository.updateContent(content.id, updateData);
         return this.resolveImages(updated!);
     }
 
-    async updateProductSection(payload: UpdateProductSectionDto) {
+    async updateProvidersSection(payload: UpdateProvidersSectionDto) {
         const content = await this.getContent();
         const updated = await this.homePageRepository.updateContent(content.id, payload);
         return this.resolveImages(updated!);
@@ -95,35 +106,7 @@ export class HomePageService implements OnModuleInit {
 
     async updateHowItWorksSection(payload: UpdateHowItWorksSectionDto) {
         const content = await this.getContent();
-        const updateData: any = { ...payload };
-
-        if (payload.howItWorksSteps !== undefined && content.howItWorksSteps) {
-            for (const incomingStep of payload.howItWorksSteps) {
-                if (incomingStep.id) {
-                    const existingStep = content.howItWorksSteps.find(s => s.id === incomingStep.id);
-                    if (existingStep && incomingStep.iconId !== undefined && incomingStep.iconId !== existingStep.iconId) {
-                        if (existingStep.iconId) {
-                            await this.attachmentService.remove(existingStep.iconId).catch(() => {});
-                        }
-                        if (incomingStep.iconId) {
-                            await this.attachmentService.replace(incomingStep.iconId, { context: "HOW_IT_WORKS_ICON" }).catch(() => {});
-                        }
-                    }
-                } else if (incomingStep.iconId) {
-                    await this.attachmentService.replace(incomingStep.iconId, { context: "HOW_IT_WORKS_ICON" }).catch(() => {});
-                }
-            }
-            const incomingIds = payload.howItWorksSteps.map(s => s.id).filter(Boolean);
-            for (const existingStep of content.howItWorksSteps) {
-                if (!incomingIds.includes(existingStep.id)) {
-                    if (existingStep.iconId) {
-                        await this.attachmentService.remove(existingStep.iconId).catch(() => {});
-                    }
-                }
-            }
-        }
-
-        const updated = await this.homePageRepository.updateContent(content.id, updateData);
+        const updated = await this.homePageRepository.updateContent(content.id, payload);
         return this.resolveImages(updated!);
     }
 
@@ -133,47 +116,34 @@ export class HomePageService implements OnModuleInit {
         return this.resolveImages(updated!);
     }
 
-    async updatePricingSection(payload: UpdatePricingSectionDto) {
+    async updateFaqSection(payload: UpdateFaqSectionDto) {
         const content = await this.getContent();
-        const updated = await this.homePageRepository.updateContent(content.id, payload);
+        const updateData = await this.handleAttachmentsUpdate(content, payload, {
+            faqCardMediaId: "FAQ_CARD_IMAGE",
+        });
+
+        const updated = await this.homePageRepository.updateContent(content.id, updateData);
         return this.resolveImages(updated!);
     }
 
-    private async resolveImages<
-        T extends {
-            heroImageId?: string | null;
-            heroImage?: any;
-            heroBadgeImageId?: string | null;
-            heroBadgeImage?: any;
-            howItWorksSteps?: any[] | null;
-        },
-    >(content: T) {
-        const [heroImage, heroBadgeImage] = await Promise.all([
-            content.heroImage ? this.resolveAttachmentUrl(content.heroImage) : Promise.resolve(null),
+    private async resolveImages(content: any) {
+        const [heroMedia, heroBadgeImage, aboutMedia, faqCardMedia] = await Promise.all([
+            content.heroMedia ? this.resolveAttachmentUrl(content.heroMedia) : Promise.resolve(null),
             content.heroBadgeImage ? this.resolveAttachmentUrl(content.heroBadgeImage) : Promise.resolve(null),
+            content.aboutMedia ? this.resolveAttachmentUrl(content.aboutMedia) : Promise.resolve(null),
+            content.faqCardMedia ? this.resolveAttachmentUrl(content.faqCardMedia) : Promise.resolve(null),
         ]);
-
-        let resolvedSteps = content.howItWorksSteps;
-        if (Array.isArray(resolvedSteps)) {
-            resolvedSteps = await Promise.all(
-                resolvedSteps.map(async (step) => {
-                    const icon = step.icon ? await this.resolveAttachmentUrl(step.icon) : null;
-                    return {
-                        ...step,
-                        icon,
-                        iconUrl: icon?.fileUrl || null,
-                    };
-                }),
-            );
-        }
 
         return {
             ...content,
-            heroImage,
+            heroMedia,
             heroBadgeImage,
-            heroImageUrl: heroImage?.fileUrl || null,
+            aboutMedia,
+            faqCardMedia,
+            heroMediaUrl: heroMedia?.fileUrl || null,
             heroBadgeImageUrl: heroBadgeImage?.fileUrl || null,
-            howItWorksSteps: resolvedSteps,
+            aboutMediaUrl: aboutMedia?.fileUrl || null,
+            faqCardMediaUrl: faqCardMedia?.fileUrl || null,
         };
     }
 

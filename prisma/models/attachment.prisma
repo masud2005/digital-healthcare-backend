@@ -15,21 +15,22 @@ model Attachment {
   product   Product?  @relation(fields: [productId], references: [id], onDelete: Cascade)
   productId String?
 
-  homePageContentHero   HomePageContent? @relation("HeroImage")
-  homePageContentBadge  HomePageContent? @relation("HeroBadgeImage")
-  howItWorksStep        HowItWorksStep?  @relation("HowItWorksStepIcon")
-  whiteLogoSettings     SiteSettings?    @relation("WhiteLogo")
-  blackLogoSettings     SiteSettings?    @relation("BlackLogo")
-  faviconLightSettings  SiteSettings?    @relation("FaviconLight")
-  faviconDarkSettings   SiteSettings?    @relation("FaviconDark")
-  socialPreviewSettings SiteSettings?    @relation("SocialPreview")
-  doctorProfile         DoctorProfile?   @relation("DoctorAvatar")
-  patientProfile        PatientProfile?  @relation("PatientAvatar")
-  adminProfile          AdminProfile?    @relation("AdminAvatar")
-  contactLead           ContactLead?     @relation("ContactLeadAttachment")
-  contactLeadResponse   ContactLead?     @relation("ContactLeadResponseAttachment")
-  testimonial           Testimonial?
-  emailLayout           EmailLayout?     @relation("EmailLayoutLogo")
+  homePageContentHeroMedia    HomePageContent? @relation("HeroMedia")
+  homePageContentBadge        HomePageContent? @relation("HeroBadgeImage")
+  homePageContentAboutMedia   HomePageContent? @relation("AboutMedia")
+  homePageContentFaqCardMedia HomePageContent? @relation("FaqCardMedia")
+  whiteLogoSettings           SiteSettings?    @relation("WhiteLogo")
+  blackLogoSettings           SiteSettings?    @relation("BlackLogo")
+  faviconLightSettings        SiteSettings?    @relation("FaviconLight")
+  faviconDarkSettings         SiteSettings?    @relation("FaviconDark")
+  socialPreviewSettings       SiteSettings?    @relation("SocialPreview")
+  doctorProfile               DoctorProfile?   @relation("DoctorAvatar")
+  patientProfile              PatientProfile?  @relation("PatientAvatar")
+  adminProfile                AdminProfile?    @relation("AdminAvatar")
+  contactLead                 ContactLead?     @relation("ContactLeadAttachment")
+  contactLeadResponse         ContactLead?     @relation("ContactLeadResponseAttachment")
+  testimonial                 Testimonial?
+  emailLayout                 EmailLayout?     @relation("EmailLayoutLogo")
 
   conversationId String?
   conversation   Conversation? @relation(fields: [conversationId], references: [id], onDelete: Cascade)
