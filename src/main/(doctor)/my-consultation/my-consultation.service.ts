@@ -1,5 +1,6 @@
 import { StorageService } from "@global/storage/storage.service";
-import { BadRequestException, Injectable } from "@nestjs/common";
+import { CloverService } from "@global/clover/clover.service";
+import { BadRequestException, Injectable, Logger } from "@nestjs/common";
 import { SubmissionStatus } from "@prisma/client";
 import { ConsultationTab, UpdateConsultationStatusDto } from "./dto/my-consultation.dto";
 import { DoctorMyConsultationRepository } from "./my-consultation.repository";
@@ -8,11 +9,14 @@ import { PrismaService } from "@global/prisma/prisma.service";
 
 @Injectable()
 export class DoctorMyConsultationService {
+    private readonly logger = new Logger(DoctorMyConsultationService.name);
+
     constructor(
         private readonly myConsultationRepository: DoctorMyConsultationRepository,
         private readonly storageService: StorageService,
         private readonly notificationService: NotificationService,
         private readonly prisma: PrismaService,
+        private readonly cloverService: CloverService,
     ) {}
 
     async getMyConsultations(userId: string, tab?: ConsultationTab, page?: number, limit?: number) {
@@ -105,7 +109,69 @@ export class DoctorMyConsultationService {
         const patientName = patient?.patientProfile?.name ?? patient?.name ?? "A patient";
         const doctorName = doctor?.doctorProfile?.name ?? doctor?.name ?? "A doctor";
 
-        // Notify Patient
+        // ── AUTO REFUND on REJECTED ──────────────────────────────────────────────
+        if (status === SubmissionStatus.REJECTED) {
+            // Fetch all completed payments tied to orders of this submission
+            const payments = await this.prisma.payment.findMany({
+                where: {
+                    order: { submissionId },
+                    status: "COMPLETED",
+                },
+                select: {
+                    id: true,
+                    transactionId: true,
+                    amount: true,
+                    userId: true,
+                },
+            });
+
+            for (const payment of payments) {
+                const refundNumber = `REF-${new Date().getFullYear()}-${Math.floor(10000 + Math.random() * 90000)}`;
+                let gatewayRefundId: string | null = null;
+
+                // Call Clover refund API
+                try {
+                    gatewayRefundId = await this.cloverService.refundCharge(
+                        payment.transactionId,
+                        Number(payment.amount),
+                    );
+                } catch (err) {
+                    this.logger.error(`Clover refund failed for payment ${payment.id}`, err);
+                    // Continue — still mark as refunded in DB and create record
+                }
+
+                // Create Refund record in DB
+                await this.prisma.refund.create({
+                    data: {
+                        refundNumber,
+                        amount: payment.amount,
+                        reason: `Doctor rejected consultation. Automatic full refund issued.`,
+                        status: gatewayRefundId ? "COMPLETED" : "PENDING",
+                        gatewayRefundId,
+                        paymentId: payment.id,
+                        userId: payment.userId,
+                    },
+                });
+
+                // Mark payment as REFUNDED
+                await this.prisma.payment.update({
+                    where: { id: payment.id },
+                    data: { status: "REFUNDED", refundedAt: new Date() },
+                });
+            }
+
+            // Notify patient about refund
+            await this.notificationService.send({
+                userId: result.userId,
+                title: "Refund Initiated",
+                message: `Your payment has been refunded because ${doctorName} has declined your consultation. The amount will be credited to your account shortly.`,
+                actionType: "PAYMENT_SUCCESS",
+                referenceId: submissionId,
+            });
+        }
+        // ─────────────────────────────────────────────────────────────────────────
+
+        // Notify Patient about status update
         await this.notificationService.send({
             userId: result.userId,
             title: "Assessment Status Updated",

@@ -4,6 +4,7 @@ import type { CheckoutDto } from "./dto/checkout.dto";
 import { PaymentRepository } from "./payment.repository";
 import { NotificationService } from "../../notification/notification.service";
 import { PrismaService } from "@global/prisma/prisma.service";
+import { CloverService } from "@global/clover/clover.service";
 
 const SHIPPING_CHARGE = 20;
 
@@ -70,6 +71,7 @@ export class PaymentService {
         private readonly cartRepository: CartRepository,
         private readonly notificationService: NotificationService,
         private readonly prisma: PrismaService,
+        private readonly cloverService: CloverService,
     ) {}
 
     async checkout(userId: string, dto: CheckoutDto) {
@@ -266,11 +268,27 @@ export class PaymentService {
         if (isSubscribing) paymentType.push("FEES");
         if (hasCartItems) paymentType.push("PRODUCT");
 
-        // 10. Extract card info
-        const last4 = dto.paymentInfo.cardNumber.replace(/\s+/g, "").slice(-4);
-        const brand = detectCardBrand(dto.paymentInfo.cardNumber);
+        // 10. Tokenize card first (get reusable token for recurring billing)
+        const cloverCardToken = await this.cloverService.createReusableCardToken({
+            cardNumber: dto.paymentInfo.cardNumber,
+            expiredDate: dto.paymentInfo.expiredDate,
+            cvv: dto.paymentInfo.cvv,
+            cardHolderName: dto.paymentInfo.cardHolderName,
+        });
 
-        // 11. Execute transaction
+        // 11. Charge the card using the token
+        const cloverCharge = await this.cloverService.chargeWithSavedToken({
+            savedToken: cloverCardToken,
+            totalAmountUSD: total,
+            description: `Doc App payment - $${total}`,
+        });
+
+        // 12. Extract card info from Clover response (fallback to local detection)
+        const last4 = cloverCharge.last4 || dto.paymentInfo.cardNumber.replace(/\s+/g, "").slice(-4);
+        const brand = cloverCharge.brand || detectCardBrand(dto.paymentInfo.cardNumber);
+        const cloverChargeId = cloverCharge.id;
+
+        // 13. Execute DB transaction (payment already confirmed by Clover)
         const result = await this.paymentRepository.executeCheckoutTransaction(userId, dto.submissionId, cart, {
             subtotal,
             discountAmount,
@@ -286,6 +304,8 @@ export class PaymentService {
             paymentType,
             last4,
             brand,
+            cloverChargeId,
+            cloverCardToken,
         });
 
         // Fetch user for notification

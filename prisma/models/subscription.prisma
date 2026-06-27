@@ -13,7 +13,10 @@ model Subscription {
   trialEndsAt DateTime?
 
   // Auto-renewal toggle
-  isRecurring Boolean @default(true)
+  isRecurring    Boolean @default(true)
+
+  // Clover card token for recurring billing (stored after first charge)
+  cloverCardToken String?
 
   // Cancellation
   cancelledAt  DateTime?

@@ -1,5 +1,6 @@
 import { PrismaModule } from "@global/prisma/prisma.module";
 import { StorageModule } from "@global/storage/storage.module";
+import { CloverModule } from "@global/clover/clover.module";
 import { AssessmentSubmissionModule } from "@main/(patient)/assessment-submission/assessment-submission.module";
 import { Module } from "@nestjs/common";
 import { NotificationModule } from "../../notification/notification.module";
@@ -8,8 +9,9 @@ import { DoctorMyConsultationRepository } from "./my-consultation.repository";
 import { DoctorMyConsultationService } from "./my-consultation.service";
 
 @Module({
-    imports: [PrismaModule, StorageModule, AssessmentSubmissionModule, NotificationModule],
+    imports: [PrismaModule, StorageModule, AssessmentSubmissionModule, NotificationModule, CloverModule],
     controllers: [DoctorMyConsultationController],
     providers: [DoctorMyConsultationService, DoctorMyConsultationRepository],
 })
 export class DoctorMyConsultationModule {}
+

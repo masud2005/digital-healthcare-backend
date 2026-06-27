@@ -77,55 +77,27 @@ export class DoctorMyConsultationRepository {
         status: SubmissionStatus,
         doctorNotes?: string,
     ) {
-        return this.prisma.$transaction(async (tx) => {
-            const submission = await tx.assessmentSubmission.findUnique({
-                where: { id: submissionId },
-                include: { orders: { include: { payments: true } } },
-            });
-
-            if (!submission) {
-                throw new Error("Submission not found");
-            }
-
-            // Update AssessmentSubmission
-            await tx.assessmentSubmission.update({
-                where: { id: submissionId },
-                data: {
-                    status,
-                    doctorNotes: doctorNotes ?? submission.doctorNotes,
-                    reviewedBy: doctorId,
-                    reviewedAt: new Date(),
-                },
-            });
-
-            // If rejected, handle refunds
-            if (status === SubmissionStatus.REJECTED) {
-                for (const order of submission.orders) {
-                    if (order.status !== "CANCELLED" && order.status !== "REFUNDED") {
-                        await tx.order.update({
-                            where: { id: order.id },
-                            data: {
-                                status: "CANCELLED",
-                                cancelledAt: new Date(),
-                                cancelReason: "Doctor rejected consultation",
-                            },
-                        });
-                    }
-
-                    for (const payment of order.payments) {
-                        if (payment.status === "COMPLETED") {
-                            await tx.payment.update({
-                                where: { id: payment.id },
-                                data: {
-                                    status: "REFUNDED",
-                                },
-                            });
-                        }
-                    }
-                }
-            }
-
-            return submission;
+        const submission = await this.prisma.assessmentSubmission.findUnique({
+            where: { id: submissionId },
+            select: { id: true, userId: true, doctorNotes: true },
         });
+
+        if (!submission) {
+            throw new Error("Submission not found");
+        }
+
+        // Update AssessmentSubmission status, notes, reviewer
+        await this.prisma.assessmentSubmission.update({
+            where: { id: submissionId },
+            data: {
+                status,
+                doctorNotes: doctorNotes ?? submission.doctorNotes,
+                reviewedBy: doctorId,
+                reviewedAt: new Date(),
+            },
+        });
+
+        return submission;
     }
 }
+

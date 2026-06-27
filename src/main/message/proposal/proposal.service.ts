@@ -3,6 +3,7 @@ import type { AcceptProposalDto } from "./dto/proposal.dto";
 import { ProposalRepository } from "./proposal.repository";
 import { NotificationService } from "../../notification/notification.service";
 import { PrismaService } from "@global/prisma/prisma.service";
+import { CloverService } from "@global/clover/clover.service";
 
 function detectCardBrand(cardNumber: string): string {
     const num = cardNumber.replace(/\s+/g, "");
@@ -42,6 +43,7 @@ export class ProposalService {
         private readonly repo: ProposalRepository,
         private readonly notificationService: NotificationService,
         private readonly prisma: PrismaService,
+        private readonly cloverService: CloverService,
     ) {}
 
     async rejectProposal(proposalId: string, userId: string) {
@@ -102,8 +104,25 @@ export class ProposalService {
 
         validateCard(dto.cardNumber, dto.expiryDate, dto.cvv);
 
-        const last4 = dto.cardNumber.replace(/\s+/g, "").slice(-4);
-        const brand = detectCardBrand(dto.cardNumber);
+        // Tokenize card via Clover
+        const cloverCardToken = await this.cloverService.createReusableCardToken({
+            cardNumber: dto.cardNumber,
+            expiredDate: dto.expiryDate,
+            cvv: dto.cvv,
+            cardHolderName: dto.cardholderName,
+        });
+
+        // Charge via Clover
+        const cloverCharge = await this.cloverService.chargeWithSavedToken({
+            savedToken: cloverCardToken,
+            totalAmountUSD: Number(proposal.fee),
+            description: `Doc App Proposal Payment - $${proposal.fee}`,
+        });
+
+        // Extract card details from Clover response (fallback to local)
+        const last4 = cloverCharge.last4 || dto.cardNumber.replace(/\s+/g, "").slice(-4);
+        const brand = cloverCharge.brand || detectCardBrand(dto.cardNumber);
+        const cloverChargeId = cloverCharge.id;
 
         await this.repo.acceptProposal(proposalId);
 
@@ -114,6 +133,7 @@ export class ProposalService {
             last4,
             brand,
             paymentMethod: dto.paymentMethod,
+            cloverChargeId,
         });
 
         const { providerId } = proposal.message.conversation;

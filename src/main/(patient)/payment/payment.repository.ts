@@ -63,6 +63,8 @@ export class PaymentRepository {
             paymentType: ("FEES" | "PRODUCT")[];
             last4: string;
             brand: string;
+            cloverChargeId: string;
+            cloverCardToken: string;
         },
     ) {
         const {
@@ -79,6 +81,8 @@ export class PaymentRepository {
             paymentType,
             last4,
             brand,
+            cloverChargeId,
+            cloverCardToken,
         } = checkoutData;
 
         return this.prisma.$transaction(async (tx) => {
@@ -175,6 +179,7 @@ export class PaymentRepository {
                         currentPeriodStart: startDate,
                         currentPeriodEnd: nextBillingDate,
                         isRecurring: true,
+                        cloverCardToken,
                         userId,
                         categoryId,
                         paymentPlanId: paymentPlan.id,
@@ -184,8 +189,8 @@ export class PaymentRepository {
                 subscriptionId = subscription.id;
             }
 
-            // 6. Create Payment Record (Mocking Clover success)
-            const transactionId = `TXN-CLVR-${Date.now()}-${Math.floor(Math.random() * 1000)}`;
+            // 6. Create Payment Record (Clover charge confirmed)
+            const transactionId = cloverChargeId;
             await tx.payment.create({
                 data: {
                     transactionId,

@@ -33,8 +33,9 @@ export class ProposalRepository {
         last4: string;
         brand: string;
         paymentMethod: string;
+        cloverChargeId: string;
     }) {
-        const transactionId = `TXN-PROP-${Date.now()}-${Math.floor(Math.random() * 1000)}`;
+        const transactionId = data.cloverChargeId;
         return this.prisma.payment.create({
             data: {
                 transactionId,
