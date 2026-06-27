@@ -7,6 +7,7 @@ import { adminSeed } from "./adminSeed";
 import { systemHealthSeed } from "./systemHealthSeed";
 import { consentSeed } from "./consentSeed";
 import { communicationTemplateSeed } from "./communicationTemplateSeed";
+import { permissionSeed } from "./permissionSeed";
 
 expand(config({ path: path.resolve(process.cwd(), ".env") }));
 
@@ -17,6 +18,7 @@ const prisma = new PrismaClient({ adapter });
 async function main() {
     console.log("🌱 Prisma seed started");
     await adminSeed(prisma);
+    await permissionSeed(prisma);
     // await systemHealthSeed(prisma);
     // await consentSeed(prisma);
     await communicationTemplateSeed(prisma);

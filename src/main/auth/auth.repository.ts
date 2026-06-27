@@ -15,6 +15,15 @@ const roleSelect = {
             id: true,
             name: true,
             displayName: true,
+            permissions: {
+                select: {
+                    permission: {
+                        select: {
+                            key: true,
+                        },
+                    },
+                },
+            },
         },
     },
 } as const;

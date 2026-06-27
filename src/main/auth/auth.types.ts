@@ -4,6 +4,7 @@ export interface AuthenticatedUser {
     phone?: string | null;
     roles: string[];
     role: string;
+    permissions?: string[];
     status: string;
 }
 

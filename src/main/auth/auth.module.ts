@@ -40,6 +40,6 @@ import { AuthService } from "./services/auth.service";
         AuthPasswordService,
         AuthSessionService,
     ],
-    exports: [AuthService],
+    exports: [AuthService, AuthSharedService],
 })
 export class AuthModule {}

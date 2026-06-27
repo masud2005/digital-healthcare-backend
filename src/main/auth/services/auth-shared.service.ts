@@ -113,6 +113,9 @@ export class AuthSharedService {
 
     mapAuthenticatedUser(user: AuthUser): AuthenticatedUser {
         const roles = user.userRoles.map((userRole) => userRole.role.name);
+        const permissions = user.userRoles.flatMap((userRole) =>
+            userRole.role.permissions.map((rp) => rp.permission.key),
+        );
 
         return {
             id: user.id,
@@ -120,6 +123,7 @@ export class AuthSharedService {
             phone: user.phone,
             roles,
             role: roles[0] ?? "PATIENT",
+            permissions,
             status: user.status,
         };
     }
