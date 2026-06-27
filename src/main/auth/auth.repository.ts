@@ -42,6 +42,15 @@ const userSelect = {
     userRoles: {
         select: roleSelect,
     },
+    userPermissions: {
+        select: {
+            permission: {
+                select: {
+                    key: true,
+                },
+            },
+        },
+    },
 } as const;
 
 export type AuthUserRecord = Awaited<ReturnType<AuthRepository["findUserByEmail"]>>;

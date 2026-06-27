@@ -113,9 +113,16 @@ export class AuthSharedService {
 
     mapAuthenticatedUser(user: AuthUser): AuthenticatedUser {
         const roles = user.userRoles.map((userRole) => userRole.role.name);
-        const permissions = user.userRoles.flatMap((userRole) =>
-            userRole.role.permissions.map((rp) => rp.permission.key),
-        );
+        
+        let permissions = user.userPermissions.map((up) => up.permission.key);
+        
+        // If the user has ADMIN role, ensure they inherit all mapped role permissions automatically
+        if (roles.includes("ADMIN")) {
+            const rolePermissions = user.userRoles.flatMap((userRole) =>
+                userRole.role.permissions.map((rp) => rp.permission.key),
+            );
+            permissions = Array.from(new Set([...permissions, ...rolePermissions]));
+        }
 
         return {
             id: user.id,
