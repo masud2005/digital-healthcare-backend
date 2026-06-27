@@ -3,13 +3,11 @@ CREATE TABLE "UserPermission" (
     "id" TEXT NOT NULL,
     "userId" TEXT NOT NULL,
     "permissionId" TEXT NOT NULL,
-
     CONSTRAINT "UserPermission_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateIndex
 CREATE INDEX "UserPermission_userId_idx" ON "UserPermission"("userId");
-
 -- CreateIndex
 CREATE INDEX "UserPermission_permissionId_idx" ON "UserPermission"("permissionId");
 
