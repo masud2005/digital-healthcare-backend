@@ -1,6 +1,6 @@
 import { RequirePermissions } from "@common/decorators";
 import { JwtAuthGuard, PermissionsGuard, RolesGuard } from "@common/guards";
-import { Body, Controller, Delete, Get, Param, Post, Put, UseGuards } from "@nestjs/common";
+import { Body, Controller, Delete, Get, Param, Patch, Post, UseGuards } from "@nestjs/common";
 import { ApiBearerAuth, ApiOperation, ApiTags } from "@nestjs/swagger";
 import { CreateEmployeeDto, UpdateEmployeeDto } from "./dto/employee.dto";
 import { CreateRoleDto, UpdateRoleDto } from "./dto/role.dto";
@@ -36,7 +36,7 @@ export class EmployeePermissionController {
         return this.service.createRole(dto);
     }
 
-    @Put("roles/:id")
+    @Patch("roles/:id")
     @ApiOperation({ summary: "Update an existing role and its permissions" })
     @RequirePermissions("manage:employee_permissions")
     updateRole(@Param("id") id: string, @Body() dto: UpdateRoleDto) {
@@ -58,7 +58,7 @@ export class EmployeePermissionController {
         return this.service.createEmployee(dto);
     }
 
-    @Put("employees/:id")
+    @Patch("employees/:id")
     @ApiOperation({ summary: "Update an employee account details, status, or role" })
     @RequirePermissions("manage:employee_permissions")
     updateEmployee(@Param("id") id: string, @Body() dto: UpdateEmployeeDto) {
