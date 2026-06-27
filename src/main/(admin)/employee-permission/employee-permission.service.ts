@@ -167,15 +167,12 @@ export class EmployeePermissionService {
             include: {
                 userRoles: {
                     include: {
-                        role: {
-                            include: {
-                                permissions: {
-                                    include: {
-                                        permission: true,
-                                    },
-                                },
-                            },
-                        },
+                        role: true,
+                    },
+                },
+                userPermissions: {
+                    include: {
+                        permission: true,
                     },
                 },
                 adminProfile: true,
@@ -216,7 +213,12 @@ export class EmployeePermissionService {
                 },
             });
 
-            let finalRoleId = role.id;
+            await tx.userRole.create({
+                data: {
+                    userId: user.id,
+                    roleId: role.id,
+                },
+            });
 
             if (dto.permissionIds && dto.permissionIds.length > 0) {
                 // Verify permissions exist
@@ -228,33 +230,13 @@ export class EmployeePermissionService {
                     throw new BadRequestException("One or more permission IDs are invalid.");
                 }
 
-                const customRoleName = `CUSTOM_ROLE_FOR_${user.id.toUpperCase().replace(/-/g, "_")}`;
-                const customRole = await tx.role.create({
-                    data: {
-                        name: customRoleName,
-                        displayName: role.displayName || role.name,
-                        description: `Custom overrides for ${dto.name}`,
-                        isSystem: false,
-                        isActive: true,
-                    },
-                });
-
-                await tx.rolePermission.createMany({
+                await tx.userPermission.createMany({
                     data: dto.permissionIds.map((permId) => ({
-                        roleId: customRole.id,
+                        userId: user.id,
                         permissionId: permId,
                     })),
                 });
-
-                finalRoleId = customRole.id;
             }
-
-            await tx.userRole.create({
-                data: {
-                    userId: user.id,
-                    roleId: finalRoleId,
-                },
-            });
 
             await tx.adminProfile.create({
                 data: {
@@ -268,15 +250,12 @@ export class EmployeePermissionService {
                 include: {
                     userRoles: {
                         include: {
-                            role: {
-                                include: {
-                                    permissions: {
-                                        include: {
-                                            permission: true,
-                                        },
-                                    },
-                                },
-                            },
+                            role: true,
+                        },
+                    },
+                    userPermissions: {
+                        include: {
+                            permission: true,
                         },
                     },
                     adminProfile: true,
@@ -337,73 +316,51 @@ export class EmployeePermissionService {
                 });
             }
 
-            const currentRole = user.userRoles[0]?.role;
-            const targetRoleId = dto.roleId || currentRole?.id;
-
-            if (dto.permissionIds !== undefined || dto.roleId !== undefined) {
-                if (!targetRoleId) {
-                    throw new BadRequestException("Employee must be associated with a role.");
-                }
-
-                const baseRole = await tx.role.findFirst({
-                    where: { id: targetRoleId, deletedAt: null, isActive: true },
+            if (dto.roleId) {
+                const role = await tx.role.findFirst({
+                    where: { id: dto.roleId, deletedAt: null, isActive: true },
                 });
 
-                if (!baseRole) {
-                    throw new BadRequestException("Assigned role is invalid or inactive.");
+                if (!role) {
+                    throw new BadRequestException("New assigned role is invalid or inactive.");
                 }
 
                 await tx.userRole.deleteMany({
                     where: { userId: id },
                 });
 
-                if (currentRole && currentRole.name.startsWith("CUSTOM_ROLE_FOR_")) {
-                    await tx.rolePermission.deleteMany({
-                        where: { roleId: currentRole.id },
-                    });
-                    await tx.role.delete({
-                        where: { id: currentRole.id },
-                    });
-                }
-
-                let finalRoleId = targetRoleId;
-
-                if (dto.permissionIds && dto.permissionIds.length > 0) {
-                    const permissionCount = await tx.permission.count({
-                        where: { id: { in: dto.permissionIds } },
-                    });
-
-                    if (permissionCount !== dto.permissionIds.length) {
-                        throw new BadRequestException("One or more permission IDs are invalid.");
-                    }
-
-                    const customRoleName = `CUSTOM_ROLE_FOR_${user.id.toUpperCase().replace(/-/g, "_")}`;
-                    const customRole = await tx.role.create({
-                        data: {
-                            name: customRoleName,
-                            displayName: baseRole.displayName || baseRole.name,
-                            description: `Custom overrides for ${dto.name || user.email}`,
-                            isSystem: false,
-                            isActive: true,
-                        },
-                    });
-
-                    await tx.rolePermission.createMany({
-                        data: dto.permissionIds.map((permId) => ({
-                            roleId: customRole.id,
-                            permissionId: permId,
-                        })),
-                    });
-
-                    finalRoleId = customRole.id;
-                }
-
                 await tx.userRole.create({
                     data: {
                         userId: id,
-                        roleId: finalRoleId,
+                        roleId: dto.roleId,
                     },
                 });
+            }
+
+            if (dto.permissionIds) {
+                // Verify new permissions exist
+                const permissionCount = await tx.permission.count({
+                    where: { id: { in: dto.permissionIds } },
+                });
+
+                if (permissionCount !== dto.permissionIds.length) {
+                    throw new BadRequestException("One or more permission IDs are invalid.");
+                }
+
+                // Delete old mappings
+                await tx.userPermission.deleteMany({
+                    where: { userId: id },
+                });
+
+                // Create new ones
+                if (dto.permissionIds.length > 0) {
+                    await tx.userPermission.createMany({
+                        data: dto.permissionIds.map((permId) => ({
+                            userId: id,
+                            permissionId: permId,
+                        })),
+                    });
+                }
             }
 
             return tx.user.findUnique({
@@ -411,15 +368,12 @@ export class EmployeePermissionService {
                 include: {
                     userRoles: {
                         include: {
-                            role: {
-                                include: {
-                                    permissions: {
-                                        include: {
-                                            permission: true,
-                                        },
-                                    },
-                                },
-                            },
+                            role: true,
+                        },
+                    },
+                    userPermissions: {
+                        include: {
+                            permission: true,
                         },
                     },
                     adminProfile: true,

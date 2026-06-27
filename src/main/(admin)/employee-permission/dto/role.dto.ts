@@ -34,7 +34,10 @@ export class UpdateRoleDto {
     @IsOptional()
     description?: string;
 
-    @ApiPropertyOptional({ description: "List of permission IDs to assign to this role", type: [String] })
+    @ApiPropertyOptional({
+        description: "List of permission IDs to assign to this role",
+        type: [String],
+    })
     @IsArray()
     @IsString({ each: true })
     @IsOptional()
