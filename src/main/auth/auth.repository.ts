@@ -178,11 +178,14 @@ export class AuthRepository {
         return this.prisma.userPreference.findUnique({ where: { userId } });
     }
 
-    upsertPreference(userId: string, data: {
-        emailNotifications?: boolean;
-        smsNotifications?: boolean;
-        pushNotifications?: boolean;
-    }) {
+    upsertPreference(
+        userId: string,
+        data: {
+            emailNotifications?: boolean;
+            smsNotifications?: boolean;
+            pushNotifications?: boolean;
+        },
+    ) {
         return this.prisma.userPreference.upsert({
             where: { userId },
             create: { userId, ...data },
