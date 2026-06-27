@@ -28,6 +28,8 @@ enum AttachmentContext {
   DOCTOR_AVATAR
   CONTACT_LEAD_ATTACHMENT
   SIDE_EFFECT_REPORT_ATTACHMENT
+  PUBLIC
+  OTHERS
 }
 
 enum AuthAttemptStatus {

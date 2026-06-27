@@ -1,6 +1,6 @@
 import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
 import { UserStatus } from "@prisma/client";
-import { IsEmail, IsEnum, IsNotEmpty, IsOptional, IsString, MinLength } from "class-validator";
+import { IsEmail, IsEnum, IsNotEmpty, IsOptional, IsString, MinLength, IsArray } from "class-validator";
 
 export class CreateEmployeeDto {
     @ApiProperty({ description: "Full name of the employee" })
@@ -21,6 +21,12 @@ export class CreateEmployeeDto {
     @IsString()
     @IsNotEmpty()
     roleId: string;
+
+    @ApiPropertyOptional({ description: "Specific permission IDs to assign to this employee", type: [String] })
+    @IsArray()
+    @IsString({ each: true })
+    @IsOptional()
+    permissionIds?: string[];
 }
 
 export class UpdateEmployeeDto {
@@ -44,6 +50,12 @@ export class UpdateEmployeeDto {
     @IsString()
     @IsOptional()
     roleId?: string;
+
+    @ApiPropertyOptional({ description: "Specific permission IDs to assign to this employee", type: [String] })
+    @IsArray()
+    @IsString({ each: true })
+    @IsOptional()
+    permissionIds?: string[];
 
     @ApiPropertyOptional({ enum: UserStatus, description: "Status of the employee account" })
     @IsEnum(UserStatus)

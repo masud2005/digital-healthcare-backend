@@ -13,8 +13,8 @@ import { AuthRepository } from "../auth.repository";
 import { LoginDto } from "../dto/login.dto";
 import { RegisterDto } from "../dto/register.dto";
 import { UpdateProfileDto } from "../dto/update-profile.dto";
-import { AuthSharedService } from "./auth-shared.service";
 import { AuthSessionService } from "./auth-session.service";
+import { AuthSharedService } from "./auth-shared.service";
 
 @Injectable()
 export class AuthAccountService {
@@ -153,7 +153,8 @@ export class AuthAccountService {
 
             return {
                 success: true,
-                message: "Credentials verified. OTP verification method to verify.",
+                message:
+                    "Credentials verified. Please select your verification method to verify OTP",
                 data: {
                     userId: user.id,
                     email: user.email,

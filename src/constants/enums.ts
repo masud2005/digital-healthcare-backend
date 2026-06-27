@@ -132,6 +132,10 @@ export const attachmentContext = [
     "CONTACT_LEAD_ATTACHMENT",
     /** Files attached to side effect reports */
     "SIDE_EFFECT_REPORT_ATTACHMENT",
+    /** Public files */
+    "PUBLIC",
+    /** Other files */
+    "OTHERS",
 ] as const;
 export type AttachmentContext = (typeof attachmentContext)[number];
 
