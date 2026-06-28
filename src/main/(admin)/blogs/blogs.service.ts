@@ -75,6 +75,17 @@ export class BlogsService {
         return this.resolveUrls(blog);
     }
 
+    async findOneByIdOrSlug(idOrSlug: string) {
+        let blog = await this.blogsRepository.findById(idOrSlug);
+        if (!blog) {
+            blog = await this.blogsRepository.findBySlug(idOrSlug);
+        }
+        if (!blog) {
+            throw new NotFoundException("Blog not found");
+        }
+        return this.resolveUrls(blog);
+    }
+
     async update(id: string, payload: UpdateBlogDto) {
         const existingBlog = await this.blogsRepository.findById(id);
         if (!existingBlog) {
