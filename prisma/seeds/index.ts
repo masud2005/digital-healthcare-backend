@@ -8,6 +8,7 @@ import { systemHealthSeed } from "./systemHealthSeed";
 import { consentSeed } from "./consentSeed";
 import { communicationTemplateSeed } from "./communicationTemplateSeed";
 import { permissionSeed } from "./permissionSeed";
+import { blogSeed } from "./blogSeed";
 
 expand(config({ path: path.resolve(process.cwd(), ".env") }));
 
@@ -22,6 +23,7 @@ async function main() {
     // await systemHealthSeed(prisma);
     // await consentSeed(prisma);
     await communicationTemplateSeed(prisma);
+    await blogSeed(prisma);
     console.log("✅ Prisma seed finished");
 }
 
