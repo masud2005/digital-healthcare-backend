@@ -2,6 +2,7 @@ import { ValidationPipe } from "@nestjs/common";
 import { NestFactory } from "@nestjs/core";
 import { DocumentBuilder, SwaggerModule } from "@nestjs/swagger";
 import cookieParser from "cookie-parser";
+import { json, urlencoded } from "express";
 import "reflect-metadata";
 import { AppModule } from "./app.module";
 
@@ -25,6 +26,8 @@ async function bootstrap() {
         credentials: true,
     });
     app.use(cookieParser());
+    app.use(json({ limit: "512mb" }));
+    app.use(urlencoded({ limit: "512mb", extended: true }));
     app.useGlobalPipes(
         new ValidationPipe({
             transform: true,

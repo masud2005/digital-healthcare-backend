@@ -1,18 +1,22 @@
+import { Roles } from "@common/decorators";
+import { CurrentUser } from "@common/decorators/current-user.decorator";
+import { JwtAuthGuard, RolesGuard } from "@common/guards";
 import { AttachmentService } from "@global/attachment/attachment.service";
+import type { AuthenticatedUser } from "@main/auth/auth.types";
 import {
     Body,
     Controller,
     Delete,
+    Get,
     HttpCode,
     Param,
     Patch,
     Post,
-    Get,
     Query,
     Res,
     UploadedFile,
-    UseInterceptors,
     UseGuards,
+    UseInterceptors,
 } from "@nestjs/common";
 import { FileInterceptor } from "@nestjs/platform-express";
 import {
@@ -35,11 +39,8 @@ import {
     ContactLeadResponseDto,
 } from "./dto/contact-lead-response.dto";
 import { CreateContactLeadDto } from "./dto/create-contact-lead.dto";
-import { UpdateContactLeadDto } from "./dto/update-contact-lead.dto";
 import { RespondContactLeadDto } from "./dto/respond-contact-lead.dto";
-import { OptionalJwtAuthGuard } from "@common/guards/optional-jwt-auth.guard";
-import { CurrentUser } from "@common/decorators/current-user.decorator";
-import type { AuthenticatedUser } from "@main/auth/auth.types";
+import { UpdateContactLeadDto } from "./dto/update-contact-lead.dto";
 
 @ApiTags("(Admin) Contact Leads")
 @Controller("admin/contact-leads")
@@ -73,6 +74,9 @@ export class ContactLeadsController {
     }
 
     @Get()
+    @UseGuards(JwtAuthGuard, RolesGuard)
+    @Roles("ADMIN")
+    @ApiBearerAuth()
     @ApiOperation({ summary: "Get contact leads" })
     @ApiOkResponse({ type: ContactLeadListResponseDto })
     findAll(@Query() query: ContactLeadQueryDto) {
@@ -80,7 +84,8 @@ export class ContactLeadsController {
     }
 
     @Get("export")
-    @UseGuards(OptionalJwtAuthGuard)
+    @UseGuards(JwtAuthGuard, RolesGuard)
+    @Roles("ADMIN")
     @ApiBearerAuth()
     @ApiOperation({ summary: "Export contact leads as CSV" })
     @ApiProduces("text/csv")
@@ -122,6 +127,9 @@ export class ContactLeadsController {
     }
 
     @Get(":id")
+    @UseGuards(JwtAuthGuard, RolesGuard)
+    @Roles("ADMIN")
+    @ApiBearerAuth()
     @ApiOperation({ summary: "Get a contact lead by id" })
     @ApiOkResponse({ type: ContactLeadResponseDto })
     findOne(@Param() params: ContactLeadParamDto) {
@@ -129,6 +137,9 @@ export class ContactLeadsController {
     }
 
     @Patch(":id")
+    @UseGuards(JwtAuthGuard, RolesGuard)
+    @Roles("ADMIN")
+    @ApiBearerAuth()
     @ApiOperation({ summary: "Update a contact lead" })
     @ApiConsumes("multipart/form-data")
     @UseInterceptors(FileInterceptor("attachments"))
@@ -153,6 +164,9 @@ export class ContactLeadsController {
     }
 
     @Delete(":id")
+    @UseGuards(JwtAuthGuard, RolesGuard)
+    @Roles("ADMIN")
+    @ApiBearerAuth()
     @HttpCode(204)
     @ApiOperation({ summary: "Delete a contact lead" })
     @ApiNoContentResponse({ description: "Contact lead deleted successfully" })
@@ -161,6 +175,9 @@ export class ContactLeadsController {
     }
 
     @Post(":id/respond")
+    @UseGuards(JwtAuthGuard, RolesGuard)
+    @Roles("ADMIN")
+    @ApiBearerAuth()
     @ApiOperation({ summary: "Send a response back to a contact lead" })
     @ApiConsumes("multipart/form-data")
     @UseInterceptors(FileInterceptor("attachments"))
