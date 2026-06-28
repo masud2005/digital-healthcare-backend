@@ -17,7 +17,9 @@ export class AdminOrderService {
             orders.map(async (order) => {
                 let doctorName = "N/A";
                 if (order.submission?.reviewedBy) {
-                    const doc = await this.orderRepository.findDoctorByUserId(order.submission.reviewedBy);
+                    const doc = await this.orderRepository.findDoctorByUserId(
+                        order.submission.reviewedBy,
+                    );
                     if (doc) doctorName = doc.name;
                 }
 
@@ -113,7 +115,9 @@ export class AdminOrderService {
         }
 
         if (order.status === "CANCELLED" || order.status === "REFUNDED") {
-            throw new BadRequestException("Cannot update an order that has been cancelled or refunded");
+            throw new BadRequestException(
+                "Cannot update an order that has been cancelled or refunded",
+            );
         }
 
         await this.orderRepository.update(id, dto);

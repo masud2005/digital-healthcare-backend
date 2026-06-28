@@ -50,7 +50,9 @@ export class SubscriptionCronService {
 
         for (const subscription of dueSubscriptions) {
             try {
-                this.logger.log(`💳 Attempting to charge subscription ${subscription.id} for user ${subscription.userId}...`);
+                this.logger.log(
+                    `💳 Attempting to charge subscription ${subscription.id} for user ${subscription.userId}...`,
+                );
 
                 // 1. Charge the saved card token
                 const chargeResult = await this.cloverService.chargeWithSavedToken({
@@ -102,7 +104,8 @@ export class SubscriptionCronService {
                 });
 
                 // 4. Notify User
-                const patientName = subscription.user.patientProfile?.name || subscription.user.name || "Patient";
+                const patientName =
+                    subscription.user.patientProfile?.name || subscription.user.name || "Patient";
                 await this.notificationService.send({
                     userId: subscription.userId,
                     title: "Subscription Renewed",
@@ -113,7 +116,9 @@ export class SubscriptionCronService {
 
                 this.logger.log(`✅ Successfully renewed subscription ${subscription.id}`);
             } catch (error: any) {
-                this.logger.error(`❌ Failed to process recurring billing for subscription ${subscription.id}: ${error.message}`);
+                this.logger.error(
+                    `❌ Failed to process recurring billing for subscription ${subscription.id}: ${error.message}`,
+                );
 
                 // If charge fails, mark subscription as PAST_DUE
                 await this.prisma.subscription.update({

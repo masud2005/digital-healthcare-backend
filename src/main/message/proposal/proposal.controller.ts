@@ -26,8 +26,17 @@ export class ProposalController {
     @Post(":id/accept")
     @Roles("PATIENT")
     @ApiOperation({ summary: "Accept a proposal and store payment info (PATIENT only)" })
-    async acceptProposal(@Param("id") id: string, @CurrentUser() user: AuthenticatedUser, @Body() dto: AcceptProposalDto) {
+    async acceptProposal(
+        @Param("id") id: string,
+        @CurrentUser() user: AuthenticatedUser,
+        @Body() dto: AcceptProposalDto,
+    ) {
         const data = await this.proposalService.acceptProposal(id, user.id, dto);
-        return { success: true, statusCode: 201, message: "Proposal accepted and payment recorded.", data };
+        return {
+            success: true,
+            statusCode: 201,
+            message: "Proposal accepted and payment recorded.",
+            data,
+        };
     }
 }

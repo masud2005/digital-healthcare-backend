@@ -99,8 +99,10 @@ export class PaymentRepository {
                         data: {
                             agreedToTermsAndPrivacy: complianceConfirmation.agreedToTermsAndPrivacy,
                             certifiedInfoAccurate: complianceConfirmation.certifiedInfoAccurate,
-                            understoodFalseInfoConsequences: complianceConfirmation.understoodFalseInfoConsequences,
-                            understoodRecommendationsBasis: complianceConfirmation.understoodRecommendationsBasis,
+                            understoodFalseInfoConsequences:
+                                complianceConfirmation.understoodFalseInfoConsequences,
+                            understoodRecommendationsBasis:
+                                complianceConfirmation.understoodRecommendationsBasis,
                             understoodAdditionalInfoMayBeRequested:
                                 complianceConfirmation.understoodAdditionalInfoMayBeRequested,
                             userId,
@@ -137,7 +139,9 @@ export class PaymentRepository {
                     const activeVariant = item.size
                         ? item.product.variants.find((v: any) => v.size === item.size)
                         : null;
-                    const unitPrice = activeVariant ? Number(activeVariant.price) : Number(item.product.price);
+                    const unitPrice = activeVariant
+                        ? Number(activeVariant.price)
+                        : Number(item.product.price);
                     const itemTotal = unitPrice * item.quantity;
 
                     await tx.orderItem.create({

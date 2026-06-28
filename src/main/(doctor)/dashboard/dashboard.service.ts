@@ -14,15 +14,15 @@ export class DoctorDashboardService {
 
         for (const count of counts) {
             switch (count.status) {
-                case 'ACCEPTED':
+                case "ACCEPTED":
                     activeConsultation += count._count.status;
                     break;
-                case 'PENDING':
-                case 'REFIL_REQUESTED':
-                case 'REVIEWED':
+                case "PENDING":
+                case "REFIL_REQUESTED":
+                case "REVIEWED":
                     newConsultation += count._count.status;
                     break;
-                case 'REJECTED':
+                case "REJECTED":
                     declined += count._count.status;
                     break;
             }

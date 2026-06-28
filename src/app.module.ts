@@ -8,7 +8,14 @@ import { HealthController } from "./health.controller";
 import { MainModule } from "./main/main.module";
 
 @Module({
-    imports: [MainModule, GuardModule, AttachmentModule, CommunicationModule, CloverModule, ScheduleModule.forRoot()],
+    imports: [
+        MainModule,
+        GuardModule,
+        AttachmentModule,
+        CommunicationModule,
+        CloverModule,
+        ScheduleModule.forRoot(),
+    ],
     controllers: [HealthController],
 })
 export class AppModule {}

@@ -10,6 +10,16 @@ import { ProposalModule } from "./message/proposal/proposal.module";
 import { NotificationModule } from "./notification/notification.module";
 
 @Module({
-    imports: [AdminModule, ComplianceModule, DoctorModule, PatientModule, AuthModule, MessageModule, ProposalModule, NotificationModule, PublicModule]
+    imports: [
+        AdminModule,
+        ComplianceModule,
+        DoctorModule,
+        PatientModule,
+        AuthModule,
+        MessageModule,
+        ProposalModule,
+        NotificationModule,
+        PublicModule,
+    ],
 })
 export class MainModule {}

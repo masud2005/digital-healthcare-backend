@@ -15,6 +15,7 @@ model DoctorProfile {
   deletedAt      DateTime?
 
   sideEffectReports SideEffectReport[]
+  blogs             Blog[]
 
   @@index([name])
   @@index([userId])

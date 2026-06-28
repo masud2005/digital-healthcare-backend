@@ -16,7 +16,8 @@ export class DashboardController {
     @Get("stats")
     @ApiOperation({
         summary: "Get dashboard statistics",
-        description: "Returns assessment submission counts for all statuses and total successful payment amount.",
+        description:
+            "Returns assessment submission counts for all statuses and total successful payment amount.",
     })
     @ApiOkResponse({ type: DashboardStatsResponseDto })
     async getStats(@CurrentUser() user: AuthenticatedUser) {

@@ -16,7 +16,8 @@ export class AdminPaymentController {
     @Get()
     @ApiOperation({
         summary: "Get all payments (paginated, searchable, filterable)",
-        description: "Returns a paginated list of payments. Supports searching by patient name and filtering by paymentType and status.",
+        description:
+            "Returns a paginated list of payments. Supports searching by patient name and filtering by paymentType and status.",
     })
     @ApiOkResponse({ type: PaymentListResponseDto })
     async findAll(@Query() query: PaymentQueryDto) {
@@ -32,7 +33,8 @@ export class AdminPaymentController {
     @Get(":id")
     @ApiOperation({
         summary: "Get a single payment by ID",
-        description: "Returns detailed information about a single payment including related user, order, and subscription.",
+        description:
+            "Returns detailed information about a single payment including related user, order, and subscription.",
     })
     @ApiOkResponse({ type: PaymentDetailDto })
     async findById(@Param("id") id: string) {

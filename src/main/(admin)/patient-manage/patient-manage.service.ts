@@ -86,7 +86,7 @@ export class PatientManageService {
             await this.messageService.autoCreateConversation(
                 submission.userId,
                 doctor.userId,
-                submission.assessment.categoryId
+                submission.assessment.categoryId,
             );
         }
 

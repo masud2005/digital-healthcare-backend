@@ -138,10 +138,7 @@ export class CartRepository {
             where: {
                 code: { equals: code, mode: "insensitive" },
                 isActive: true,
-                OR: [
-                    { expiresAt: null },
-                    { expiresAt: { gt: new Date() } },
-                ],
+                OR: [{ expiresAt: null }, { expiresAt: { gt: new Date() } }],
             },
             select: { id: true, type: true, value: true },
         });

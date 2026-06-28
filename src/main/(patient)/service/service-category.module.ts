@@ -11,6 +11,11 @@ import { ServiceCategoryService } from "./service-category.service";
 @Module({
     imports: [PrismaModule, StorageModule],
     controllers: [ServiceCategoryController, PublicProductController],
-    providers: [ServiceCategoryService, ServiceCategoryRepository, PublicProductService, PublicProductRepository],
+    providers: [
+        ServiceCategoryService,
+        ServiceCategoryRepository,
+        PublicProductService,
+        PublicProductRepository,
+    ],
 })
 export class ServiceCategoryModule {}

@@ -12,4 +12,3 @@ import { ProposalService } from "./proposal.service";
     providers: [ProposalService, ProposalRepository],
 })
 export class ProposalModule {}
-

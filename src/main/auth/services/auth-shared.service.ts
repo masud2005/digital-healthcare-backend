@@ -132,7 +132,6 @@ export class AuthSharedService {
         return mappedUser;
     }
 
-
     mapAuthenticatedUser(user: AuthUser): AuthenticatedUser {
         const roles = user.userRoles.map((userRole) => userRole.role.name);
 

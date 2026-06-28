@@ -6,7 +6,7 @@ import path from "path";
 expand(config({ path: path.resolve(process.cwd(), ".env") }));
 
 export interface CloverChargeResult {
-    id: string; 
+    id: string;
     amount: number;
     currency: string;
     status: string;
@@ -18,15 +18,15 @@ export interface CloverChargeResult {
 export class CloverService {
     private readonly logger = new Logger(CloverService.name);
 
-    private readonly apiKey: string;       // Private key → charges, refunds
-    private readonly pakmsKey: string;     // Public key  → card tokenization
+    private readonly apiKey: string; // Private key → charges, refunds
+    private readonly pakmsKey: string; // Public key  → card tokenization
     private readonly merchantId: string;
-    private readonly baseUrl: string;      // for charges, refunds
+    private readonly baseUrl: string; // for charges, refunds
     private readonly tokenBaseUrl: string; // for tokenization (different domain!)
 
     constructor() {
-        this.apiKey    = process.env.CLOVER_API_KEY    || "";
-        this.pakmsKey  = process.env.CLOVER_PAKMS_KEY  || "";
+        this.apiKey = process.env.CLOVER_API_KEY || "";
+        this.pakmsKey = process.env.CLOVER_PAKMS_KEY || "";
         this.merchantId = process.env.CLOVER_MERCHANT_ID || "";
         const rawBaseUrl = process.env.CLOVER_BASE_URL || "https://scl-sandbox.dev.clover.com";
 
@@ -50,10 +50,16 @@ export class CloverService {
             this.tokenBaseUrl = "https://token.clover.com";
         }
 
-        this.logger.debug(`🔧 Clover initialized | Charge: ${this.baseUrl} | Token: ${this.tokenBaseUrl}`);
+        this.logger.debug(
+            `🔧 Clover initialized | Charge: ${this.baseUrl} | Token: ${this.tokenBaseUrl}`,
+        );
 
-        if (!this.apiKey)    this.logger.warn("⚠️  CLOVER_API_KEY (private) is not set. Charges/refunds will fail.");
-        if (!this.pakmsKey)  this.logger.warn("⚠️  CLOVER_PAKMS_KEY (public) is not set. Card tokenization will fail.");
+        if (!this.apiKey)
+            this.logger.warn("⚠️  CLOVER_API_KEY (private) is not set. Charges/refunds will fail.");
+        if (!this.pakmsKey)
+            this.logger.warn(
+                "⚠️  CLOVER_PAKMS_KEY (public) is not set. Card tokenization will fail.",
+            );
         if (!this.merchantId) this.logger.warn("⚠️  CLOVER_MERCHANT_ID is not set.");
     }
 
@@ -90,12 +96,12 @@ export class CloverService {
             method: "POST",
             headers: {
                 "Content-Type": "application/json",
-                apikey: this.pakmsKey,  // Public key (PAKMS) for tokenization
+                apikey: this.pakmsKey, // Public key (PAKMS) for tokenization
             },
             body: JSON.stringify(payload),
         });
 
-        const data = await response.json() as any;
+        const data = (await response.json()) as any;
 
         if (!response.ok) {
             this.logger.error("Clover tokenization failed", data);
@@ -143,7 +149,7 @@ export class CloverService {
             body: JSON.stringify(payload),
         });
 
-        const data = await response.json() as any;
+        const data = (await response.json()) as any;
 
         if (!response.ok) {
             this.logger.error("Clover charge failed", data);
@@ -153,7 +159,9 @@ export class CloverService {
 
         const chargeId = data?.id;
         if (!chargeId) {
-            throw new UnprocessableEntityException("Charge failed: No charge ID returned from Clover.");
+            throw new UnprocessableEntityException(
+                "Charge failed: No charge ID returned from Clover.",
+            );
         }
 
         this.logger.log(`✅ Clover charge successful. ID: ${chargeId}`);
@@ -243,7 +251,9 @@ export class CloverService {
             payload.amount = Math.round(amountUSD * 100); // convert to cents
         }
 
-        this.logger.debug(`💸 Issuing refund for charge ${chargeId}${amountUSD ? ` — $${amountUSD}` : " (full)"}`);
+        this.logger.debug(
+            `💸 Issuing refund for charge ${chargeId}${amountUSD ? ` — $${amountUSD}` : " (full)"}`,
+        );
 
         const response = await fetch(`${this.baseUrl}/v1/refunds`, {
             method: "POST",
@@ -254,7 +264,7 @@ export class CloverService {
             body: JSON.stringify(payload),
         });
 
-        const data = await response.json() as any;
+        const data = (await response.json()) as any;
 
         if (!response.ok) {
             this.logger.error("Clover refund failed", data);

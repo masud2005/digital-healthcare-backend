@@ -51,9 +51,13 @@ export class CommunicationService {
             // Fetch S3 buffer for inline attachment if dynamic logo exists
             if (globalLayout?.logo?.fileUrl) {
                 try {
-                    s3LogoBuffer = await this.storageService.getFileBuffer(globalLayout.logo.fileUrl);
+                    s3LogoBuffer = await this.storageService.getFileBuffer(
+                        globalLayout.logo.fileUrl,
+                    );
                 } catch (err) {
-                    this.logger.warn(`Failed to fetch dynamic logo from S3: ${(err as Error).message}`);
+                    this.logger.warn(
+                        `Failed to fetch dynamic logo from S3: ${(err as Error).message}`,
+                    );
                 }
             }
         }
@@ -78,7 +82,7 @@ export class CommunicationService {
 
             // Attach logo as CID inline image (works in Gmail, Outlook, Apple Mail)
             let logoAttachment: { filename: string; content: Buffer; cid: string } | null = null;
-            
+
             if (s3LogoBuffer) {
                 logoAttachment = {
                     filename: "dynamic-logo.png", // Ext doesn't strictly matter for CID display, but you can parse it
@@ -110,16 +114,12 @@ export class CommunicationService {
      * Builds the full HTML email from dynamic layout fields + template content.
      * Design is fixed in code; admin controls only the text content via DB fields.
      */
-    private buildEmailHtml(
-        compiledBody: string,
-        layout: any | null,
-        template: any | null,
-    ): string {
+    private buildEmailHtml(compiledBody: string, layout: any | null, template: any | null): string {
         // ── Resolve layout values with fallbacks ──────────────────────────────
         const isBlack = layout?.isBlack ?? true;
         const logoSrc = "cid:email-logo";
         const logoBgColor = isBlack ? "#ffffff" : "#1b2622";
-        
+
         const brandName = layout?.brandName ?? "WEIGHTLOSSMD";
         const headerTitle = template?.headerTitle ?? layout?.headerTitle ?? "System Notification";
         const headerSubtitle =
@@ -624,7 +624,12 @@ export class CommunicationService {
     private getFallbackLogoAttachment(): { filename: string; content: Buffer; cid: string } | null {
         if (this._logoBuffer === null) {
             try {
-                const relPath = path.join("global", "communication", "logo", "weightLossMDLogo.png");
+                const relPath = path.join(
+                    "global",
+                    "communication",
+                    "logo",
+                    "weightLossMDLogo.png",
+                );
                 const devPath = path.join(process.cwd(), "src", relPath);
                 const prodPath = path.join(process.cwd(), "dist", relPath);
                 const logoPath = fs.existsSync(devPath) ? devPath : prodPath;

@@ -17,15 +17,16 @@ export class DoctorMyConsultationRepository {
         const skip = (currentPage - 1) * currentLimit;
 
         const baseWhere: Prisma.AssessmentSubmissionWhereInput = {
-            OR: [
-                { reviewedBy: userId },
-                { status: SubmissionStatus.PENDING },
-            ],
+            OR: [{ reviewedBy: userId }, { status: SubmissionStatus.PENDING }],
         };
 
         const statusMap: Record<ConsultationTab, SubmissionStatus[] | undefined> = {
             [ConsultationTab.ACTIVE_CONSULTATION]: [SubmissionStatus.ACCEPTED],
-            [ConsultationTab.NEW_REQUEST]: [SubmissionStatus.PENDING, SubmissionStatus.REFIL_REQUESTED, SubmissionStatus.REVIEWED],
+            [ConsultationTab.NEW_REQUEST]: [
+                SubmissionStatus.PENDING,
+                SubmissionStatus.REFIL_REQUESTED,
+                SubmissionStatus.REVIEWED,
+            ],
             [ConsultationTab.DECLINED_REQUEST]: [SubmissionStatus.REJECTED],
             [ConsultationTab.HISTORY]: undefined, // returning all for history
         };
@@ -100,4 +101,3 @@ export class DoctorMyConsultationRepository {
         return submission;
     }
 }
-

@@ -8,7 +8,18 @@ export class ProposalRepository {
     findById(id: string) {
         return this.prisma.proposal.findUnique({
             where: { id },
-            select: { id: true, status: true, fee: true, messageId: true, message: { select: { conversationId: true, conversation: { select: { patientId: true, providerId: true } } } } },
+            select: {
+                id: true,
+                status: true,
+                fee: true,
+                messageId: true,
+                message: {
+                    select: {
+                        conversationId: true,
+                        conversation: { select: { patientId: true, providerId: true } },
+                    },
+                },
+            },
         });
     }
 

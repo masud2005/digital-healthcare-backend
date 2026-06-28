@@ -1,6 +1,17 @@
 import { Roles } from "@common/decorators";
 import { JwtAuthGuard, RolesGuard } from "@common/guards";
-import { Body, Controller, Delete, Get, HttpCode, Param, Patch, Post, Query, UseGuards } from "@nestjs/common";
+import {
+    Body,
+    Controller,
+    Delete,
+    Get,
+    HttpCode,
+    Param,
+    Patch,
+    Post,
+    Query,
+    UseGuards,
+} from "@nestjs/common";
 import {
     ApiBearerAuth,
     ApiCreatedResponse,
@@ -23,7 +34,6 @@ import { UpdateCategoryDto } from "./dto/update-category.dto";
 @Controller("admin/categories")
 export class CategoryController {
     constructor(private readonly categoryService: CategoryService) {}
-
 
     // Create a category
     @Post()

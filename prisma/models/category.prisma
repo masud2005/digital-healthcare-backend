@@ -16,6 +16,7 @@ model Category {
   sideEffectReports        SideEffectReport[]
   allowedStates            StateCoverage[]    @relation("StateAllowedCategories")
   subscriptions            Subscription[]
+  blogs                    Blog[]
   homePageFeaturedService1 HomePageContent[]  @relation("AboutFeaturedService1")
   homePageFeaturedService2 HomePageContent[]  @relation("AboutFeaturedService2")
   homePageFeaturedService3 HomePageContent[]  @relation("AboutFeaturedService3")

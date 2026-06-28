@@ -1,4 +1,10 @@
-import { BadRequestException, ForbiddenException, Injectable, NotFoundException, UnprocessableEntityException } from "@nestjs/common";
+import {
+    BadRequestException,
+    ForbiddenException,
+    Injectable,
+    NotFoundException,
+    UnprocessableEntityException,
+} from "@nestjs/common";
 import type { AcceptProposalDto } from "./dto/proposal.dto";
 import { ProposalRepository } from "./proposal.repository";
 import { NotificationService } from "../../notification/notification.service";
@@ -16,25 +22,35 @@ function detectCardBrand(cardNumber: string): string {
 
 function validateCard(cardNumber: string, expiryDate: string, cvv: string) {
     const num = cardNumber.replace(/\s+/g, "");
-    if (!/^\d{13,19}$/.test(num)) throw new UnprocessableEntityException("Card number must be 13–19 digits.");
+    if (!/^\d{13,19}$/.test(num))
+        throw new UnprocessableEntityException("Card number must be 13–19 digits.");
 
-    let sum = 0, shouldDouble = false;
+    let sum = 0,
+        shouldDouble = false;
     for (let i = num.length - 1; i >= 0; i--) {
         let digit = parseInt(num[i], 10);
-        if (shouldDouble) { digit *= 2; if (digit > 9) digit -= 9; }
+        if (shouldDouble) {
+            digit *= 2;
+            if (digit > 9) digit -= 9;
+        }
         sum += digit;
         shouldDouble = !shouldDouble;
     }
     if (sum % 10 !== 0) throw new UnprocessableEntityException("Card number is invalid.");
 
-    if (!/^(0[1-9]|1[0-2])\/\d{2}$/.test(expiryDate)) throw new UnprocessableEntityException("Expiry date must be MM/YY.");
+    if (!/^(0[1-9]|1[0-2])\/\d{2}$/.test(expiryDate))
+        throw new UnprocessableEntityException("Expiry date must be MM/YY.");
     const [m, y] = expiryDate.split("/").map(Number);
     const now = new Date();
-    if (2000 + y < now.getFullYear() || (2000 + y === now.getFullYear() && m < now.getMonth() + 1)) {
+    if (
+        2000 + y < now.getFullYear() ||
+        (2000 + y === now.getFullYear() && m < now.getMonth() + 1)
+    ) {
         throw new UnprocessableEntityException("Card has expired.");
     }
 
-    if (!/^\d{3,4}$/.test(cvv)) throw new UnprocessableEntityException("CVV must be 3 or 4 digits.");
+    if (!/^\d{3,4}$/.test(cvv))
+        throw new UnprocessableEntityException("CVV must be 3 or 4 digits.");
 }
 
 @Injectable()
@@ -51,11 +67,15 @@ export class ProposalService {
         if (!proposal) throw new NotFoundException("Proposal not found.");
 
         const { patientId, providerId } = proposal.message.conversation;
-        if (userId !== patientId && userId !== providerId) throw new ForbiddenException("Access denied.");
+        if (userId !== patientId && userId !== providerId)
+            throw new ForbiddenException("Access denied.");
 
-        if (proposal.status === "REJECTED") throw new BadRequestException("Proposal has already been rejected.");
-        if (proposal.status === "ACCEPTED") throw new BadRequestException("Accepted proposals cannot be rejected.");
-        if (proposal.status === "EXPIRED") throw new BadRequestException("Expired proposals cannot be rejected.");
+        if (proposal.status === "REJECTED")
+            throw new BadRequestException("Proposal has already been rejected.");
+        if (proposal.status === "ACCEPTED")
+            throw new BadRequestException("Accepted proposals cannot be rejected.");
+        if (proposal.status === "EXPIRED")
+            throw new BadRequestException("Expired proposals cannot be rejected.");
 
         const result = await this.repo.rejectProposal(proposalId);
 
@@ -96,11 +116,15 @@ export class ProposalService {
         if (!proposal) throw new NotFoundException("Proposal not found.");
 
         const { patientId } = proposal.message.conversation;
-        if (userId !== patientId) throw new ForbiddenException("Only the patient can accept a proposal.");
+        if (userId !== patientId)
+            throw new ForbiddenException("Only the patient can accept a proposal.");
 
-        if (proposal.status === "ACCEPTED") throw new BadRequestException("Proposal has already been accepted.");
-        if (proposal.status === "REJECTED") throw new BadRequestException("Rejected proposals cannot be accepted.");
-        if (proposal.status === "EXPIRED") throw new BadRequestException("Expired proposals cannot be accepted.");
+        if (proposal.status === "ACCEPTED")
+            throw new BadRequestException("Proposal has already been accepted.");
+        if (proposal.status === "REJECTED")
+            throw new BadRequestException("Rejected proposals cannot be accepted.");
+        if (proposal.status === "EXPIRED")
+            throw new BadRequestException("Expired proposals cannot be accepted.");
 
         validateCard(dto.cardNumber, dto.expiryDate, dto.cvv);
 
@@ -167,6 +191,11 @@ export class ProposalService {
             referenceId: proposalId,
         });
 
-        return { proposalId, transactionId: payment.transactionId, amount: payment.amount, status: "success" };
+        return {
+            proposalId,
+            transactionId: payment.transactionId,
+            amount: payment.amount,
+            status: "success",
+        };
     }
 }

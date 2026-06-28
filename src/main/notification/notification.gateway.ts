@@ -1,6 +1,11 @@
 import { PrismaService } from "@global/prisma/prisma.service";
 import { UseFilters, UsePipes, ValidationPipe } from "@nestjs/common";
-import { OnGatewayConnection, OnGatewayDisconnect, WebSocketGateway, WebSocketServer } from "@nestjs/websockets";
+import {
+    OnGatewayConnection,
+    OnGatewayDisconnect,
+    WebSocketGateway,
+    WebSocketServer,
+} from "@nestjs/websockets";
 import jwt from "jsonwebtoken";
 import { Server, Socket } from "socket.io";
 import { WsExceptionFilter } from "../message/ws-exception.filter";
@@ -27,7 +32,12 @@ export class NotificationGateway implements OnGatewayConnection, OnGatewayDiscon
             };
 
             const session = await this.prisma.authSession.findFirst({
-                where: { id: payload.sid, revokedAt: null, expiresAt: { gt: new Date() }, userId: payload.sub },
+                where: {
+                    id: payload.sid,
+                    revokedAt: null,
+                    expiresAt: { gt: new Date() },
+                    userId: payload.sub,
+                },
                 select: { userId: true },
             });
 

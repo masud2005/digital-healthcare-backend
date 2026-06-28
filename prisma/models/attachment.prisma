@@ -30,6 +30,7 @@ model Attachment {
   contactLead                 ContactLead?     @relation("ContactLeadAttachment")
   contactLeadResponse         ContactLead?     @relation("ContactLeadResponseAttachment")
   testimonial                 Testimonial?
+  blogFeaturedImage           Blog?             @relation("BlogFeaturedImage")
   emailLayout                 EmailLayout?     @relation("EmailLayoutLogo")
 
   conversationId String?

@@ -41,7 +41,9 @@ export class StorageService implements OnModuleInit {
             if (err.name === "NotFound" || err.name === "NoSuchBucket") {
                 try {
                     await this.s3.send(new CreateBucketCommand({ Bucket: this.bucket }));
-                    console.log(`Storage initialized: Bucket '${this.bucket}' created successfully`);
+                    console.log(
+                        `Storage initialized: Bucket '${this.bucket}' created successfully`,
+                    );
                 } catch (createErr) {
                     console.error(`Failed to create bucket '${this.bucket}'`, createErr);
                 }

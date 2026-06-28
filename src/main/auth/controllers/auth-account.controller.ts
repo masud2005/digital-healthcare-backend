@@ -1,7 +1,19 @@
 import { Body, Controller, Post, Req, Res } from "@nestjs/common";
-import { ApiCreatedResponse, ApiExtraModels, ApiOkResponse, ApiOperation, ApiTags, getSchemaPath } from "@nestjs/swagger";
+import {
+    ApiCreatedResponse,
+    ApiExtraModels,
+    ApiOkResponse,
+    ApiOperation,
+    ApiTags,
+    getSchemaPath,
+} from "@nestjs/swagger";
 import type { Request, Response } from "express";
-import { AuthLoginResponseDto, AuthOtpResponseDto, AuthRegisterResponseDto, AuthResponseDto } from "../dto/auth-response.dto";
+import {
+    AuthLoginResponseDto,
+    AuthOtpResponseDto,
+    AuthRegisterResponseDto,
+    AuthResponseDto,
+} from "../dto/auth-response.dto";
 import { LoginDto } from "../dto/login.dto";
 import { RegisterDto } from "../dto/register.dto";
 import { getRequestContext, setRefreshCookieAndReturnBody } from "./auth-controller.utils";
@@ -35,7 +47,11 @@ export class AuthAccountController {
             ],
         },
     })
-    async login(@Body() payload: LoginDto, @Req() req: Request, @Res({ passthrough: true }) res: Response) {
+    async login(
+        @Body() payload: LoginDto,
+        @Req() req: Request,
+        @Res({ passthrough: true }) res: Response,
+    ) {
         const result = await this.authAccountService.login(payload, getRequestContext(req));
         if (result.refreshToken) {
             return setRefreshCookieAndReturnBody(

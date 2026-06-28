@@ -50,14 +50,22 @@ export class MessageRepository {
                     select: {
                         id: true,
                         name: true,
-                        patientProfile: { select: { name: true, avatar: { select: { id: true, fileUrl: true } } } },
+                        patientProfile: {
+                            select: { name: true, avatar: { select: { id: true, fileUrl: true } } },
+                        },
                     },
                 },
                 provider: {
                     select: {
                         id: true,
                         name: true,
-                        doctorProfile: { select: { name: true, title: true, avatar: { select: { id: true, fileUrl: true } } } },
+                        doctorProfile: {
+                            select: {
+                                name: true,
+                                title: true,
+                                avatar: { select: { id: true, fileUrl: true } },
+                            },
+                        },
                     },
                 },
                 service: { select: { id: true, name: true } },
@@ -71,8 +79,16 @@ export class MessageRepository {
                 OR: [{ patientId: userId }, { providerId: userId }],
                 ...(search && {
                     OR: [
-                        { patient: { patientProfile: { name: { contains: search, mode: "insensitive" } } } },
-                        { provider: { doctorProfile: { name: { contains: search, mode: "insensitive" } } } },
+                        {
+                            patient: {
+                                patientProfile: { name: { contains: search, mode: "insensitive" } },
+                            },
+                        },
+                        {
+                            provider: {
+                                doctorProfile: { name: { contains: search, mode: "insensitive" } },
+                            },
+                        },
                         { service: { name: { contains: search, mode: "insensitive" } } },
                     ],
                 }),
@@ -82,14 +98,22 @@ export class MessageRepository {
                     select: {
                         id: true,
                         name: true,
-                        patientProfile: { select: { name: true, avatar: { select: { id: true, fileUrl: true } } } },
+                        patientProfile: {
+                            select: { name: true, avatar: { select: { id: true, fileUrl: true } } },
+                        },
                     },
                 },
                 provider: {
                     select: {
                         id: true,
                         name: true,
-                        doctorProfile: { select: { name: true, title: true, avatar: { select: { id: true, fileUrl: true } } } },
+                        doctorProfile: {
+                            select: {
+                                name: true,
+                                title: true,
+                                avatar: { select: { id: true, fileUrl: true } },
+                            },
+                        },
                     },
                 },
                 service: { select: { id: true, name: true } },
@@ -173,10 +197,24 @@ export class MessageRepository {
                 createdAt: true,
                 sender: { select: { id: true, name: true } },
                 proposals: {
-                    select: { id: true, title: true, description: true, fee: true, proposalDate: true, status: true, updatedAt: true },
+                    select: {
+                        id: true,
+                        title: true,
+                        description: true,
+                        fee: true,
+                        proposalDate: true,
+                        status: true,
+                        updatedAt: true,
+                    },
                 },
                 attachments: {
-                    select: { id: true, fileName: true, fileUrl: true, fileType: true, fileSize: true },
+                    select: {
+                        id: true,
+                        fileName: true,
+                        fileUrl: true,
+                        fileType: true,
+                        fileSize: true,
+                    },
                 },
             },
         });
@@ -198,7 +236,9 @@ export class MessageRepository {
                             title: dto.proposal.title,
                             description: dto.proposal.description,
                             fee: dto.proposal.fee,
-                            proposalDate: dto.proposal.proposalDate ? new Date(dto.proposal.proposalDate) : undefined,
+                            proposalDate: dto.proposal.proposalDate
+                                ? new Date(dto.proposal.proposalDate)
+                                : undefined,
                         },
                     },
                 }),
@@ -218,10 +258,24 @@ export class MessageRepository {
                 createdAt: true,
                 sender: { select: { id: true, name: true } },
                 proposals: {
-                    select: { id: true, title: true, description: true, fee: true, proposalDate: true, status: true, updatedAt: true },
+                    select: {
+                        id: true,
+                        title: true,
+                        description: true,
+                        fee: true,
+                        proposalDate: true,
+                        status: true,
+                        updatedAt: true,
+                    },
                 },
                 attachments: {
-                    select: { id: true, fileName: true, fileUrl: true, fileType: true, fileSize: true },
+                    select: {
+                        id: true,
+                        fileName: true,
+                        fileUrl: true,
+                        fileType: true,
+                        fileSize: true,
+                    },
                 },
             },
         });

@@ -7,7 +7,7 @@ export class DashboardRepository {
 
     async getAssessmentStats(userId: string) {
         return this.prisma.assessmentSubmission.groupBy({
-            by: ['status'],
+            by: ["status"],
             where: { userId },
             _count: {
                 status: true,
@@ -19,7 +19,7 @@ export class DashboardRepository {
         const result = await this.prisma.payment.aggregate({
             where: {
                 userId,
-                status: 'COMPLETED',
+                status: "COMPLETED",
             },
             _sum: {
                 amount: true,

@@ -47,7 +47,12 @@ export class MessageGateway implements OnGatewayConnection, OnGatewayDisconnect 
             };
 
             const session = await this.prisma.authSession.findFirst({
-                where: { id: payload.sid, revokedAt: null, expiresAt: { gt: new Date() }, userId: payload.sub },
+                where: {
+                    id: payload.sid,
+                    revokedAt: null,
+                    expiresAt: { gt: new Date() },
+                    userId: payload.sub,
+                },
                 include: { user: { select: { id: true, name: true, status: true } } },
             });
 
@@ -74,11 +79,16 @@ export class MessageGateway implements OnGatewayConnection, OnGatewayDisconnect 
     }
 
     @SubscribeMessage("join_conversation")
-    async handleJoinConversation(@ConnectedSocket() client: Socket, @MessageBody() dto: JoinConversationDto) {
+    async handleJoinConversation(
+        @ConnectedSocket() client: Socket,
+        @MessageBody() dto: JoinConversationDto,
+    ) {
         const userId = client.data.user?.id;
         if (!userId) throw new WsException("Unauthorized");
 
-        const conversation = await this.prisma.conversation.findUnique({ where: { id: dto.conversationId } });
+        const conversation = await this.prisma.conversation.findUnique({
+            where: { id: dto.conversationId },
+        });
         if (!conversation) throw new WsException("Conversation not found");
 
         if (conversation.patientId !== userId && conversation.providerId !== userId) {
@@ -90,7 +100,10 @@ export class MessageGateway implements OnGatewayConnection, OnGatewayDisconnect 
     }
 
     @SubscribeMessage("leave_conversation")
-    handleLeaveConversation(@ConnectedSocket() client: Socket, @MessageBody() dto: JoinConversationDto) {
+    handleLeaveConversation(
+        @ConnectedSocket() client: Socket,
+        @MessageBody() dto: JoinConversationDto,
+    ) {
         client.leave(`conversation:${dto.conversationId}`);
         client.emit("left_conversation", { conversationId: dto.conversationId });
     }
@@ -120,13 +133,17 @@ export class MessageGateway implements OnGatewayConnection, OnGatewayDisconnect 
     handleTyping(@ConnectedSocket() client: Socket, @MessageBody() dto: JoinConversationDto) {
         const user = client.data.user;
         if (!user) return;
-        client.to(`conversation:${dto.conversationId}`).emit("user_typing", { userId: user.id, name: user.name });
+        client
+            .to(`conversation:${dto.conversationId}`)
+            .emit("user_typing", { userId: user.id, name: user.name });
     }
 
     @SubscribeMessage("stop_typing")
     handleStopTyping(@ConnectedSocket() client: Socket, @MessageBody() dto: JoinConversationDto) {
         const user = client.data.user;
         if (!user) return;
-        client.to(`conversation:${dto.conversationId}`).emit("user_stop_typing", { userId: user.id });
+        client
+            .to(`conversation:${dto.conversationId}`)
+            .emit("user_stop_typing", { userId: user.id });
     }
 }

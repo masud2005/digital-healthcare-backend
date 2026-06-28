@@ -34,7 +34,8 @@ export const DEFAULT_HOMEPAGE_CONTENT = {
 
     testimonialTitle: "Patient Success Stories",
     testimonialCardTitle: "Read from Hundreds of success stories",
-    testimonialCardDescription: "See how Weight Loss MD has helped people feel stronger, healthier, and more balanced.",
+    testimonialCardDescription:
+        "See how Weight Loss MD has helped people feel stronger, healthier, and more balanced.",
     testimonialButtonText: "Book intake session",
     testimonialButtonLink: "https://weightlossmd.com/contact",
     testimonialButtonNewTab: true,
@@ -46,15 +47,21 @@ export const DEFAULT_HOMEPAGE_CONTENT = {
     faqButtonLink: "https://weightlossmd.com/contact",
     faqButtonNewTab: true,
     faqQuestion1: "What weight loss treatments do you offer?",
-    faqAnswer1: "We offer medically supervised weight loss programs that may include GLP-1 medications such as semaglutide and tirzepatide, appetite suppressants, B12 injections, lipotropic injections, nutritional guidance, and personalized wellness support. Treatment plans are customized based on your health goals and medical history.",
+    faqAnswer1:
+        "We offer medically supervised weight loss programs that may include GLP-1 medications such as semaglutide and tirzepatide, appetite suppressants, B12 injections, lipotropic injections, nutritional guidance, and personalized wellness support. Treatment plans are customized based on your health goals and medical history.",
     faqQuestion2: "How do GLP-1 medications help with weight loss?",
-    faqAnswer2: "GLP-1 medications mimic a natural hormone that targets areas of the brain that regulate appetite and food intake, helping you feel fuller longer.",
+    faqAnswer2:
+        "GLP-1 medications mimic a natural hormone that targets areas of the brain that regulate appetite and food intake, helping you feel fuller longer.",
     faqQuestion3: "What is the difference between semaglutide and tirzepatide?",
-    faqAnswer3: "Semaglutide is a single receptor agonist (GLP-1), while tirzepatide is a dual receptor agonist (GLP-1 and GIP), which may offer enhanced weight loss efficacy.",
+    faqAnswer3:
+        "Semaglutide is a single receptor agonist (GLP-1), while tirzepatide is a dual receptor agonist (GLP-1 and GIP), which may offer enhanced weight loss efficacy.",
     faqQuestion4: "Do I need a prescription for weight loss medications?",
-    faqAnswer4: "Yes, all medical weight loss medications require a prescription from a licensed healthcare provider after a thorough medical evaluation.",
+    faqAnswer4:
+        "Yes, all medical weight loss medications require a prescription from a licensed healthcare provider after a thorough medical evaluation.",
     faqQuestion5: "Do you offer in-person consultations?",
-    faqAnswer5: "Yes, we offer both in-person consultations at our clinic locations and convenient telehealth options.",
+    faqAnswer5:
+        "Yes, we offer both in-person consultations at our clinic locations and convenient telehealth options.",
     faqQuestion6: "How do I get started?",
-    faqAnswer6: "Getting started is easy! Simply book an intake session online or contact our office to schedule your initial evaluation.",
+    faqAnswer6:
+        "Getting started is easy! Simply book an intake session online or contact our office to schedule your initial evaluation.",
 };

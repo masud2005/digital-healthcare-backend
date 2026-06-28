@@ -13,23 +13,23 @@ export class CommunicationTemplateRepository {
         if (channel === "SMS") {
             return this.prisma.smsTemplate.findMany({
                 where: action ? { action } : undefined,
-                orderBy: { createdAt: "desc" }
+                orderBy: { createdAt: "desc" },
             });
         }
         if (channel === "EMAIL") {
             return this.prisma.messageTemplate.findMany({
                 where: action ? { action } : undefined,
-                orderBy: { createdAt: "desc" }
+                orderBy: { createdAt: "desc" },
             });
         }
-        
+
         const emails = await this.prisma.messageTemplate.findMany({
             where: action ? { action } : undefined,
-            orderBy: { createdAt: "desc" }
+            orderBy: { createdAt: "desc" },
         });
         const sms = await this.prisma.smsTemplate.findMany({
             where: action ? { action } : undefined,
-            orderBy: { createdAt: "desc" }
+            orderBy: { createdAt: "desc" },
         });
         return [...emails, ...sms];
     }
@@ -83,8 +83,7 @@ export class CommunicationTemplateRepository {
                 headerSubtitle: "We have an important update regarding your account.",
                 footerCompanyName: "WeightLossMD Support",
                 footerEmail: "support@weightlossmd.com",
-                footerTagline:
-                    "This is an automated message. Please do not reply to this email.",
+                footerTagline: "This is an automated message. Please do not reply to this email.",
             },
         });
     }

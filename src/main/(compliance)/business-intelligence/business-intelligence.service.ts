@@ -207,7 +207,20 @@ export class BusinessIntelligenceService {
             gte.setFullYear(now.getFullYear() - 1);
             gte.setHours(0, 0, 0, 0);
 
-            const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+            const months = [
+                "Jan",
+                "Feb",
+                "Mar",
+                "Apr",
+                "May",
+                "Jun",
+                "Jul",
+                "Aug",
+                "Sep",
+                "Oct",
+                "Nov",
+                "Dec",
+            ];
             labels = months;
             getLabel = (d: Date) => months[d.getMonth()];
         }

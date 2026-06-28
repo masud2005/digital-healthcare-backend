@@ -5,7 +5,13 @@ import { Injectable } from "@nestjs/common";
 export class NotificationRepository {
     constructor(private readonly prisma: PrismaService) {}
 
-    create(data: { userId: string; title: string; message: string; actionType: string; referenceId: string }) {
+    create(data: {
+        userId: string;
+        title: string;
+        message: string;
+        actionType: string;
+        referenceId: string;
+    }) {
         return this.prisma.notification.create({ data });
     }
 

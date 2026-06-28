@@ -9,7 +9,7 @@ const adminAccounts = [
     "masud.softvenceomega@gmail.com",
     "devlopersabbir@gmail.com",
     "doc4881@gmail.com",
-    "alif.mia@softvence.com"
+    "alif.mia@softvence.com",
 ];
 
 function hashPassword(password: string) {

@@ -41,7 +41,10 @@ describe("MessageService", () => {
         });
 
         it("calls upsertPublicKey with valid RSA key", async () => {
-            mockRepo.upsertPublicKey.mockResolvedValue({ userId: "user-1", publicKey: VALID_RSA_PUBLIC_KEY });
+            mockRepo.upsertPublicKey.mockResolvedValue({
+                userId: "user-1",
+                publicKey: VALID_RSA_PUBLIC_KEY,
+            });
             await service.registerPublicKey("user-1", { publicKey: VALID_RSA_PUBLIC_KEY });
             expect(mockRepo.upsertPublicKey).toHaveBeenCalledWith("user-1", VALID_RSA_PUBLIC_KEY);
         });
@@ -68,12 +71,16 @@ describe("MessageService", () => {
         const dto = { serviceID: "svc-1", patientId: "pat-1", providerId: "prov-1" };
 
         it("throws BadRequestException when patient has no public key", async () => {
-            mockRepo.getPublicKey.mockResolvedValueOnce(null).mockResolvedValueOnce({ publicKey: "pem" });
+            mockRepo.getPublicKey
+                .mockResolvedValueOnce(null)
+                .mockResolvedValueOnce({ publicKey: "pem" });
             await expect(service.createConversation(dto)).rejects.toThrow(BadRequestException);
         });
 
         it("throws BadRequestException when provider has no public key", async () => {
-            mockRepo.getPublicKey.mockResolvedValueOnce({ publicKey: "pem" }).mockResolvedValueOnce(null);
+            mockRepo.getPublicKey
+                .mockResolvedValueOnce({ publicKey: "pem" })
+                .mockResolvedValueOnce(null);
             await expect(service.createConversation(dto)).rejects.toThrow(BadRequestException);
         });
 
@@ -99,7 +106,9 @@ describe("MessageService", () => {
 
         it("throws ForbiddenException when user is not a participant", async () => {
             mockRepo.findConversation.mockResolvedValue(conversation);
-            await expect(service.getMessages("conv-1", "stranger-id")).rejects.toThrow(ForbiddenException);
+            await expect(service.getMessages("conv-1", "stranger-id")).rejects.toThrow(
+                ForbiddenException,
+            );
         });
 
         it("returns messages for a valid participant", async () => {
@@ -140,7 +149,9 @@ describe("MessageService", () => {
 
         it("throws ForbiddenException when sender is not a participant", async () => {
             mockRepo.findConversation.mockResolvedValue(conversation);
-            await expect(service.sendMessage(validDto, "stranger-id")).rejects.toThrow(ForbiddenException);
+            await expect(service.sendMessage(validDto, "stranger-id")).rejects.toThrow(
+                ForbiddenException,
+            );
         });
 
         it("throws BadRequestException when encryption fields are missing", async () => {

@@ -143,7 +143,12 @@ export class PatientManageRepository {
     findSubmissionById(id: string) {
         return this.prisma.assessmentSubmission.findUnique({
             where: { id },
-            select: { id: true, reviewedBy: true, userId: true, assessment: { select: { categoryId: true } } },
+            select: {
+                id: true,
+                reviewedBy: true,
+                userId: true,
+                assessment: { select: { categoryId: true } },
+            },
         });
     }
 

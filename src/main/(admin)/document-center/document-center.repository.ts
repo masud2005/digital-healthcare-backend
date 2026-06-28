@@ -103,9 +103,21 @@ export class DocumentCenterRepository {
                 {
                     uploadedBy: {
                         OR: [
-                            { patientProfile: { name: { contains: params.search, mode: "insensitive" } } },
-                            { doctorProfile: { name: { contains: params.search, mode: "insensitive" } } },
-                            { adminProfile: { name: { contains: params.search, mode: "insensitive" } } },
+                            {
+                                patientProfile: {
+                                    name: { contains: params.search, mode: "insensitive" },
+                                },
+                            },
+                            {
+                                doctorProfile: {
+                                    name: { contains: params.search, mode: "insensitive" },
+                                },
+                            },
+                            {
+                                adminProfile: {
+                                    name: { contains: params.search, mode: "insensitive" },
+                                },
+                            },
                         ],
                     },
                 },

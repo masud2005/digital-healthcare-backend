@@ -16,7 +16,6 @@ export async function communicationTemplateSeed(prisma: PrismaClient) {
             headerTitle: "System Notification",
             headerSubtitle: "We have an important update regarding your account.",
 
-
             // Footer
             footerCompanyName: "WeightLossMD Support",
             footerEmail: "support@weightlossmd.com",
@@ -51,9 +50,11 @@ export async function communicationTemplateSeed(prisma: PrismaClient) {
                 "Hi {{name}},\n\nONE-TIME VERIFICATION CODE\n{{code}}\n\nEnter this code to sign in with your code. It expires in **10 minutes**.",
             showInfoCards: true,
             infoCard1Title: "SECURE ACCESS",
-            infoCard1Text: "This code helps us confirm it's really you and protects your account from unauthorized access.",
+            infoCard1Text:
+                "This code helps us confirm it's really you and protects your account from unauthorized access.",
             infoCard2Title: "NEED HELP?",
-            infoCard2Text: "If you did not request this email, ignore it or contact our team at support@weightlossmd.com.",
+            infoCard2Text:
+                "If you did not request this email, ignore it or contact our team at support@weightlossmd.com.",
             isActive: true,
         },
         {
@@ -67,9 +68,11 @@ export async function communicationTemplateSeed(prisma: PrismaClient) {
                 "Hi {{name}},\n\nEMAIL VERIFICATION CODE\n{{code}}\n\nEnter this code to verify your email address. It expires in **10 minutes**.",
             showInfoCards: true,
             infoCard1Title: "SECURE ACCESS",
-            infoCard1Text: "This code helps us confirm it's really you and protects your account from unauthorized access.",
+            infoCard1Text:
+                "This code helps us confirm it's really you and protects your account from unauthorized access.",
             infoCard2Title: "NEED HELP?",
-            infoCard2Text: "If you did not request this email, ignore it or contact our team at support@weightlossmd.com.",
+            infoCard2Text:
+                "If you did not request this email, ignore it or contact our team at support@weightlossmd.com.",
             isActive: true,
         },
         {
@@ -83,9 +86,11 @@ export async function communicationTemplateSeed(prisma: PrismaClient) {
                 "Hi {{name}},\n\nPASSWORD RESET CODE\n{{code}}\n\nEnter this code to reset your password. It expires in **10 minutes**. If you did not request this, please ignore this email.",
             showInfoCards: true,
             infoCard1Title: "SECURE ACCESS",
-            infoCard1Text: "This code helps us confirm it's really you and protects your account from unauthorized access.",
+            infoCard1Text:
+                "This code helps us confirm it's really you and protects your account from unauthorized access.",
             infoCard2Title: "NEED HELP?",
-            infoCard2Text: "If you did not request this email, ignore it or contact our team at support@weightlossmd.com.",
+            infoCard2Text:
+                "If you did not request this email, ignore it or contact our team at support@weightlossmd.com.",
             isActive: true,
         },
         {
@@ -93,8 +98,7 @@ export async function communicationTemplateSeed(prisma: PrismaClient) {
             channel: "EMAIL",
             subject: "Account access details",
             headerTitle: "Account access details",
-            headerSubtitle:
-                "An administrator has granted you access to the WeightLossMD platform.",
+            headerSubtitle: "An administrator has granted you access to the WeightLossMD platform.",
             content:
                 "Hi {{name}},\n\nYour secure login credentials are provided below:\n\nEmail: **{{email}}**\nPassword: **{{password}}**\n\nFor your security, please log in and change your password immediately.",
             showInfoCards: false,
@@ -166,19 +170,22 @@ export async function communicationTemplateSeed(prisma: PrismaClient) {
         {
             action: "OTP_LOGIN",
             channel: "SMS",
-            content: "Your WeightLossMD login verification code is: {{code}}. It expires in 10 minutes.",
+            content:
+                "Your WeightLossMD login verification code is: {{code}}. It expires in 10 minutes.",
             isActive: true,
         },
         {
             action: "OTP_REGISTER",
             channel: "SMS",
-            content: "Your WeightLossMD registration verification code is: {{code}}. It expires in 10 minutes.",
+            content:
+                "Your WeightLossMD registration verification code is: {{code}}. It expires in 10 minutes.",
             isActive: true,
         },
         {
             action: "OTP_FORGOT_PASSWORD",
             channel: "SMS",
-            content: "Your WeightLossMD password reset code is: {{code}}. It expires in 10 minutes.",
+            content:
+                "Your WeightLossMD password reset code is: {{code}}. It expires in 10 minutes.",
             isActive: true,
         },
     ];

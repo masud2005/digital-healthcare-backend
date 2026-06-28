@@ -23,6 +23,7 @@ model User {
   patientProfile        PatientProfile?
   adminProfile          AdminProfile?
   attachments           Attachment[]
+  blogs                 Blog[]                 @relation("BlogAuthor")
   auditLogs             AuditLog[]
   cart                  Cart?
   userPreference        UserPreference?

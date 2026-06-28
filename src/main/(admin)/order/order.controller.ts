@@ -2,7 +2,12 @@ import { Roles } from "@common/decorators";
 import { JwtAuthGuard, RolesGuard } from "@common/guards";
 import { Body, Controller, Get, HttpStatus, Param, Patch, Query, UseGuards } from "@nestjs/common";
 import { ApiBearerAuth, ApiOkResponse, ApiOperation, ApiTags } from "@nestjs/swagger";
-import { OrderDetailResponseDto, OrderListResponseDto, OrderQueryDto, UpdateOrderDto } from "./dto/order.dto";
+import {
+    OrderDetailResponseDto,
+    OrderListResponseDto,
+    OrderQueryDto,
+    UpdateOrderDto,
+} from "./dto/order.dto";
 import { AdminOrderService } from "./order.service";
 
 @ApiTags("(Admin) Orders")
@@ -16,7 +21,8 @@ export class AdminOrderController {
     @Get()
     @ApiOperation({
         summary: "Get all orders (paginated, searchable, filterable)",
-        description: "Returns a paginated list of orders. Supports searching by orderId and filtering by status, doctorName, and dateRange.",
+        description:
+            "Returns a paginated list of orders. Supports searching by orderId and filtering by status, doctorName, and dateRange.",
     })
     @ApiOkResponse({ type: OrderListResponseDto })
     async findAll(@Query() query: OrderQueryDto) {
@@ -32,7 +38,8 @@ export class AdminOrderController {
     @Get(":id")
     @ApiOperation({
         summary: "Get a single order by ID",
-        description: "Returns detailed information about a single order including items, shipping, and payment details.",
+        description:
+            "Returns detailed information about a single order including items, shipping, and payment details.",
     })
     @ApiOkResponse({ type: OrderDetailResponseDto })
     async findById(@Param("id") id: string) {

@@ -1,6 +1,13 @@
 import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
 import { Type } from "class-transformer";
-import { IsBoolean, IsEnum, IsNotEmpty, IsOptional, IsString, ValidateNested } from "class-validator";
+import {
+    IsBoolean,
+    IsEnum,
+    IsNotEmpty,
+    IsOptional,
+    IsString,
+    ValidateNested,
+} from "class-validator";
 import { BillingCycle } from "@prisma/client";
 
 export class ShippingInfoDto {
@@ -49,7 +56,10 @@ export class PaymentInfoDto {
     @IsNotEmpty()
     cardHolderName: string;
 
-    @ApiProperty({ example: "4111111111111111", description: "Full card number (used to extract last4 and detect brand)" })
+    @ApiProperty({
+        example: "4111111111111111",
+        description: "Full card number (used to extract last4 and detect brand)",
+    })
     @IsString()
     @IsNotEmpty()
     cardNumber: string;

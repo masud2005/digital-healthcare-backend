@@ -173,7 +173,8 @@ export class CartService {
             }
         }
 
-        const paymentPlan = user?.category?.paymentPlan ?? cart?.items[0]?.product?.category?.paymentPlan ?? null;
+        const paymentPlan =
+            user?.category?.paymentPlan ?? cart?.items[0]?.product?.category?.paymentPlan ?? null;
         const serviceFees = paymentPlan ? Number(paymentPlan.price) : 0;
         const serviceDuration = paymentPlan?.billingCycle ?? null;
         const shippingCharge = SHIPPING_CHARGE;
@@ -190,11 +191,16 @@ export class CartService {
 
             const baseForDiscount = subtotal + serviceFees + shippingCharge;
 
-            discount = found.type === "PERCENTAGE"
-                ? parseFloat(((baseForDiscount * found.value) / 100).toFixed(2))
-                : parseFloat(Math.min(found.value, baseForDiscount).toFixed(2));
+            discount =
+                found.type === "PERCENTAGE"
+                    ? parseFloat(((baseForDiscount * found.value) / 100).toFixed(2))
+                    : parseFloat(Math.min(found.value, baseForDiscount).toFixed(2));
 
-            discountMeta = { code: discountCode.toUpperCase(), type: found.type, value: found.value };
+            discountMeta = {
+                code: discountCode.toUpperCase(),
+                type: found.type,
+                value: found.value,
+            };
         }
 
         const total = parseFloat((subtotal + serviceFees + shippingCharge - discount).toFixed(2));

@@ -29,71 +29,97 @@ export class SystemHealthService {
 
         // Build list of default services if DB is not seeded or missing entries
         const defaultServicesMap = new Map<string, any>([
-            ["server_status", {
-                key: "server_status",
-                name: "Server Status",
-                category: "Infrastructure",
-                status: "OPERATIONAL",
-                description: "Core application server availability",
-                responseTimeMs: 42,
-                uptimePercent: 99.98,
-                message: "Server operating normally",
-            }],
-            ["email_delivery", {
-                key: "email_delivery",
-                name: "Email Delivery",
-                category: "Third Party",
-                status: "DEGRADED",
-                description: "Transactional email sending performance",
-                responseTimeMs: 1200,
-                uptimePercent: 97.4,
-                message: "Delays detected with SendGrid delivery - avg 1.2s latency",
-            }],
-            ["sms_delivery", {
-                key: "sms_delivery",
-                name: "SMS Delivery",
-                category: "Third Party",
-                status: "OPERATIONAL",
-                description: "Two-factor authentication and notification SMS delivery",
-                responseTimeMs: 340,
-                uptimePercent: 99.9,
-                message: "SMS gateway operating normally",
-            }],
-            ["payment_gateway", {
-                key: "payment_gateway",
-                name: "Payment Gateway",
-                category: "Third Party",
-                status: "OPERATIONAL",
-                description: "Stripe processing gateway availability",
-                responseTimeMs: 210,
-                uptimePercent: 100.0,
-                message: "Payment gateway operating normally",
-            }],
-            ["database_health", {
-                key: "database_health",
-                name: "Database Health",
-                category: "Infrastructure",
-                status: "OPERATIONAL",
-                description: "PostgreSQL database performance and connection pool",
-                responseTimeMs: 18,
-                uptimePercent: 99.99,
-                message: "Database operating normally",
-            }],
-            ["login_error_rate", {
-                key: "login_error_rate",
-                name: "Login Error Rate",
-                category: "Authentication",
-                status: "DEGRADED",
-                description: "Failed login attempts rate monitoring",
-                responseTimeMs: null,
-                uptimePercent: 95.8,
-                message: "Login error rate at 4.2% - above 2% threshold. Spike started 15 mins ago.",
-            }],
+            [
+                "server_status",
+                {
+                    key: "server_status",
+                    name: "Server Status",
+                    category: "Infrastructure",
+                    status: "OPERATIONAL",
+                    description: "Core application server availability",
+                    responseTimeMs: 42,
+                    uptimePercent: 99.98,
+                    message: "Server operating normally",
+                },
+            ],
+            [
+                "email_delivery",
+                {
+                    key: "email_delivery",
+                    name: "Email Delivery",
+                    category: "Third Party",
+                    status: "DEGRADED",
+                    description: "Transactional email sending performance",
+                    responseTimeMs: 1200,
+                    uptimePercent: 97.4,
+                    message: "Delays detected with SendGrid delivery - avg 1.2s latency",
+                },
+            ],
+            [
+                "sms_delivery",
+                {
+                    key: "sms_delivery",
+                    name: "SMS Delivery",
+                    category: "Third Party",
+                    status: "OPERATIONAL",
+                    description: "Two-factor authentication and notification SMS delivery",
+                    responseTimeMs: 340,
+                    uptimePercent: 99.9,
+                    message: "SMS gateway operating normally",
+                },
+            ],
+            [
+                "payment_gateway",
+                {
+                    key: "payment_gateway",
+                    name: "Payment Gateway",
+                    category: "Third Party",
+                    status: "OPERATIONAL",
+                    description: "Stripe processing gateway availability",
+                    responseTimeMs: 210,
+                    uptimePercent: 100.0,
+                    message: "Payment gateway operating normally",
+                },
+            ],
+            [
+                "database_health",
+                {
+                    key: "database_health",
+                    name: "Database Health",
+                    category: "Infrastructure",
+                    status: "OPERATIONAL",
+                    description: "PostgreSQL database performance and connection pool",
+                    responseTimeMs: 18,
+                    uptimePercent: 99.99,
+                    message: "Database operating normally",
+                },
+            ],
+            [
+                "login_error_rate",
+                {
+                    key: "login_error_rate",
+                    name: "Login Error Rate",
+                    category: "Authentication",
+                    status: "DEGRADED",
+                    description: "Failed login attempts rate monitoring",
+                    responseTimeMs: null,
+                    uptimePercent: 95.8,
+                    message:
+                        "Login error rate at 4.2% - above 2% threshold. Spike started 15 mins ago.",
+                },
+            ],
         ]);
 
         const services = Array.from(defaultServicesMap.keys()).map((key) => {
             const defaultService = defaultServicesMap.get(key)!;
-            const service = { ...defaultService, id: `mock-${key}`, checkedAt: new Date(), isActive: true, createdAt: new Date(), updatedAt: new Date() };
+            const service = {
+                ...defaultService,
+                id: `mock-${key}`,
+                checkedAt: new Date(),
+                isActive: true,
+                createdAt: new Date(),
+                updatedAt: new Date(),
+            };
 
             // Apply dynamic live micro-fluctuations to show "Real-time" activity:
             // NOTE: For unintegrated services, we simulate live data. These can be integrated with actual status checks.
@@ -141,19 +167,80 @@ export class SystemHealthService {
 
         // Build list of default metrics if DB is not seeded or missing entries
         const defaultMetricsMap = new Map<string, any>([
-            ["requests_per_min", { key: "requests_per_min", label: "Requests/min", value: 1847, unit: null, displayValue: "1,847" }],
-            ["avg_response_time", { key: "avg_response_time", label: "Avg Response", value: 124, unit: "ms", displayValue: "124ms" }],
-            ["error_rate", { key: "error_rate", label: "Error Rate", value: 0.3, unit: "%", displayValue: "0.3%" }],
-            ["active_users", { key: "active_users", label: "Active Users", value: 142, unit: null, displayValue: "142" }],
-            ["queue_depth", { key: "queue_depth", label: "Queue Depth", value: 23, unit: null, displayValue: "23" }],
-            ["cpu_usage", { key: "cpu_usage", label: "CPU Usage", value: 34, unit: "%", displayValue: "34%" }],
-            ["memory_usage", { key: "memory_usage", label: "Memory", value: 61, unit: "%", displayValue: "61%" }],
-            ["disk_io", { key: "disk_io", label: "Disk I/O", value: 12, unit: "%", displayValue: "12%" }],
+            [
+                "requests_per_min",
+                {
+                    key: "requests_per_min",
+                    label: "Requests/min",
+                    value: 1847,
+                    unit: null,
+                    displayValue: "1,847",
+                },
+            ],
+            [
+                "avg_response_time",
+                {
+                    key: "avg_response_time",
+                    label: "Avg Response",
+                    value: 124,
+                    unit: "ms",
+                    displayValue: "124ms",
+                },
+            ],
+            [
+                "error_rate",
+                {
+                    key: "error_rate",
+                    label: "Error Rate",
+                    value: 0.3,
+                    unit: "%",
+                    displayValue: "0.3%",
+                },
+            ],
+            [
+                "active_users",
+                {
+                    key: "active_users",
+                    label: "Active Users",
+                    value: 142,
+                    unit: null,
+                    displayValue: "142",
+                },
+            ],
+            [
+                "queue_depth",
+                {
+                    key: "queue_depth",
+                    label: "Queue Depth",
+                    value: 23,
+                    unit: null,
+                    displayValue: "23",
+                },
+            ],
+            [
+                "cpu_usage",
+                { key: "cpu_usage", label: "CPU Usage", value: 34, unit: "%", displayValue: "34%" },
+            ],
+            [
+                "memory_usage",
+                { key: "memory_usage", label: "Memory", value: 61, unit: "%", displayValue: "61%" },
+            ],
+            [
+                "disk_io",
+                { key: "disk_io", label: "Disk I/O", value: 12, unit: "%", displayValue: "12%" },
+            ],
         ]);
 
         const metrics = Array.from(defaultMetricsMap.keys()).map((key) => {
             const defaultMetric = defaultMetricsMap.get(key)!;
-            const metric = { ...defaultMetric, id: `mock-${key}`, recordedAt: new Date(), isActive: true, createdAt: new Date(), updatedAt: new Date() };
+            const metric = {
+                ...defaultMetric,
+                id: `mock-${key}`,
+                recordedAt: new Date(),
+                isActive: true,
+                createdAt: new Date(),
+                updatedAt: new Date(),
+            };
 
             // Apply realistic live micro-fluctuations to show "Real-time" activity:
             // NOTE: These are simulated metrics for features not yet fully integrated at the OS/Infrastructure level.

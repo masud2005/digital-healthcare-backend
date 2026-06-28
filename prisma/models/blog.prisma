@@ -1,0 +1,32 @@
+model Blog {
+  id              String         @id @default(uuid())
+  title           String
+  slug            String         @unique
+  content         String         @db.Text
+  isPublished     Boolean        @default(true) @map("is_published")
+
+  // Author Relation (creator of the blog)
+  authorId        String         @map("author_id")
+  author          User           @relation("BlogAuthor", fields: [authorId], references: [id], onDelete: Cascade)
+
+  // Category Relation
+  categoryId      String         @map("category_id")
+  category        Category       @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+
+  // Optional Provider (DoctorProfile) relation
+  providerId      String?        @map("provider_id")
+  provider        DoctorProfile? @relation(fields: [providerId], references: [id], onDelete: SetNull)
+
+  // Featured Image Relation
+  featuredImageId String?        @unique @map("featured_image_id")
+  featuredImage   Attachment?    @relation("BlogFeaturedImage", fields: [featuredImageId], references: [id], onDelete: SetNull)
+
+  createdAt       DateTime       @default(now()) @map("created_at")
+  updatedAt       DateTime       @updatedAt @map("updated_at")
+
+  @@index([authorId])
+  @@index([categoryId])
+  @@index([providerId])
+  @@index([isPublished])
+  @@map("blogs")
+}

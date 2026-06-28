@@ -1,97 +1,97 @@
 {
-  "id": "cmqq4mlzi0000lesaw89yc4wz",
-  "title": "Weight Loss MD",
-  "metaDescription": "Denver's leading weight loss clinic",
-  "whiteLogoId": "bf20d74f-f27e-428e-8706-dfb3078ce2c4",
-  "blackLogoId": null,
-  "faviconLightId": null,
-  "faviconDarkId": null,
-  "socialPreviewId": null,
-  "createdAt": "2026-06-23T04:10:44.811Z",
-  "updatedAt": "2026-06-23T04:41:44.885Z",
-  "offices": [
-    {
-      "id": "cmqq4mlzr0003lesalflrzbtj",
-      "siteId": "cmqq4mlzi0000lesaw89yc4wz",
-      "name": "Colorado Springs",
-      "address": "1625 Medical Center Point, Suite 100, Colorado Springs, CO 80907",
-      "isActive": true,
-      "createdAt": "2026-06-23T04:10:44.811Z",
-      "updatedAt": "2026-06-23T04:10:44.811Z"
+    "id": "cmqq4mlzi0000lesaw89yc4wz",
+    "title": "Weight Loss MD",
+    "metaDescription": "Denver's leading weight loss clinic",
+    "whiteLogoId": "bf20d74f-f27e-428e-8706-dfb3078ce2c4",
+    "blackLogoId": null,
+    "faviconLightId": null,
+    "faviconDarkId": null,
+    "socialPreviewId": null,
+    "createdAt": "2026-06-23T04:10:44.811Z",
+    "updatedAt": "2026-06-23T04:41:44.885Z",
+    "offices": [
+        {
+            "id": "cmqq4mlzr0003lesalflrzbtj",
+            "siteId": "cmqq4mlzi0000lesaw89yc4wz",
+            "name": "Colorado Springs",
+            "address": "1625 Medical Center Point, Suite 100, Colorado Springs, CO 80907",
+            "isActive": true,
+            "createdAt": "2026-06-23T04:10:44.811Z",
+            "updatedAt": "2026-06-23T04:10:44.811Z"
+        },
+        {
+            "id": "cmqq4mlzr0004lesa3ljof8h3",
+            "siteId": "cmqq4mlzi0000lesaw89yc4wz",
+            "name": "Cherry Creek",
+            "address": "700 S Speer Blvd, Denver, CO 80209",
+            "isActive": true,
+            "createdAt": "2026-06-23T04:10:44.811Z",
+            "updatedAt": "2026-06-23T04:10:44.811Z"
+        },
+        {
+            "id": "cmqq4mlzr0005lesavqtwn2o6",
+            "siteId": "cmqq4mlzi0000lesaw89yc4wz",
+            "name": "DTC / Greenwood Village",
+            "address": "8100 E Union Ave, Suite 104, Denver, CO 80237",
+            "isActive": true,
+            "createdAt": "2026-06-23T04:10:44.811Z",
+            "updatedAt": "2026-06-23T04:10:44.811Z"
+        },
+        {
+            "id": "cmqq4mlzr0006lesa2tgzkueb",
+            "siteId": "cmqq4mlzi0000lesaw89yc4wz",
+            "name": "Boulder",
+            "address": "2425 Canyon Blvd, Suite G, Boulder, CO 80302",
+            "isActive": true,
+            "createdAt": "2026-06-23T04:10:44.811Z",
+            "updatedAt": "2026-06-23T04:10:44.811Z"
+        }
+    ],
+    "socialLinks": [
+        {
+            "name": "facebook",
+            "url": "https://"
+        },
+        {
+            "name": "instagram",
+            "url": "https://"
+        },
+        {
+            "name": "twitter",
+            "url": "https://"
+        },
+        {
+            "name": "linkedin",
+            "url": "https://"
+        }
+    ],
+    "whiteLogo": {
+        "id": "bf20d74f-f27e-428e-8706-dfb3078ce2c4",
+        "fileName": "Crypto Notifire.png",
+        "fileUrl": "http://127.0.0.1:9000/testing/2026-06-23/0ffa492e-7d3e-4f97-a121-a77b6976da3f-crypto-notifire.png?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Content-Sha256=UNSIGNED-PAYLOAD&X-Amz-Credential=admin%2F20260623%2Fus-east-1%2Fs3%2Faws4_request&X-Amz-Date=20260623T044144Z&X-Amz-Expires=432000&X-Amz-Signature=0f654b24a5b9876ec7a6f7877cb4ca9010e3024fa59488d7243226ea2d823cfb&X-Amz-SignedHeaders=host&x-amz-checksum-mode=ENABLED&x-id=GetObject",
+        "fileType": "image/png",
+        "fileSize": 188354,
+        "context": "WEBSITE_LOGO",
+        "uploadedById": "9e87e19c-e14a-4e43-b9d7-2811affafd8f",
+        "productId": null,
+        "conversationId": null,
+        "sideEffectReportId": null,
+        "createdAt": "2026-06-23T04:41:08.343Z",
+        "updatedAt": "2026-06-23T04:41:44.876Z"
     },
-    {
-      "id": "cmqq4mlzr0004lesa3ljof8h3",
-      "siteId": "cmqq4mlzi0000lesaw89yc4wz",
-      "name": "Cherry Creek",
-      "address": "700 S Speer Blvd, Denver, CO 80209",
-      "isActive": true,
-      "createdAt": "2026-06-23T04:10:44.811Z",
-      "updatedAt": "2026-06-23T04:10:44.811Z"
+    "blackLogo": null,
+    "faviconLight": null,
+    "faviconDark": null,
+    "socialPreview": null,
+    "contactInfo": {
+        "siteId": "cmqq4mlzi0000lesaw89yc4wz",
+        "phone": "(720) 277-9614",
+        "email": "info@wlmd.net",
+        "openHours": "Mon - Fri : 9AM - 2PM, 3PM - 6PM",
+        "closedDays": "Sat - Sun"
     },
-    {
-      "id": "cmqq4mlzr0005lesavqtwn2o6",
-      "siteId": "cmqq4mlzi0000lesaw89yc4wz",
-      "name": "DTC / Greenwood Village",
-      "address": "8100 E Union Ave, Suite 104, Denver, CO 80237",
-      "isActive": true,
-      "createdAt": "2026-06-23T04:10:44.811Z",
-      "updatedAt": "2026-06-23T04:10:44.811Z"
-    },
-    {
-      "id": "cmqq4mlzr0006lesa2tgzkueb",
-      "siteId": "cmqq4mlzi0000lesaw89yc4wz",
-      "name": "Boulder",
-      "address": "2425 Canyon Blvd, Suite G, Boulder, CO 80302",
-      "isActive": true,
-      "createdAt": "2026-06-23T04:10:44.811Z",
-      "updatedAt": "2026-06-23T04:10:44.811Z"
+    "googleAnalytics": {
+        "siteId": "cmqq4mlzi0000lesaw89yc4wz",
+        "gaMeasurementId": "G-XXXXXXXXXX"
     }
-  ],
-  "socialLinks": [
-    {
-      "name": "facebook",
-      "url": "https://"
-    },
-    {
-      "name": "instagram",
-      "url": "https://"
-    },
-    {
-      "name": "twitter",
-      "url": "https://"
-    },
-    {
-      "name": "linkedin",
-      "url": "https://"
-    }
-  ],
-  "whiteLogo": {
-    "id": "bf20d74f-f27e-428e-8706-dfb3078ce2c4",
-    "fileName": "Crypto Notifire.png",
-    "fileUrl": "http://127.0.0.1:9000/testing/2026-06-23/0ffa492e-7d3e-4f97-a121-a77b6976da3f-crypto-notifire.png?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Content-Sha256=UNSIGNED-PAYLOAD&X-Amz-Credential=admin%2F20260623%2Fus-east-1%2Fs3%2Faws4_request&X-Amz-Date=20260623T044144Z&X-Amz-Expires=432000&X-Amz-Signature=0f654b24a5b9876ec7a6f7877cb4ca9010e3024fa59488d7243226ea2d823cfb&X-Amz-SignedHeaders=host&x-amz-checksum-mode=ENABLED&x-id=GetObject",
-    "fileType": "image/png",
-    "fileSize": 188354,
-    "context": "WEBSITE_LOGO",
-    "uploadedById": "9e87e19c-e14a-4e43-b9d7-2811affafd8f",
-    "productId": null,
-    "conversationId": null,
-    "sideEffectReportId": null,
-    "createdAt": "2026-06-23T04:41:08.343Z",
-    "updatedAt": "2026-06-23T04:41:44.876Z"
-  },
-  "blackLogo": null,
-  "faviconLight": null,
-  "faviconDark": null,
-  "socialPreview": null,
-  "contactInfo": {
-    "siteId": "cmqq4mlzi0000lesaw89yc4wz",
-    "phone": "(720) 277-9614",
-    "email": "info@wlmd.net",
-    "openHours": "Mon - Fri : 9AM - 2PM, 3PM - 6PM",
-    "closedDays": "Sat - Sun"
-  },
-  "googleAnalytics": {
-    "siteId": "cmqq4mlzi0000lesaw89yc4wz",
-    "gaMeasurementId": "G-XXXXXXXXXX"
-  }
 }

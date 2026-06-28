@@ -16,7 +16,10 @@ import { AssessmentSubmissionService } from "./assessment-submission.service";
 import { AssessmentParamDto } from "./dto/assessment-submission-param.dto";
 import { AssessmentSubmissionResponseDto } from "./dto/assessment-submission-response.dto";
 import { CreateAssessmentSubmissionDto } from "./dto/create-assessment-submission.dto";
-import { MyAssessmentBlueprintDto, MyAssessmentSummaryResponseDto } from "./dto/my-assessment-blueprint.dto";
+import {
+    MyAssessmentBlueprintDto,
+    MyAssessmentSummaryResponseDto,
+} from "./dto/my-assessment-blueprint.dto";
 import { UpdateAssessmentSubmissionDto } from "./dto/update-assessment-submission.dto";
 
 const ANSWERS_EXAMPLES = {
@@ -207,7 +210,12 @@ export class AssessmentSubmissionController {
             "Supports filtering by status and returns a grouped counts map for all statuses.",
     })
     @ApiOkResponse({ type: MyAssessmentSummaryResponseDto })
-    @ApiQuery({ name: "status", enum: SubmissionStatus, required: false, description: "Filter by assessment status" })
+    @ApiQuery({
+        name: "status",
+        enum: SubmissionStatus,
+        required: false,
+        description: "Filter by assessment status",
+    })
     @ApiQuery({ name: "page", required: false, type: Number })
     @ApiQuery({ name: "limit", required: false, type: Number })
     async getMyAssessments(

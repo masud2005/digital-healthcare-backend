@@ -2,13 +2,7 @@ import { CurrentUser } from "@common/decorators/current-user.decorator";
 import { JwtAuthGuard } from "@common/guards/jwt-auth.guard";
 import type { AuthenticatedUser } from "@main/auth/auth.types";
 import { Controller, Get, Param, Query, UseGuards } from "@nestjs/common";
-import {
-    ApiBearerAuth,
-    ApiOkResponse,
-    ApiOperation,
-    ApiQuery,
-    ApiTags,
-} from "@nestjs/swagger";
+import { ApiBearerAuth, ApiOkResponse, ApiOperation, ApiQuery, ApiTags } from "@nestjs/swagger";
 import { OrderStatus } from "@prisma/client";
 import { MyOrderDetailDto, MyOrderListResponseDto } from "./dto/my-order.dto";
 import type { DateRangeFilter } from "./my-order.repository";
@@ -74,10 +68,7 @@ export class MyOrderController {
             "tracking info, and the linked assessment submission.",
     })
     @ApiOkResponse({ type: MyOrderDetailDto })
-    async getMyOrderById(
-        @Param("id") id: string,
-        @CurrentUser() user: AuthenticatedUser,
-    ) {
+    async getMyOrderById(@Param("id") id: string, @CurrentUser() user: AuthenticatedUser) {
         const order = await this.myOrderService.getMyOrderById(id, user.id);
         return {
             success: true,

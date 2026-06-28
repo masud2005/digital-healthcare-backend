@@ -39,9 +39,24 @@ export class AssessmentSubmissionService {
         private readonly prisma: PrismaService,
     ) {}
 
-    async getMyAssessmentsSummary(userId: string, status?: SubmissionStatus, page?: number, limit?: number) {
-        const { submissions, counts, total, page: currentPage, limit: currentLimit } =
-            await this.assessmentSubmissionRepository.getMyAssessmentsSummary(userId, status, page, limit);
+    async getMyAssessmentsSummary(
+        userId: string,
+        status?: SubmissionStatus,
+        page?: number,
+        limit?: number,
+    ) {
+        const {
+            submissions,
+            counts,
+            total,
+            page: currentPage,
+            limit: currentLimit,
+        } = await this.assessmentSubmissionRepository.getMyAssessmentsSummary(
+            userId,
+            status,
+            page,
+            limit,
+        );
 
         const mappedSubmissions = await Promise.all(
             submissions.map(async (sub) => {
@@ -71,7 +86,7 @@ export class AssessmentSubmissionService {
                     reviewedBy: reviewer,
                     doctorNotes: sub.doctorNotes ?? null,
                 };
-            })
+            }),
         );
 
         return {
@@ -222,7 +237,12 @@ export class AssessmentSubmissionService {
             const options = questionOptionsMap.get(questionId) ?? [];
             const isFileInput = options.some((o) => {
                 const type = o.inputType?.toLowerCase();
-                return type === "file" || type === "file_upload" || type === "file-upload" || type === "file upload";
+                return (
+                    type === "file" ||
+                    type === "file_upload" ||
+                    type === "file-upload" ||
+                    type === "file upload"
+                );
             });
 
             // Resolve attachment if textResponse holds a file attachment id
@@ -326,11 +346,13 @@ export class AssessmentSubmissionService {
                                 ? await this.storageService.resolveKey(item.productImageSnapshot)
                                 : null,
                             price: Number(item.unitPrice),
-                        }))
+                        })),
                     ),
                     subtotal: Number(order.subtotal),
                     serviceDuration,
-                    serviceFees: subscription?.paymentPlan ? Number(subscription.paymentPlan.price) : 0,
+                    serviceFees: subscription?.paymentPlan
+                        ? Number(subscription.paymentPlan.price)
+                        : 0,
                     shippingCharge: Number(order.shippingAmount),
                     discount: Number(order.discountAmount),
                     total: Number(order.total),
@@ -367,7 +389,8 @@ export class AssessmentSubmissionService {
                       certifiedInfoAccurate: compliance.certifiedInfoAccurate,
                       understoodFalseInfoConsequences: compliance.understoodFalseInfoConsequences,
                       understoodRecommendationsBasis: compliance.understoodRecommendationsBasis,
-                      understoodAdditionalInfoMayBeRequested: compliance.understoodAdditionalInfoMayBeRequested,
+                      understoodAdditionalInfoMayBeRequested:
+                          compliance.understoodAdditionalInfoMayBeRequested,
                   }
                 : null,
             paymentSummary,

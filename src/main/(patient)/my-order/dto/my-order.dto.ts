@@ -20,8 +20,10 @@ export class MyOrderListItemDto {
     @ApiProperty({ example: 2 }) itemCount: number;
     @ApiProperty({ example: "2026-05-31T00:00:00.000Z" }) createdAt: Date;
     @ApiPropertyOptional({ example: "TXN-CLVR-123", nullable: true }) transactionId: string | null;
-    @ApiPropertyOptional({ type: MyOrderApprovedByDto, nullable: true }) reviewedBy: MyOrderApprovedByDto | null;
-    @ApiPropertyOptional({ type: MyOrderSubmissionRefDto, nullable: true }) submission: MyOrderSubmissionRefDto | null;
+    @ApiPropertyOptional({ type: MyOrderApprovedByDto, nullable: true })
+    reviewedBy: MyOrderApprovedByDto | null;
+    @ApiPropertyOptional({ type: MyOrderSubmissionRefDto, nullable: true })
+    submission: MyOrderSubmissionRefDto | null;
 }
 
 export class MyOrderListResponseDto {
@@ -50,7 +52,8 @@ export class MyOrderInfoDto {
     @ApiPropertyOptional({ example: "TXN-CLVR-123", nullable: true }) transactionId: string | null;
     @ApiProperty({ example: "CONFIRMED" }) orderStatus: string;
     @ApiPropertyOptional({ example: "David Wilson", nullable: true }) patientName: string | null;
-    @ApiPropertyOptional({ type: MyOrderApprovedByDto, nullable: true }) approvedBy: MyOrderApprovedByDto | null;
+    @ApiPropertyOptional({ type: MyOrderApprovedByDto, nullable: true })
+    approvedBy: MyOrderApprovedByDto | null;
 }
 
 export class MyOrderShippingAddressDto {
@@ -98,7 +101,9 @@ export class MyOrderDetailDto {
     @ApiProperty({ example: 20.0 }) shippingAmount: number;
     @ApiProperty({ example: 110.0 }) total: number;
     @ApiProperty({ type: MyOrderShippingAddressDto }) shippingAddress: MyOrderShippingAddressDto;
-    @ApiPropertyOptional({ type: MyOrderPaymentDetailsDto, nullable: true }) paymentDetails: MyOrderPaymentDetailsDto | null;
+    @ApiPropertyOptional({ type: MyOrderPaymentDetailsDto, nullable: true })
+    paymentDetails: MyOrderPaymentDetailsDto | null;
     @ApiProperty({ type: MyOrderShippingInfoDto }) shippingInfo: MyOrderShippingInfoDto;
-    @ApiPropertyOptional({ type: MyOrderSubmissionDetailDto, nullable: true }) submission: MyOrderSubmissionDetailDto | null;
+    @ApiPropertyOptional({ type: MyOrderSubmissionDetailDto, nullable: true })
+    submission: MyOrderSubmissionDetailDto | null;
 }

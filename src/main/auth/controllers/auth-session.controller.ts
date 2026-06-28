@@ -4,7 +4,11 @@ import type { Request, Response } from "express";
 import { JwtAuthGuard } from "@common/guards/jwt-auth.guard";
 import { AuthMessageResponseDto, AuthResponseDto } from "../dto/auth-response.dto";
 import { AuthSessionService } from "../services/auth-session.service";
-import { clearRefreshCookie, getRequestContext, setRefreshCookieAndReturnBody } from "./auth-controller.utils";
+import {
+    clearRefreshCookie,
+    getRequestContext,
+    setRefreshCookieAndReturnBody,
+} from "./auth-controller.utils";
 
 type AuthenticatedRequest = Request & {
     session?: {
@@ -36,7 +40,7 @@ export class AuthSessionController {
         const token = req.cookies?.[cookieName];
 
         const result = await this.authSessionService.refresh(token, getRequestContext(req));
-        
+
         return setRefreshCookieAndReturnBody(
             result as { refreshToken: string; [key: string]: unknown },
             res,

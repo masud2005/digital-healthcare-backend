@@ -21,7 +21,14 @@ import { AuthSharedService } from "./services/auth-shared.service";
 import { AuthService } from "./services/auth.service";
 
 @Module({
-    imports: [PrismaModule, SystemHealthModule, AuditLogModule, MailModule, StorageModule, NotificationModule],
+    imports: [
+        PrismaModule,
+        SystemHealthModule,
+        AuditLogModule,
+        MailModule,
+        StorageModule,
+        NotificationModule,
+    ],
     controllers: [
         AuthAccountController,
         AuthOtpController,

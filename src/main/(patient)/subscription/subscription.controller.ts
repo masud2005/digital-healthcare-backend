@@ -16,7 +16,8 @@ export class SubscriptionController {
     @Get()
     @ApiOperation({
         summary: "Get my subscriptions",
-        description: "Returns all subscriptions belonging to the authenticated patient, with payment history.",
+        description:
+            "Returns all subscriptions belonging to the authenticated patient, with payment history.",
     })
     @ApiOkResponse({ description: "List of patient subscriptions" })
     async getMySubscriptions(@CurrentUser() user: AuthenticatedUser) {
@@ -32,7 +33,8 @@ export class SubscriptionController {
     @Get(":id")
     @ApiOperation({
         summary: "Get a single subscription",
-        description: "Returns details of a specific subscription by ID (must belong to the authenticated patient).",
+        description:
+            "Returns details of a specific subscription by ID (must belong to the authenticated patient).",
     })
     @ApiOkResponse({ description: "Subscription details" })
     async getMySubscriptionById(@CurrentUser() user: AuthenticatedUser, @Param("id") id: string) {

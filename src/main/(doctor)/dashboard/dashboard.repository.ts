@@ -8,12 +8,9 @@ export class DoctorDashboardRepository {
     async getStats(userId: string) {
         // Group by status where the submission is either assigned to this doctor or is unassigned (PENDING)
         return this.prisma.assessmentSubmission.groupBy({
-            by: ['status'],
+            by: ["status"],
             where: {
-                OR: [
-                    { reviewedBy: userId },
-                    { status: 'PENDING' }
-                ]
+                OR: [{ reviewedBy: userId }, { status: "PENDING" }],
             },
             _count: {
                 status: true,

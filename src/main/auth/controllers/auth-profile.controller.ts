@@ -45,10 +45,7 @@ export class AuthProfileController {
 
     @Patch("me/preferences")
     @ApiOperation({ summary: "Update communication preferences" })
-    updatePreference(
-        @CurrentUser() user: AuthenticatedUser,
-        @Body() dto: UpdatePreferenceDto,
-    ) {
+    updatePreference(@CurrentUser() user: AuthenticatedUser, @Body() dto: UpdatePreferenceDto) {
         return this.authAccountService.updatePreference(user.id, dto);
     }
 

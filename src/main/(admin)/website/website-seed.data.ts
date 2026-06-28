@@ -48,4 +48,3 @@ export const DEFAULT_WEBSITE_SETTINGS = {
         ],
     },
 };
-

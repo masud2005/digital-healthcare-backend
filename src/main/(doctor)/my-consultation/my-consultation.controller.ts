@@ -3,8 +3,19 @@ import { JwtAuthGuard } from "@common/guards/jwt-auth.guard";
 import type { AuthenticatedUser } from "@main/auth/auth.types";
 import { AssessmentSubmissionService } from "@main/(patient)/assessment-submission/assessment-submission.service";
 import { Body, Controller, Get, Param, Patch, Query, UseGuards } from "@nestjs/common";
-import { ApiBearerAuth, ApiBody, ApiOkResponse, ApiOperation, ApiQuery, ApiTags } from "@nestjs/swagger";
-import { ConsultationTab, DoctorConsultationListResponseDto, UpdateConsultationStatusDto } from "./dto/my-consultation.dto";
+import {
+    ApiBearerAuth,
+    ApiBody,
+    ApiOkResponse,
+    ApiOperation,
+    ApiQuery,
+    ApiTags,
+} from "@nestjs/swagger";
+import {
+    ConsultationTab,
+    DoctorConsultationListResponseDto,
+    UpdateConsultationStatusDto,
+} from "./dto/my-consultation.dto";
 import { DoctorMyConsultationService } from "./my-consultation.service";
 
 @ApiTags("(Doctor) My Consultations")
@@ -50,7 +61,8 @@ export class DoctorMyConsultationController {
     @Get(":id")
     @ApiOperation({
         summary: "Get a specific consultation (assessment blueprint)",
-        description: "Returns the complete assessment blueprint mapping for a specific consultation.",
+        description:
+            "Returns the complete assessment blueprint mapping for a specific consultation.",
     })
     async getConsultation(@Param("id") id: string, @CurrentUser() user: AuthenticatedUser) {
         const result = await this.assessmentSubmissionService.getMyAssessmentBlueprint(id, {
@@ -69,7 +81,8 @@ export class DoctorMyConsultationController {
     @Patch("status/:id")
     @ApiOperation({
         summary: "Update the status of a consultation",
-        description: "Allows a doctor to ACCEPT, REVIEW, REJECT, or request a refill for a consultation.",
+        description:
+            "Allows a doctor to ACCEPT, REVIEW, REJECT, or request a refill for a consultation.",
     })
     @ApiBody({ type: UpdateConsultationStatusDto })
     async updateConsultationStatus(

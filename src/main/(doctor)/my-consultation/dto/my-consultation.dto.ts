@@ -31,7 +31,7 @@ export class DoctorConsultationItemDto {
 export class DoctorConsultationListResponseDto {
     @ApiProperty({ type: [DoctorConsultationItemDto] })
     consultations: DoctorConsultationItemDto[];
-    
+
     @ApiProperty({
         example: { ACTIVE_CONSULTATION: 5, NEW_REQUEST: 2, DECLINED_REQUEST: 1, HISTORY: 0 },
         description: "Count of consultations grouped by tab",
@@ -40,17 +40,17 @@ export class DoctorConsultationListResponseDto {
 }
 
 export class UpdateConsultationStatusDto {
-    @ApiProperty({ 
-        example: "ACCEPTED", 
-        enum: ["ACCEPTED", "REVIEWED", "REJECTED", "REFIL_REQUESTED"] 
+    @ApiProperty({
+        example: "ACCEPTED",
+        enum: ["ACCEPTED", "REVIEWED", "REJECTED", "REFIL_REQUESTED"],
     })
     @IsString()
     @IsNotEmpty()
     status: string;
 
-    @ApiPropertyOptional({ 
+    @ApiPropertyOptional({
         example: "The patient is eligible for treatment.",
-        description: "Mandatory if status is REJECTED or REFIL_REQUESTED"
+        description: "Mandatory if status is REJECTED or REFIL_REQUESTED",
     })
     @IsOptional()
     @IsString()

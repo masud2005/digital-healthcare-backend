@@ -1,4 +1,10 @@
-import { BadRequestException, ConflictException, Injectable, NotFoundException, UnprocessableEntityException } from "@nestjs/common";
+import {
+    BadRequestException,
+    ConflictException,
+    Injectable,
+    NotFoundException,
+    UnprocessableEntityException,
+} from "@nestjs/common";
 import { CartRepository } from "../cart/cart.repository";
 import type { CheckoutDto } from "./dto/checkout.dto";
 import { PaymentRepository } from "./payment.repository";
@@ -23,9 +29,7 @@ function validateCardInfo(cardNumber: string, expiredDate: string, cvv: string) 
     const num = cardNumber.replace(/\s+/g, "");
 
     if (!/^\d{13,19}$/.test(num)) {
-        throw new UnprocessableEntityException(
-            "Card number must be between 13 and 19 digits.",
-        );
+        throw new UnprocessableEntityException("Card number must be between 13 and 19 digits.");
     }
 
     // Luhn check
@@ -45,9 +49,7 @@ function validateCardInfo(cardNumber: string, expiredDate: string, cvv: string) 
     }
 
     if (!/^(0[1-9]|1[0-2])\/\d{2}$/.test(expiredDate)) {
-        throw new UnprocessableEntityException(
-            "Expiry date must be in MM/YY format (e.g. 08/27).",
-        );
+        throw new UnprocessableEntityException("Expiry date must be in MM/YY format (e.g. 08/27).");
     }
     const [expMonth, expYear] = expiredDate.split("/").map(Number);
     const now = new Date();
@@ -83,9 +85,14 @@ export class PaymentService {
         );
 
         // 2. Verify Assessment Submission
-        let submission: Awaited<ReturnType<typeof this.paymentRepository.findSubmissionById>> | null = null;
+        let submission: Awaited<
+            ReturnType<typeof this.paymentRepository.findSubmissionById>
+        > | null = null;
         if (dto.submissionId) {
-            const rawSubmission = await this.paymentRepository.findSubmissionByIdAny(dto.submissionId, userId);
+            const rawSubmission = await this.paymentRepository.findSubmissionByIdAny(
+                dto.submissionId,
+                userId,
+            );
 
             if (!rawSubmission) {
                 throw new NotFoundException(
@@ -185,9 +192,7 @@ export class PaymentService {
 
         if (isSubscribing) {
             if (!dto.submissionId || !submission) {
-                throw new BadRequestException(
-                    "submissionId is required when isRecurring is true.",
-                );
+                throw new BadRequestException("submissionId is required when isRecurring is true.");
             }
 
             if (!submission.assessment?.category?.paymentPlan) {
@@ -200,7 +205,10 @@ export class PaymentService {
             categoryId = submission.assessment.category.id;
 
             // Check for existing active subscription under the same category
-            const existingSubscription = await this.paymentRepository.findActiveSubscription(userId, categoryId!);
+            const existingSubscription = await this.paymentRepository.findActiveSubscription(
+                userId,
+                categoryId!,
+            );
             if (existingSubscription) {
                 throw new ConflictException(
                     "You already have an active subscription for this service category.",
@@ -284,29 +292,35 @@ export class PaymentService {
         });
 
         // 12. Extract card info from Clover response (fallback to local detection)
-        const last4 = cloverCharge.last4 || dto.paymentInfo.cardNumber.replace(/\s+/g, "").slice(-4);
+        const last4 =
+            cloverCharge.last4 || dto.paymentInfo.cardNumber.replace(/\s+/g, "").slice(-4);
         const brand = cloverCharge.brand || detectCardBrand(dto.paymentInfo.cardNumber);
         const cloverChargeId = cloverCharge.id;
 
         // 13. Execute DB transaction (payment already confirmed by Clover)
-        const result = await this.paymentRepository.executeCheckoutTransaction(userId, dto.submissionId, cart, {
-            subtotal,
-            discountAmount,
-            shippingCharge,
-            total,
-            shippingInfo: dto.shippingInfo,
-            complianceConfirmation: dto.complianceConfirmation,
-            discountId,
-            isRecurring: isSubscribing,
-            billingCycle: dto.billingCycle,
-            paymentPlan,
-            categoryId: categoryId ?? "",
-            paymentType,
-            last4,
-            brand,
-            cloverChargeId,
-            cloverCardToken,
-        });
+        const result = await this.paymentRepository.executeCheckoutTransaction(
+            userId,
+            dto.submissionId,
+            cart,
+            {
+                subtotal,
+                discountAmount,
+                shippingCharge,
+                total,
+                shippingInfo: dto.shippingInfo,
+                complianceConfirmation: dto.complianceConfirmation,
+                discountId,
+                isRecurring: isSubscribing,
+                billingCycle: dto.billingCycle,
+                paymentPlan,
+                categoryId: categoryId ?? "",
+                paymentType,
+                last4,
+                brand,
+                cloverChargeId,
+                cloverCardToken,
+            },
+        );
 
         // Fetch user for notification
         const user = await this.prisma.user.findUnique({

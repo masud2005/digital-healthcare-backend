@@ -38,10 +38,7 @@ export class WebsiteController {
     @ApiBearerAuth()
     @UseGuards(JwtAuthGuard, RolesGuard)
     @Roles("ADMIN")
-    updateOfficeAddress(
-        @Headers("id") officeId: string,
-        @Body() payload: OfficeLocationDto,
-    ) {
+    updateOfficeAddress(@Headers("id") officeId: string, @Body() payload: OfficeLocationDto) {
         return this.websiteService.updateOfficeAddress(officeId, payload);
     }
 

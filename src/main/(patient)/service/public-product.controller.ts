@@ -10,7 +10,8 @@ export class PublicProductController {
     @Get()
     @ApiOperation({
         summary: "Get products by category id (required)",
-        description: "Returns products of the matched active category. The `categoryId` query param is mandatory.",
+        description:
+            "Returns products of the matched active category. The `categoryId` query param is mandatory.",
     })
     @ApiQuery({ name: "categoryId", required: true, description: "Category ID to filter by" })
     @ApiOkResponse({ description: "Products of the given category" })

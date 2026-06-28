@@ -17,41 +17,75 @@ export class BusinessIntelligenceController {
     @ApiOperation({ summary: "Key business metrics: revenue, refund, patients, rates, LTV, churn" })
     async getStats() {
         const data = await this.biService.getStats();
-        return { success: true, statusCode: HttpStatus.OK, message: "Stats fetched successfully", data };
+        return {
+            success: true,
+            statusCode: HttpStatus.OK,
+            message: "Stats fetched successfully",
+            data,
+        };
     }
 
     @Get("category-revenue")
     @ApiOperation({ summary: "Revenue breakdown per assessment category with percentage" })
     async getCategoryRevenue() {
         const data = await this.biService.getCategoryRevenue();
-        return { success: true, statusCode: HttpStatus.OK, message: "Category revenue fetched successfully", data };
+        return {
+            success: true,
+            statusCode: HttpStatus.OK,
+            message: "Category revenue fetched successfully",
+            data,
+        };
     }
 
     @Get("revenue-vs-refund")
-    @ApiOperation({ summary: "Revenue vs Refund trend chart (last_7_days / last_month / last_year)" })
+    @ApiOperation({
+        summary: "Revenue vs Refund trend chart (last_7_days / last_month / last_year)",
+    })
     async getRevenueVsRefund(@Query() query: TrendQueryDto) {
-        const data = await this.biService.getRevenueVsRefund(query.filter ?? TrendFilter.LAST_7_DAYS);
-        return { success: true, statusCode: HttpStatus.OK, message: "Revenue vs refund trend fetched successfully", data };
+        const data = await this.biService.getRevenueVsRefund(
+            query.filter ?? TrendFilter.LAST_7_DAYS,
+        );
+        return {
+            success: true,
+            statusCode: HttpStatus.OK,
+            message: "Revenue vs refund trend fetched successfully",
+            data,
+        };
     }
 
     @Get("patient-growth")
     @ApiOperation({ summary: "Patient registration growth trend chart" })
     async getPatientGrowth(@Query() query: TrendQueryDto) {
         const data = await this.biService.getPatientGrowth(query.filter ?? TrendFilter.LAST_7_DAYS);
-        return { success: true, statusCode: HttpStatus.OK, message: "Patient growth fetched successfully", data };
+        return {
+            success: true,
+            statusCode: HttpStatus.OK,
+            message: "Patient growth fetched successfully",
+            data,
+        };
     }
 
     @Get("approval-vs-denial")
     @ApiOperation({ summary: "Assessment submission approval vs denial counts and percentages" })
     async getApprovalVsDenial() {
         const data = await this.biService.getApprovalVsDenial();
-        return { success: true, statusCode: HttpStatus.OK, message: "Approval vs denial fetched successfully", data };
+        return {
+            success: true,
+            statusCode: HttpStatus.OK,
+            message: "Approval vs denial fetched successfully",
+            data,
+        };
     }
 
     @Get("revenue-by-service")
     @ApiOperation({ summary: "Revenue amount and percentage breakdown by service category" })
     async getRevenueByService() {
         const data = await this.biService.getRevenueByService();
-        return { success: true, statusCode: HttpStatus.OK, message: "Revenue by service fetched successfully", data };
+        return {
+            success: true,
+            statusCode: HttpStatus.OK,
+            message: "Revenue by service fetched successfully",
+            data,
+        };
     }
 }

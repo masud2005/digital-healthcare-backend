@@ -64,7 +64,9 @@ export class HomePageService implements OnModuleInit {
                     await this.attachmentService.remove(oldId).catch(() => {});
                 }
                 if (newId && typeof newId === "string") {
-                    await this.attachmentService.replace(newId, { context: context as any }).catch(() => {});
+                    await this.attachmentService
+                        .replace(newId, { context: context as any })
+                        .catch(() => {});
                 }
             }
         }
@@ -128,10 +130,18 @@ export class HomePageService implements OnModuleInit {
 
     private async resolveImages(content: any) {
         const [heroMedia, heroBadgeImage, aboutMedia, faqCardMedia] = await Promise.all([
-            content.heroMedia ? this.resolveAttachmentUrl(content.heroMedia) : Promise.resolve(null),
-            content.heroBadgeImage ? this.resolveAttachmentUrl(content.heroBadgeImage) : Promise.resolve(null),
-            content.aboutMedia ? this.resolveAttachmentUrl(content.aboutMedia) : Promise.resolve(null),
-            content.faqCardMedia ? this.resolveAttachmentUrl(content.faqCardMedia) : Promise.resolve(null),
+            content.heroMedia
+                ? this.resolveAttachmentUrl(content.heroMedia)
+                : Promise.resolve(null),
+            content.heroBadgeImage
+                ? this.resolveAttachmentUrl(content.heroBadgeImage)
+                : Promise.resolve(null),
+            content.aboutMedia
+                ? this.resolveAttachmentUrl(content.aboutMedia)
+                : Promise.resolve(null),
+            content.faqCardMedia
+                ? this.resolveAttachmentUrl(content.faqCardMedia)
+                : Promise.resolve(null),
         ]);
 
         return {

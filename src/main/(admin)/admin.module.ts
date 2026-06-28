@@ -16,6 +16,7 @@ import { QuestionModule } from "./question/question.module";
 import { TestimonialModule } from "./testimonial/testimonial.module";
 import { WebsiteModule } from "./website/website.module";
 import { EmployeePermissionModule } from "./employee-permission/employee-permission.module";
+import { BlogsModule } from "./blogs/blogs.module";
 
 @Module({
     imports: [
@@ -36,6 +37,7 @@ import { EmployeePermissionModule } from "./employee-permission/employee-permiss
         DocumentCenterModule,
         CommunicationTemplateModule,
         EmployeePermissionModule,
+        BlogsModule,
     ],
 })
 export class AdminModule {}

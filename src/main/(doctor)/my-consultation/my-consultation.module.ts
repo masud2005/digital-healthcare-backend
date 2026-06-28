@@ -9,9 +9,14 @@ import { DoctorMyConsultationRepository } from "./my-consultation.repository";
 import { DoctorMyConsultationService } from "./my-consultation.service";
 
 @Module({
-    imports: [PrismaModule, StorageModule, AssessmentSubmissionModule, NotificationModule, CloverModule],
+    imports: [
+        PrismaModule,
+        StorageModule,
+        AssessmentSubmissionModule,
+        NotificationModule,
+        CloverModule,
+    ],
     controllers: [DoctorMyConsultationController],
     providers: [DoctorMyConsultationService, DoctorMyConsultationRepository],
 })
 export class DoctorMyConsultationModule {}
-

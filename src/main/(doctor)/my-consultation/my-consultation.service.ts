@@ -20,15 +20,21 @@ export class DoctorMyConsultationService {
     ) {}
 
     async getMyConsultations(userId: string, tab?: ConsultationTab, page?: number, limit?: number) {
-        const { consultations, total, page: currentPage, limit: currentLimit, statusCounts } =
-            await this.myConsultationRepository.findConsultations(userId, tab, page, limit);
+        const {
+            consultations,
+            total,
+            page: currentPage,
+            limit: currentLimit,
+            statusCounts,
+        } = await this.myConsultationRepository.findConsultations(userId, tab, page, limit);
 
         const mappedConsultations = await Promise.all(
             consultations.map(async (consultation) => ({
                 id: consultation.id,
                 category: consultation.assessment.category?.name ?? null,
                 title: consultation.assessment.title,
-                patientName: consultation.user.patientProfile?.name ?? consultation.user.name ?? null,
+                patientName:
+                    consultation.user.patientProfile?.name ?? consultation.user.name ?? null,
                 thumbnail: consultation.assessment.thumbnail
                     ? await this.storageService.resolveKey(consultation.assessment.thumbnail)
                     : null,
@@ -87,7 +93,9 @@ export class DoctorMyConsultationService {
             (status === SubmissionStatus.REJECTED || status === SubmissionStatus.REFIL_REQUESTED) &&
             (!doctorNotes || doctorNotes.trim().length === 0)
         ) {
-            throw new BadRequestException("Doctor notes are mandatory when rejecting or requesting a refill.");
+            throw new BadRequestException(
+                "Doctor notes are mandatory when rejecting or requesting a refill.",
+            );
         }
 
         const result = await this.myConsultationRepository.updateConsultationStatus(

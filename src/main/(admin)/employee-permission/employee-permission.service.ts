@@ -270,7 +270,9 @@ export class EmployeePermissionService {
         });
 
         if (createdUser) {
-            const roleNames = createdUser.userRoles.map((ur) => ur.role.displayName || ur.role.name);
+            const roleNames = createdUser.userRoles.map(
+                (ur) => ur.role.displayName || ur.role.name,
+            );
             const directPermissions = createdUser.userPermissions.map(
                 (up) => up.permission.name || up.permission.key,
             );

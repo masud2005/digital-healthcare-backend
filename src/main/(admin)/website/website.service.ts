@@ -66,7 +66,9 @@ export class WebsiteService implements OnModuleInit {
                     await this.attachmentService.remove(oldId).catch(() => {});
                 }
                 if (newId && typeof newId === "string") {
-                    await this.attachmentService.replace(newId, { context: context as any }).catch(() => {});
+                    await this.attachmentService
+                        .replace(newId, { context: context as any })
+                        .catch(() => {});
                 }
             }
         }
@@ -75,7 +77,7 @@ export class WebsiteService implements OnModuleInit {
         if (payload.socialLinks !== undefined) {
             const existingSocialLinks = dbSettings.socialLinks || [];
             updateData.socialLinks = payload.socialLinks.map((s: any) => {
-                const existing = existingSocialLinks.find(el => el.name === s.name);
+                const existing = existingSocialLinks.find((el) => el.name === s.name);
                 return {
                     id: existing?.id,
                     name: s.name,
@@ -112,14 +114,23 @@ export class WebsiteService implements OnModuleInit {
     }
 
     private async resolveSettingsImages(settings: any) {
-        const [whiteLogo, blackLogo, faviconLight, faviconDark, socialPreview] =
-            await Promise.all([
-                settings.whiteLogo ? this.resolveAttachmentUrl(settings.whiteLogo) : Promise.resolve(null),
-                settings.blackLogo ? this.resolveAttachmentUrl(settings.blackLogo) : Promise.resolve(null),
-                settings.faviconLight ? this.resolveAttachmentUrl(settings.faviconLight) : Promise.resolve(null),
-                settings.faviconDark ? this.resolveAttachmentUrl(settings.faviconDark) : Promise.resolve(null),
-                settings.socialPreview ? this.resolveAttachmentUrl(settings.socialPreview) : Promise.resolve(null),
-            ]);
+        const [whiteLogo, blackLogo, faviconLight, faviconDark, socialPreview] = await Promise.all([
+            settings.whiteLogo
+                ? this.resolveAttachmentUrl(settings.whiteLogo)
+                : Promise.resolve(null),
+            settings.blackLogo
+                ? this.resolveAttachmentUrl(settings.blackLogo)
+                : Promise.resolve(null),
+            settings.faviconLight
+                ? this.resolveAttachmentUrl(settings.faviconLight)
+                : Promise.resolve(null),
+            settings.faviconDark
+                ? this.resolveAttachmentUrl(settings.faviconDark)
+                : Promise.resolve(null),
+            settings.socialPreview
+                ? this.resolveAttachmentUrl(settings.socialPreview)
+                : Promise.resolve(null),
+        ]);
 
         const socialLinks = settings.socialLinks || [];
 
@@ -132,17 +143,21 @@ export class WebsiteService implements OnModuleInit {
             faviconLight,
             faviconDark,
             socialPreview,
-            contactInfo: contactInfo ? {
-                siteId: contactInfo.siteId,
-                phone: contactInfo.phone,
-                email: contactInfo.email,
-                openHours: contactInfo.openHours,
-                closedDays: contactInfo.closedDays,
-            } : null,
-            googleAnalytics: googleAnalytics ? {
-                siteId: googleAnalytics.siteId,
-                gaMeasurementId: googleAnalytics.gaMeasurementId,
-            } : null,
+            contactInfo: contactInfo
+                ? {
+                      siteId: contactInfo.siteId,
+                      phone: contactInfo.phone,
+                      email: contactInfo.email,
+                      openHours: contactInfo.openHours,
+                      closedDays: contactInfo.closedDays,
+                  }
+                : null,
+            googleAnalytics: googleAnalytics
+                ? {
+                      siteId: googleAnalytics.siteId,
+                      gaMeasurementId: googleAnalytics.gaMeasurementId,
+                  }
+                : null,
             socialLinks: socialLinks.map((s: any) => ({
                 name: s.name,
                 url: s.url,

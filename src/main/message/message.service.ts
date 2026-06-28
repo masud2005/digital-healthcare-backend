@@ -1,4 +1,9 @@
-import { BadRequestException, ForbiddenException, Injectable, NotFoundException } from "@nestjs/common";
+import {
+    BadRequestException,
+    ForbiddenException,
+    Injectable,
+    NotFoundException,
+} from "@nestjs/common";
 import { createPublicKey } from "crypto";
 import { AttachmentService } from "@global/attachment/attachment.service";
 import { StorageService } from "@global/storage/storage.service";
@@ -51,7 +56,7 @@ export class MessageService {
         const existingConversation = await this.repo.findExistingConversation(
             dto.patientId,
             dto.providerId,
-            dto.serviceID
+            dto.serviceID,
         );
 
         if (existingConversation) {
@@ -72,7 +77,10 @@ export class MessageService {
 
         return Promise.all(
             conversations.map(async (conv) => {
-                const submission = await this.repo.findLatestSubmission(conv.patientId, conv.serviceID);
+                const submission = await this.repo.findLatestSubmission(
+                    conv.patientId,
+                    conv.serviceID,
+                );
 
                 const resolveAvatar = async (fileUrl: string | null | undefined) =>
                     fileUrl ? this.storageService.getSignedUrl(fileUrl) : null;
@@ -120,7 +128,10 @@ export class MessageService {
         const resolveAvatar = async (fileUrl: string | null | undefined) =>
             fileUrl ? this.storageService.getSignedUrl(fileUrl) : null;
 
-        const submission = await this.repo.findLatestSubmission(conversation.patientId, conversation.serviceID);
+        const submission = await this.repo.findLatestSubmission(
+            conversation.patientId,
+            conversation.serviceID,
+        );
 
         const enrichedConversation = {
             ...conversation,
@@ -137,7 +148,12 @@ export class MessageService {
             },
             service: conversation.service,
             submission: submission
-                ? { id: submission.id, submissionCode: submission.submissionCode, status: submission.status, assessment: submission.assessment }
+                ? {
+                      id: submission.id,
+                      submissionCode: submission.submissionCode,
+                      status: submission.status,
+                      assessment: submission.assessment,
+                  }
                 : null,
             isPatientOnline: this.onlineStore.isOnline(conversation.patientId),
             isProviderOnline: this.onlineStore.isOnline(conversation.providerId),
@@ -157,7 +173,10 @@ export class MessageService {
             throw new ForbiddenException("Access denied");
         }
 
-        const info = await this.repo.findServiceInfo(conversation.patientId, conversation.serviceID);
+        const info = await this.repo.findServiceInfo(
+            conversation.patientId,
+            conversation.serviceID,
+        );
         if (!info) throw new NotFoundException("No active subscription found for this service");
 
         return {
@@ -177,7 +196,10 @@ export class MessageService {
             throw new ForbiddenException("Access denied");
         }
 
-        const info = await this.repo.findServiceInfo(conversation.patientId, conversation.serviceID);
+        const info = await this.repo.findServiceInfo(
+            conversation.patientId,
+            conversation.serviceID,
+        );
         if (!info) throw new NotFoundException("No active subscription found for this service");
 
         const result = await this.repo.cancelSubscription(info.id);
@@ -215,11 +237,15 @@ export class MessageService {
         const files = await this.repo.findConversationFiles(conversationId);
 
         const resolved = await Promise.all(
-            files.map(async (f) => ({ ...f, fileUrl: await this.storageService.getSignedUrl(f.fileUrl) })),
+            files.map(async (f) => ({
+                ...f,
+                fileUrl: await this.storageService.getSignedUrl(f.fileUrl),
+            })),
         );
 
         const patientName = conversation.patient.patientProfile?.name ?? conversation.patient.name;
-        const providerName = conversation.provider.doctorProfile?.name ?? conversation.provider.name;
+        const providerName =
+            conversation.provider.doctorProfile?.name ?? conversation.provider.name;
 
         return {
             patient: {
@@ -251,19 +277,27 @@ export class MessageService {
         }
 
         if (dto.messageType === "PROPOSAL" && !dto.proposal) {
-            throw new BadRequestException("proposal object is required when messageType is PROPOSAL");
+            throw new BadRequestException(
+                "proposal object is required when messageType is PROPOSAL",
+            );
         }
 
         if (dto.proposal && dto.messageType !== "PROPOSAL") {
-            throw new BadRequestException("messageType must be PROPOSAL when proposal object is provided");
+            throw new BadRequestException(
+                "messageType must be PROPOSAL when proposal object is provided",
+            );
         }
 
         if (dto.messageType === "ATTACHMENT" && !dto.attachmentId) {
-            throw new BadRequestException("attachmentId is required when messageType is ATTACHMENT");
+            throw new BadRequestException(
+                "attachmentId is required when messageType is ATTACHMENT",
+            );
         }
 
         if (dto.attachmentId && dto.messageType !== "ATTACHMENT") {
-            throw new BadRequestException("messageType must be ATTACHMENT when attachmentId is provided");
+            throw new BadRequestException(
+                "messageType must be ATTACHMENT when attachmentId is provided",
+            );
         }
 
         if (dto.attachmentId) {
@@ -272,11 +306,13 @@ export class MessageService {
         }
 
         const message = await this.repo.createMessage(dto, senderId);
-        
-        const recipientId = conversation.patientId === senderId ? conversation.providerId : conversation.patientId;
-        const senderName = conversation.patientId === senderId 
-            ? (conversation.patient.patientProfile?.name ?? conversation.patient.name)
-            : (conversation.provider.doctorProfile?.name ?? conversation.provider.name);
+
+        const recipientId =
+            conversation.patientId === senderId ? conversation.providerId : conversation.patientId;
+        const senderName =
+            conversation.patientId === senderId
+                ? (conversation.patient.patientProfile?.name ?? conversation.patient.name)
+                : (conversation.provider.doctorProfile?.name ?? conversation.provider.name);
 
         if (dto.messageType === "PROPOSAL") {
             await this.notificationService.send({
@@ -310,13 +346,20 @@ export class MessageService {
 
     // ── Helpers ────────────────────────────────────────────────────────────
 
-    private async resolveMessageAttachments<T extends { attachments: { fileUrl: string }[] }>(input: T): Promise<T>;
-    private async resolveMessageAttachments<T extends { attachments: { fileUrl: string }[] }>(input: T[]): Promise<T[]>;
+    private async resolveMessageAttachments<T extends { attachments: { fileUrl: string }[] }>(
+        input: T,
+    ): Promise<T>;
+    private async resolveMessageAttachments<T extends { attachments: { fileUrl: string }[] }>(
+        input: T[],
+    ): Promise<T[]>;
     private async resolveMessageAttachments(input: any): Promise<any> {
         const resolve = async (msg: { attachments: { fileUrl: string }[] }) => ({
             ...msg,
             attachments: await Promise.all(
-                msg.attachments.map(async (a) => ({ ...a, fileUrl: await this.storageService.getSignedUrl(a.fileUrl) })),
+                msg.attachments.map(async (a) => ({
+                    ...a,
+                    fileUrl: await this.storageService.getSignedUrl(a.fileUrl),
+                })),
             ),
         });
         return Array.isArray(input) ? Promise.all(input.map(resolve)) : resolve(input);

@@ -9,7 +9,13 @@ import { PatientManageRepository } from "./patient-manage.repository";
 import { PatientManageService } from "./patient-manage.service";
 
 @Module({
-    imports: [PrismaModule, StorageModule, AssessmentSubmissionModule, NotificationModule, MessageModule],
+    imports: [
+        PrismaModule,
+        StorageModule,
+        AssessmentSubmissionModule,
+        NotificationModule,
+        MessageModule,
+    ],
     controllers: [PatientManageController],
     providers: [PatientManageService, PatientManageRepository],
 })

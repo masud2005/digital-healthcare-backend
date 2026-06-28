@@ -214,7 +214,12 @@ export class AssessmentSubmissionRepository {
         return this.create(data);
     }
 
-    async getMyAssessmentsSummary(userId: string, status?: SubmissionStatus, page?: number, limit?: number) {
+    async getMyAssessmentsSummary(
+        userId: string,
+        status?: SubmissionStatus,
+        page?: number,
+        limit?: number,
+    ) {
         const currentPage = page ?? 1;
         const currentLimit = limit ?? 10;
         const skip = (currentPage - 1) * currentLimit;
@@ -263,10 +268,13 @@ export class AssessmentSubmissionRepository {
             }),
         ]);
 
-        const countsMap = statusCounts.reduce((acc, curr) => {
-            acc[curr.status] = curr._count.status;
-            return acc;
-        }, {} as Record<string, number>);
+        const countsMap = statusCounts.reduce(
+            (acc, curr) => {
+                acc[curr.status] = curr._count.status;
+                return acc;
+            },
+            {} as Record<string, number>,
+        );
 
         return { submissions, counts: countsMap, total, page: currentPage, limit: currentLimit };
     }
@@ -279,10 +287,7 @@ export class AssessmentSubmissionRepository {
         if (options?.userId) {
             where.userId = options.userId;
         } else if (options?.doctorId) {
-            where.OR = [
-                { reviewedBy: options.doctorId },
-                { status: "PENDING" },
-            ];
+            where.OR = [{ reviewedBy: options.doctorId }, { status: "PENDING" }];
         }
         return this.prisma.assessmentSubmission.findFirst({
             where,

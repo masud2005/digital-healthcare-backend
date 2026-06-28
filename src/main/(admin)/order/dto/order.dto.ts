@@ -22,7 +22,10 @@ export class OrderQueryDto {
     @Min(1)
     limit?: number;
 
-    @ApiPropertyOptional({ example: "ORD-2026-00123", description: "Search by orderId (orderNumber)" })
+    @ApiPropertyOptional({
+        example: "ORD-2026-00123",
+        description: "Search by orderId (orderNumber)",
+    })
     @IsOptional()
     @IsString()
     search?: string;

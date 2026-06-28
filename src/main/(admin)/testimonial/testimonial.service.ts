@@ -123,15 +123,7 @@ export class TestimonialService implements OnModuleInit {
             toDate: this.parseQueryDate(query.toDate, "toDate"),
         });
 
-        const headers = [
-            "ID",
-            "Client Name",
-            "Feedback",
-            "Rating",
-            "Date",
-            "Status",
-            "Created At",
-        ];
+        const headers = ["ID", "Client Name", "Feedback", "Rating", "Date", "Status", "Created At"];
 
         const rows = data.map((t) => [
             t.id,

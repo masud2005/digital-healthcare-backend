@@ -35,7 +35,13 @@ function getDateRange(range: DateRangeFilter): { gte?: Date; lte?: Date } | unde
 export class MyOrderRepository {
     constructor(private readonly prisma: PrismaService) {}
 
-    async findMyOrders(userId: string, status?: OrderStatus, dateRange?: DateRangeFilter, page?: number, limit?: number) {
+    async findMyOrders(
+        userId: string,
+        status?: OrderStatus,
+        dateRange?: DateRangeFilter,
+        page?: number,
+        limit?: number,
+    ) {
         const currentPage = page ?? 1;
         const currentLimit = limit ?? 10;
         const skip = (currentPage - 1) * currentLimit;

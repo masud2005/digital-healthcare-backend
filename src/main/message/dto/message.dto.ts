@@ -1,5 +1,13 @@
 import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
-import { IsDateString, IsDecimal, IsEnum, IsOptional, IsString, IsUUID, ValidateNested } from "class-validator";
+import {
+    IsDateString,
+    IsDecimal,
+    IsEnum,
+    IsOptional,
+    IsString,
+    IsUUID,
+    ValidateNested,
+} from "class-validator";
 import { Type } from "class-transformer";
 
 export enum MessageType {
@@ -83,13 +91,19 @@ export class SendMessageDto {
     @IsOptional()
     messageType?: MessageType;
 
-    @ApiPropertyOptional({ type: () => ProposalDto, description: "Required when messageType is PROPOSAL" })
+    @ApiPropertyOptional({
+        type: () => ProposalDto,
+        description: "Required when messageType is PROPOSAL",
+    })
     @ValidateNested()
     @Type(() => ProposalDto)
     @IsOptional()
     proposal?: ProposalDto;
 
-    @ApiPropertyOptional({ example: "uuid-of-attachment", description: "Required when messageType is ATTACHMENT" })
+    @ApiPropertyOptional({
+        example: "uuid-of-attachment",
+        description: "Required when messageType is ATTACHMENT",
+    })
     @IsUUID()
     @IsOptional()
     attachmentId?: string;
@@ -102,7 +116,10 @@ export class JoinConversationDto {
 }
 
 export class GetConversationsQueryDto {
-    @ApiPropertyOptional({ example: "John", description: "Search by patient name, doctor name, or category name" })
+    @ApiPropertyOptional({
+        example: "John",
+        description: "Search by patient name, doctor name, or category name",
+    })
     @IsString()
     @IsOptional()
     search?: string;

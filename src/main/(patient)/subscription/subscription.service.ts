@@ -16,7 +16,10 @@ export class SubscriptionService {
      * Get a single subscription by ID (must belong to the patient).
      */
     async getMySubscriptionById(subscriptionId: string, userId: string) {
-        const subscription = await this.subscriptionRepository.findOneByUser(subscriptionId, userId);
+        const subscription = await this.subscriptionRepository.findOneByUser(
+            subscriptionId,
+            userId,
+        );
         if (!subscription) {
             throw new NotFoundException("Subscription not found.");
         }
@@ -29,12 +32,19 @@ export class SubscriptionService {
      * - OFF → subscription continues until period ends, no auto-renewal
      */
     async toggleRecurring(subscriptionId: string, userId: string, isRecurring: boolean) {
-        const subscription = await this.subscriptionRepository.findOneByUser(subscriptionId, userId);
+        const subscription = await this.subscriptionRepository.findOneByUser(
+            subscriptionId,
+            userId,
+        );
         if (!subscription) {
             throw new NotFoundException("Subscription not found.");
         }
 
-        const updated = await this.subscriptionRepository.updateIsRecurring(subscriptionId, userId, isRecurring);
+        const updated = await this.subscriptionRepository.updateIsRecurring(
+            subscriptionId,
+            userId,
+            isRecurring,
+        );
 
         return {
             ...updated,
