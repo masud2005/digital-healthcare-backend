@@ -27,6 +27,9 @@ export class AuthUserResponseDto {
 
     @ApiPropertyOptional()
     lastLoginAt?: Date | null;
+
+    @ApiPropertyOptional({ type: [String], example: ["view:dashboard"] })
+    permissions?: string[];
 }
 
 export class AuthMessageResponseDto {
