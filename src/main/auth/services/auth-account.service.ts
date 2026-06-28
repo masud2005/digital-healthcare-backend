@@ -175,7 +175,24 @@ export class AuthAccountService {
             throw new NotFoundException("User not found");
         }
 
-        const role = user.userRoles?.[0]?.role?.name?.toUpperCase() ?? "PATIENT";
+        const roles = user.userRoles.map((userRole) => userRole.role.name);
+        const role = roles[0]?.toUpperCase() ?? "PATIENT";
+        const hasPatientOrDoctor = roles.some(
+            (r) => r.toUpperCase() === "PATIENT" || r.toUpperCase() === "DOCTOR",
+        );
+
+        let permissions: string[] | undefined = undefined;
+        if (!hasPatientOrDoctor) {
+            let perms = user.userPermissions?.map((up) => up.permission.key) || [];
+
+            if (roles.includes("ADMIN")) {
+                const rolePermissions = user.userRoles.flatMap(
+                    (userRole) => userRole.role.permissions?.map((rp) => rp.permission.key) || [],
+                );
+                perms = Array.from(new Set([...perms, ...rolePermissions]));
+            }
+            permissions = perms;
+        }
 
         let profile: any = null;
         if (role === "DOCTOR" && user.doctorProfile) {
@@ -234,6 +251,7 @@ export class AuthAccountService {
                 lastLoginAt: user.lastLoginAt,
                 createdAt: user.createdAt,
                 updatedAt: user.updatedAt,
+                permissions,
                 profile,
             },
         };

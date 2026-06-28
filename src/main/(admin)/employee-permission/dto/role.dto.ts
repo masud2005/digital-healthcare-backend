@@ -17,10 +17,11 @@ export class CreateRoleDto {
     @IsOptional()
     description?: string;
 
-    @ApiProperty({ description: "List of permission IDs to assign to this role", type: [String] })
+    @ApiPropertyOptional({ description: "List of permission IDs to assign to this role", type: [String] })
     @IsArray()
     @IsString({ each: true })
-    permissionIds: string[];
+    @IsOptional()
+    permissionIds?: string[];
 }
 
 export class UpdateRoleDto {

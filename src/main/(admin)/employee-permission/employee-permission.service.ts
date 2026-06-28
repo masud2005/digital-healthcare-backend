@@ -1,15 +1,19 @@
 import { PrismaService } from "@global/prisma/prisma.service";
 import { AuthSharedService } from "@main/auth/services/auth-shared.service";
-import { BadRequestException, Injectable, NotFoundException } from "@nestjs/common";
+import { MailService } from "@global/mail/mail.service";
+import { BadRequestException, Injectable, Logger, NotFoundException } from "@nestjs/common";
 import { UserStatus } from "@prisma/client";
 import { CreateEmployeeDto, UpdateEmployeeDto } from "./dto/employee.dto";
 import { CreateRoleDto, UpdateRoleDto } from "./dto/role.dto";
 
 @Injectable()
 export class EmployeePermissionService {
+    private readonly logger = new Logger(EmployeePermissionService.name);
+
     constructor(
         private readonly prisma: PrismaService,
         private readonly authSharedService: AuthSharedService,
+        private readonly mailService: MailService,
     ) {}
 
     // --- Permissions ---
@@ -48,11 +52,12 @@ export class EmployeePermissionService {
         }
 
         // Verify permissions exist
+        const permissionIds = dto.permissionIds || [];
         const permissionCount = await this.prisma.permission.count({
-            where: { id: { in: dto.permissionIds } },
+            where: { id: { in: permissionIds } },
         });
 
-        if (permissionCount !== dto.permissionIds.length) {
+        if (permissionCount !== permissionIds.length) {
             throw new BadRequestException("One or more permission IDs are invalid.");
         }
 
@@ -67,9 +72,9 @@ export class EmployeePermissionService {
                 },
             });
 
-            if (dto.permissionIds.length > 0) {
+            if (permissionIds.length > 0) {
                 await tx.rolePermission.createMany({
-                    data: dto.permissionIds.map((permId) => ({
+                    data: permissionIds.map((permId) => ({
                         roleId: role.id,
                         permissionId: permId,
                     })),
@@ -203,10 +208,11 @@ export class EmployeePermissionService {
 
         const passwordHash = this.authSharedService.hashPassword(dto.password);
 
-        return this.prisma.$transaction(async (tx) => {
+        const createdUser = await this.prisma.$transaction(async (tx) => {
             const user = await tx.user.create({
                 data: {
                     email,
+                    name: dto.name,
                     password: passwordHash,
                     status: UserStatus.ACTIVE,
                     emailVerifiedAt: new Date(),
@@ -262,6 +268,49 @@ export class EmployeePermissionService {
                 },
             });
         });
+
+        if (createdUser) {
+            const roleNames = createdUser.userRoles.map((ur) => ur.role.displayName || ur.role.name);
+            const directPermissions = createdUser.userPermissions.map(
+                (up) => up.permission.name || up.permission.key,
+            );
+
+            // Fetch role-based permissions as well to list all permissions
+            const roleIds = createdUser.userRoles.map((ur) => ur.roleId);
+            const rolePermissions = await this.prisma.rolePermission.findMany({
+                where: { roleId: { in: roleIds } },
+                include: { permission: true },
+            });
+            const allPermissions = Array.from(
+                new Set([
+                    ...rolePermissions.map((rp) => rp.permission.name || rp.permission.key),
+                    ...directPermissions,
+                ]),
+            );
+
+            this.mailService
+                .sendMail({
+                    to: createdUser.email,
+                    subject: "Your Employee Account Has Been Created",
+                    html: `
+                        <p>Hello ${dto.name},</p>
+                        <p>Your employee account has been successfully created.</p>
+                        <p><strong>Role:</strong> ${roleNames.join(", ")}</p>
+                        <p><strong>Permissions:</strong></p>
+                        <ul>
+                            ${allPermissions.map((p) => `<li>${p}</li>`).join("")}
+                        </ul>
+                    `,
+                })
+                .catch((err) => {
+                    this.logger.error(
+                        `Failed to send account creation email to ${createdUser.email}`,
+                        err,
+                    );
+                });
+        }
+
+        return createdUser;
     }
 
     async updateEmployee(id: string, dto: UpdateEmployeeDto) {
@@ -302,6 +351,7 @@ export class EmployeePermissionService {
             await tx.user.update({
                 where: { id },
                 data: {
+                    name: dto.name,
                     email,
                     password: passwordHash,
                     status: dto.status,

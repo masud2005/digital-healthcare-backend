@@ -1,6 +1,5 @@
 import { PrismaService } from "@global/prisma/prisma.service";
 import { Injectable } from "@nestjs/common";
-import { Prisma } from "@prisma/client";
 import type {
     AuthAttemptStatus,
     AuthSecurityEventType,
@@ -8,6 +7,7 @@ import type {
     OtpPurpose,
     OtpStatus,
 } from "@prisma/client";
+import { Prisma } from "@prisma/client";
 
 const roleSelect = {
     role: {
@@ -534,7 +534,35 @@ export class AuthRepository {
         return this.prisma.user.findUnique({
             where: { id: userId },
             include: {
-                userRoles: { select: { role: { select: { name: true } } } },
+                userRoles: {
+                    select: {
+                        role: {
+                            select: {
+                                id: true,
+                                name: true,
+                                displayName: true,
+                                permissions: {
+                                    select: {
+                                        permission: {
+                                            select: {
+                                                key: true,
+                                            },
+                                        },
+                                    },
+                                },
+                            },
+                        },
+                    },
+                },
+                userPermissions: {
+                    select: {
+                        permission: {
+                            select: {
+                                key: true,
+                            },
+                        },
+                    },
+                },
                 doctorProfile: {
                     include: {
                         avatar: { select: { fileUrl: true } },
