@@ -27,7 +27,52 @@ export class TestimonialService implements OnModuleInit {
     ) {}
 
     async onModuleInit() {
-        // await this.seedTestimonials();
+        await this.initialGoogleSeed();
+    }
+
+    /**
+     * Runs once on startup. If no Google-sourced reviews exist yet,
+     * fetches all reviews from Google Places API and seeds them.
+     * Safe to run on a live DB — only checks googleReviewId rows,
+     * never touches manually-created testimonials.
+     */
+    private async initialGoogleSeed() {
+        try {
+            const existingGoogleCount = await this.testimonialRepository.countGoogleReviews();
+
+            if (existingGoogleCount > 0) {
+                this.logger.debug(
+                    `⏭️  Initial Google seed skipped — ${existingGoogleCount} Google review(s) already exist.`,
+                );
+                return;
+            }
+
+            this.logger.log("🌱 No Google reviews found. Running initial Google Places seed...");
+
+            const reviews = await this.googleReviewService.fetchReviews();
+
+            if (reviews.length === 0) {
+                this.logger.warn("⚠️  Google Places API returned 0 reviews. Seed skipped.");
+                return;
+            }
+
+            let seeded = 0;
+            for (const review of reviews) {
+                await this.testimonialRepository.upsertByGoogleReviewId({
+                    googleReviewId: review.googleReviewId,
+                    clientName: review.clientName,
+                    feedback: review.feedback,
+                    rating: review.rating,
+                    date: review.date,
+                    googleAvatarUrl: review.profilePhotoUrl,
+                });
+                seeded++;
+            }
+
+            this.logger.log(`✅ Initial Google seed complete — ${seeded} review(s) imported.`);
+        } catch (error: any) {
+            this.logger.error(`❌ Initial Google seed failed: ${error.message}`);
+        }
     }
 
     async seedTestimonials() {
@@ -40,24 +85,17 @@ export class TestimonialService implements OnModuleInit {
 
             this.logger.log("🌱 Starting testimonial seeding...");
 
-            const placeId = process.env.GOOGLE_MAPS_PLACE_ID?.trim() || "";
             let reviews: any[] = [];
 
-            if (placeId) {
-                try {
-                    const fetchedReviews = await this.googleReviewService.getReviews(placeId);
-                    if (fetchedReviews && fetchedReviews.length > 0) {
-                        reviews = fetchedReviews;
-                        this.logger.log(`Fetched ${reviews.length} reviews from Google Places API`);
-                    }
-                } catch (error) {
-                    this.logger.error(
-                        `Failed to fetch Google reviews: ${(error as Error).message}. Falling back to default testimonial data.`,
-                    );
+            try {
+                const fetchedReviews = await this.googleReviewService.fetchReviews();
+                if (fetchedReviews && fetchedReviews.length > 0) {
+                    reviews = fetchedReviews;
+                    this.logger.log(`Fetched ${reviews.length} reviews from Google Places API`);
                 }
-            } else {
-                this.logger.log(
-                    "GOOGLE_MAPS_PLACE_ID not provided. Using default fallback reviews.",
+            } catch (error) {
+                this.logger.error(
+                    `Failed to fetch Google reviews: ${(error as Error).message}. Falling back to default testimonial data.`,
                 );
             }
 
@@ -72,6 +110,7 @@ export class TestimonialService implements OnModuleInit {
                     feedback: review.feedback ?? review.text,
                     rating: review.rating,
                     date: review.date ?? (review.time ? new Date(review.time * 1000) : new Date()),
+                    googleReviewId: review.googleReviewId ?? null,
                 });
             }
 
@@ -149,8 +188,17 @@ export class TestimonialService implements OnModuleInit {
     }
 
     async update(id: string, payload: UpdateTestimonialDto) {
-        await this.findOne(id);
-        return this.testimonialRepository.update(id, this.normalizeUpdatePayload(payload));
+        const existing = await this.findOne(id);
+
+        const updateData = this.normalizeUpdatePayload(payload);
+
+        // If this testimonial came from Google and the admin is editing it,
+        // mark it as dirty so the cron job won't overwrite their changes.
+        if (existing.googleReviewId && !existing.isGoogleReviewDirty) {
+            updateData.isGoogleReviewDirty = true;
+        }
+
+        return this.testimonialRepository.update(id, updateData);
     }
 
     async remove(id: string) {
@@ -177,6 +225,7 @@ export class TestimonialService implements OnModuleInit {
             date?: Date;
             avatarId?: string | null;
             isPublished?: boolean;
+            isGoogleReviewDirty?: boolean;
         } = {};
 
         if (payload.clientName !== undefined) {

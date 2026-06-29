@@ -9,6 +9,8 @@ type TestimonialCreateData = {
     date: Date;
     avatarId?: string | null;
     isPublished?: boolean;
+    googleReviewId?: string | null;
+    isGoogleReviewDirty?: boolean;
 };
 
 type TestimonialUpdateData = {
@@ -18,6 +20,16 @@ type TestimonialUpdateData = {
     date?: Date;
     avatarId?: string | null;
     isPublished?: boolean;
+    isGoogleReviewDirty?: boolean;
+};
+
+type GoogleReviewUpsertData = {
+    clientName: string;
+    feedback: string;
+    rating: number;
+    date: Date;
+    googleReviewId: string;
+    googleAvatarUrl?: string;
 };
 
 type TestimonialFindAllParams = {
@@ -44,6 +56,12 @@ export class TestimonialRepository {
 
     count() {
         return this.prisma.testimonial.count();
+    }
+
+    countGoogleReviews() {
+        return this.prisma.testimonial.count({
+            where: { googleReviewId: { not: null } },
+        });
     }
 
     async findAll(params: TestimonialFindAllParams) {
@@ -83,6 +101,62 @@ export class TestimonialRepository {
         return this.prisma.testimonial.delete({
             where: { id },
         });
+    }
+
+    findByGoogleReviewId(googleReviewId: string) {
+        return this.prisma.testimonial.findUnique({
+            where: { googleReviewId },
+        });
+    }
+
+    /**
+     * Upserts a Google-sourced review by its stable googleReviewId.
+     *
+     * - CREATE: inserts the row with isGoogleReviewDirty = false
+     * - UPDATE: only updates clientName/feedback/rating/date if isGoogleReviewDirty is false
+     *   (meaning the admin has NOT manually edited it). If dirty, we skip the update silently.
+     *
+     * Returns { action: 'created' | 'updated' | 'skipped' }.
+     */
+    async upsertByGoogleReviewId(
+        data: GoogleReviewUpsertData,
+    ): Promise<{ action: "created" | "updated" | "skipped" }> {
+        const existing = await this.findByGoogleReviewId(data.googleReviewId);
+
+        if (!existing) {
+            await this.prisma.testimonial.create({
+                data: {
+                    clientName: data.clientName,
+                    feedback: data.feedback,
+                    rating: data.rating,
+                    date: data.date,
+                    googleReviewId: data.googleReviewId,
+                    googleAvatarUrl: data.googleAvatarUrl ?? null,
+                    isGoogleReviewDirty: false,
+                    isPublished: true,
+                },
+            });
+            return { action: "created" };
+        }
+
+        // Admin has manually edited this review — honour their changes and skip
+        if (existing.isGoogleReviewDirty) {
+            return { action: "skipped" };
+        }
+
+        await this.prisma.testimonial.update({
+            where: { googleReviewId: data.googleReviewId },
+            data: {
+                clientName: data.clientName,
+                feedback: data.feedback,
+                rating: data.rating,
+                date: data.date,
+                // Always refresh the avatar URL — Google CDN links can change
+                googleAvatarUrl: data.googleAvatarUrl ?? null,
+            },
+        });
+
+        return { action: "updated" };
     }
 
     private buildWhere(params: TestimonialFindAllParams): Prisma.TestimonialWhereInput {
