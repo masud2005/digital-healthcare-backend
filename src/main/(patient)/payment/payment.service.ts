@@ -181,10 +181,10 @@ export class PaymentService {
         }
 
         // 5. Validate: must be buying something
-        const isSubscribing = dto.isRecurring === true;
+        const isSubscribing = !!dto.submissionId;
         if (!hasCartItems && !isSubscribing) {
             throw new BadRequestException(
-                "Your cart is empty and isRecurring is not enabled. Please add products to your cart or enable isRecurring to subscribe.",
+                "Your cart is empty and no service assessment is provided. Please add products to your cart or provide a submissionId to proceed.",
             );
         }
 
@@ -193,8 +193,8 @@ export class PaymentService {
         let categoryId: string | null = null;
 
         if (isSubscribing) {
-            if (!dto.submissionId || !submission) {
-                throw new BadRequestException("submissionId is required when isRecurring is true.");
+            if (!submission) {
+                throw new BadRequestException("submissionId is invalid.");
             }
 
             if (!submission.assessment?.category?.paymentPlan) {
@@ -312,7 +312,8 @@ export class PaymentService {
                 shippingInfo: dto.shippingInfo,
                 complianceConfirmation: dto.complianceConfirmation,
                 discountId,
-                isRecurring: isSubscribing,
+                isSubscribing,
+                autoRenew: dto.isRecurring ?? false,
                 billingCycle: dto.billingCycle,
                 paymentPlan,
                 categoryId: categoryId ?? "",

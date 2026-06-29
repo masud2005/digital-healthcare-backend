@@ -56,7 +56,8 @@ export class PaymentRepository {
             shippingInfo: any;
             complianceConfirmation?: any;
             discountId?: string;
-            isRecurring: boolean;
+            isSubscribing: boolean;
+            autoRenew: boolean;
             billingCycle?: any;
             paymentPlan: any;
             categoryId: string;
@@ -75,7 +76,8 @@ export class PaymentRepository {
             shippingInfo,
             complianceConfirmation,
             discountId,
-            isRecurring,
+            isSubscribing,
+            autoRenew,
             paymentPlan,
             categoryId,
             paymentType,
@@ -160,9 +162,9 @@ export class PaymentRepository {
                 }
             }
 
-            // 5. Handle Subscription if isRecurring and paymentPlan and categoryId exist
+            // 5. Handle Subscription if isSubscribing and paymentPlan and categoryId exist
             let subscriptionId: string | null = null;
-            if (isRecurring && paymentPlan && categoryId) {
+            if (isSubscribing && paymentPlan && categoryId) {
                 const cycle = checkoutData.billingCycle || paymentPlan.billingCycle;
                 const startDate = new Date();
                 const nextBillingDate = new Date(startDate);
@@ -182,7 +184,7 @@ export class PaymentRepository {
                         nextBillingDate,
                         currentPeriodStart: startDate,
                         currentPeriodEnd: nextBillingDate,
-                        isRecurring: true,
+                        isRecurring: autoRenew,
                         cloverCardToken,
                         userId,
                         categoryId,

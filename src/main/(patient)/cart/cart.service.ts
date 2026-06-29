@@ -156,9 +156,22 @@ export class CartService {
         return cart;
     }
 
-    async getCartSummary(userId: string, discountCode?: string) {
+    async getCartSummary(userId: string, discountCode?: string, submissionId?: string) {
         const cart = await this.cartRepository.findCartByUserId(userId);
-        const user = await this.cartRepository.findUserWithCategory(userId);
+        
+        let paymentPlan: any = null;
+
+        if (submissionId) {
+            const submission = await this.cartRepository.findSubmission(submissionId, userId);
+            if (!submission) {
+                throw new BadRequestException("Invalid submissionId");
+            }
+            paymentPlan = submission.assessment?.category?.paymentPlan ?? null;
+        } else {
+            const user = await this.cartRepository.findUserWithCategory(userId);
+            paymentPlan =
+                user?.category?.paymentPlan ?? cart?.items[0]?.product?.category?.paymentPlan ?? null;
+        }
 
         let subtotal = 0;
         if (cart) {
@@ -173,8 +186,6 @@ export class CartService {
             }
         }
 
-        const paymentPlan =
-            user?.category?.paymentPlan ?? cart?.items[0]?.product?.category?.paymentPlan ?? null;
         const serviceFees = paymentPlan ? Number(paymentPlan.price) : 0;
         const serviceDuration = paymentPlan?.billingCycle ?? null;
         const shippingCharge = SHIPPING_CHARGE;

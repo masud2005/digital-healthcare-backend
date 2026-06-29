@@ -82,10 +82,10 @@ export class CartController {
         summary: "Get cart summary",
         description:
             "Returns subtotal, serviceDuration, serviceFees, shippingCharge, discount, and total. " +
-            "Pass optional discountCode query param to apply a discount.",
+            "Pass optional discountCode query param to apply a discount. Pass optional submissionId for specific service fee.",
     })
     @ApiOkResponse({ description: "Cart summary" })
     getCartSummary(@CurrentUser() user: AuthenticatedUser, @Query() query: CartSummaryQueryDto) {
-        return this.cartService.getCartSummary(user.id, query.discountCode);
+        return this.cartService.getCartSummary(user.id, query.discountCode, query.submissionId);
     }
 }

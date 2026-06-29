@@ -143,4 +143,23 @@ export class CartRepository {
             select: { id: true, type: true, value: true },
         });
     }
+
+    findSubmission(submissionId: string, userId: string) {
+        return this.prisma.assessmentSubmission.findFirst({
+            where: { id: submissionId, userId },
+            include: {
+                assessment: {
+                    select: {
+                        category: {
+                            select: {
+                                paymentPlan: {
+                                    select: { id: true, price: true, billingCycle: true },
+                                },
+                            },
+                        },
+                    },
+                },
+            },
+        });
+    }
 }
