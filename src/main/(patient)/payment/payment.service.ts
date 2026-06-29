@@ -11,6 +11,7 @@ import { PaymentRepository } from "./payment.repository";
 import { NotificationService } from "../../notification/notification.service";
 import { PrismaService } from "@global/prisma/prisma.service";
 import { CloverService } from "@global/clover/clover.service";
+import { CommunicationService } from "@global/communication/communication.service";
 
 const SHIPPING_CHARGE = 20;
 
@@ -74,6 +75,7 @@ export class PaymentService {
         private readonly notificationService: NotificationService,
         private readonly prisma: PrismaService,
         private readonly cloverService: CloverService,
+        private readonly communicationService: CommunicationService,
     ) {}
 
     async checkout(userId: string, dto: CheckoutDto) {
@@ -325,7 +327,7 @@ export class PaymentService {
         // Fetch user for notification
         const user = await this.prisma.user.findUnique({
             where: { id: userId },
-            select: { name: true, patientProfile: { select: { name: true } } },
+            select: { name: true, email: true, patientProfile: { select: { name: true } } },
         });
         const patientName = user?.patientProfile?.name ?? user?.name ?? "A patient";
 
@@ -344,6 +346,20 @@ export class PaymentService {
                 actionType: "ASSESSMENT_SUBMITTED",
                 referenceId: dto.submissionId,
             });
+        }
+
+        // Email to patient
+        if (user?.email) {
+            await this.communicationService.dispatch({
+                action: "PAYMENT_RECEIPT",
+                channel: "EMAIL",
+                to: user.email,
+                payload: {
+                    name: patientName,
+                    total: total.toFixed(2),
+                    transactionId: result.transactionId,
+                },
+            }).catch((err) => console.error("Failed to send payment receipt email:", err));
         }
 
         return result;

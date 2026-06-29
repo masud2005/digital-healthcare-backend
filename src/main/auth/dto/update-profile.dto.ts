@@ -10,6 +10,11 @@ export class UpdateProfileDto {
     @IsUUID()
     avatarId?: string;
 
+    @ApiPropertyOptional({ example: "+1234567890", description: "Contact number" })
+    @IsOptional()
+    @IsString()
+    phone?: string;
+
     @ApiPropertyOptional({ example: "John Doe" })
     @IsOptional()
     @IsString()

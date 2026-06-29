@@ -166,6 +166,14 @@ export class AuthRepository {
         });
     }
 
+    updateUserContact(userId: string, data: { phone?: string }) {
+        return this.prisma.user.update({
+            where: { id: userId },
+            data,
+            select: userSelect,
+        });
+    }
+
     toggleMfa(userId: string, mfaEnabled: boolean) {
         return this.prisma.user.update({
             where: { id: userId },
