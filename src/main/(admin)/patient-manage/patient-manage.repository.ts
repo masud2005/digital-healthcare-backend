@@ -178,7 +178,6 @@ export class PatientManageRepository {
         const skip = (page - 1) * limit;
 
         const where: any = {
-            deletedAt: null,
             userRoles: { some: { role: { name: "PATIENT" } } },
             ...(params.status ? { status: params.status } : {}),
             ...(params.search
@@ -221,7 +220,7 @@ export class PatientManageRepository {
 
     findPatientById(id: string) {
         return this.prisma.user.findFirst({
-            where: { id, deletedAt: null },
+            where: { id },
             include: {
                 assessmentSubmissions: {
                     where: { status: "PENDING" },

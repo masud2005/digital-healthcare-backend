@@ -277,9 +277,22 @@ export class AuthAccountService {
             city,
             state,
             zipCode,
+            phone,
         } = payload;
 
         let profile: any;
+
+        if (phone !== undefined) {
+            const normalizedPhone = this.authSharedService.normalizePhone(phone);
+            if (normalizedPhone !== user.phone) {
+                const existingByPhone = await this.authRepository.findUserByPhone(normalizedPhone);
+                if (existingByPhone && existingByPhone.id !== userId) {
+                    throw new ConflictException("Account already exists with this phone number");
+                }
+                await this.authRepository.updateUserContact(userId, { phone: normalizedPhone });
+                user.phone = normalizedPhone;
+            }
+        }
 
         if (role === "DOCTOR") {
             profile = await this.authRepository.upsertDoctorProfile(userId, {
@@ -321,6 +334,7 @@ export class AuthAccountService {
             message: "Profile updated successfully",
             data: {
                 ...profile,
+                phone: user.phone,
                 avatar: avatarUrl,
             },
         };

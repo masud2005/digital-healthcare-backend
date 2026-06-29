@@ -2,12 +2,14 @@ import { BadRequestException, Injectable, NotFoundException } from "@nestjs/comm
 import { OrderQueryDto, UpdateOrderDto } from "./dto/order.dto";
 import { AdminOrderRepository } from "./order.repository";
 import { NotificationService } from "../../notification/notification.service";
+import { StorageService } from "@global/storage/storage.service";
 
 @Injectable()
 export class AdminOrderService {
     constructor(
         private readonly orderRepository: AdminOrderRepository,
         private readonly notificationService: NotificationService,
+        private readonly storageService: StorageService,
     ) {}
 
     async findAll(query: OrderQueryDto) {
@@ -69,15 +71,17 @@ export class AdminOrderService {
             patientName: order.user.patientProfile?.name ?? order.user.name ?? "Unknown",
             doctorName,
             status: order.status,
-            items: order.items.map((item) => ({
-                id: item.id,
-                productName: item.productNameSnapshot,
-                variantSize: item.variantSizeSnapshot ?? null,
-                unitPrice: Number(item.unitPrice),
-                quantity: item.quantity,
-                totalPrice: Number(item.totalPrice),
-                productImage: item.productImageSnapshot ?? null,
-            })),
+            items: await Promise.all(
+                order.items.map(async (item) => ({
+                    id: item.id,
+                    productName: item.productNameSnapshot,
+                    variantSize: item.variantSizeSnapshot ?? null,
+                    unitPrice: Number(item.unitPrice),
+                    quantity: item.quantity,
+                    totalPrice: Number(item.totalPrice),
+                    productImage: await this.storageService.resolveKey(item.productImageSnapshot),
+                }))
+            ),
             subtotal: Number(order.subtotal),
             discountAmount: Number(order.discountAmount),
             shippingAmount: Number(order.shippingAmount),
