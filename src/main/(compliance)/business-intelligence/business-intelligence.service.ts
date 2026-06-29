@@ -1,16 +1,22 @@
-import { Injectable } from "@nestjs/common";
-import { TrendFilter } from "./dto/bi-query.dto";
+import { Injectable, NotFoundException } from "@nestjs/common";
+import { TrendFilter, DropOffQueryDto } from "./dto/bi-query.dto";
 import { BusinessIntelligenceRepository } from "./business-intelligence.repository";
+import { StorageService } from "@global/storage/storage.service";
 
 type TrendPoint = { label: string; revenue?: number; refund?: number; count?: number };
 
 @Injectable()
 export class BusinessIntelligenceService {
-    constructor(private readonly repo: BusinessIntelligenceRepository) {}
+    constructor(
+        private readonly repo: BusinessIntelligenceRepository,
+        private readonly storageService: StorageService
+    ) {}
 
     // ── /stats ─────────────────────────────────────────────────────────────────
 
-    async getStats() {
+    async getStats(filter: TrendFilter) {
+        const { gte, lte } = this.getDateRange(filter);
+        
         const [
             revenueAgg,
             refundAgg,
@@ -19,14 +25,16 @@ export class BusinessIntelligenceService {
             submissionCounts,
             cancelledSubs,
             ltvGroups,
+            turnaroundMs,
         ] = await Promise.all([
-            this.repo.getTotalRevenue(),
-            this.repo.getTotalRefund(),
-            this.repo.getNewPatientsCount(),
-            this.repo.getActivePatientsCount(),
-            this.repo.getSubmissionStatusCounts(),
-            this.repo.getCancelledSubscriptionRevenue(),
-            this.repo.getAvgLTV(),
+            this.repo.getTotalRevenue(gte, lte),
+            this.repo.getTotalRefund(gte, lte),
+            this.repo.getNewPatientsCount(gte, lte),
+            this.repo.getActivePatientsCount(gte, lte),
+            this.repo.getSubmissionStatusCounts(gte, lte),
+            this.repo.getCancelledSubscriptionRevenue(gte, lte),
+            this.repo.getAvgLTV(gte, lte),
+            this.repo.getProviderTurnaround(gte, lte),
         ]);
 
         const totalRevenue = Number(revenueAgg._sum.amount ?? 0);
@@ -34,9 +42,28 @@ export class BusinessIntelligenceService {
 
         const accepted = submissionCounts.find((s) => s.status === "ACCEPTED")?._count.id ?? 0;
         const rejected = submissionCounts.find((s) => s.status === "REJECTED")?._count.id ?? 0;
-        const total = accepted + rejected;
-        const approvalRate = total > 0 ? +((accepted / total) * 100).toFixed(2) : 0;
-        const denialRate = total > 0 ? +((rejected / total) * 100).toFixed(2) : 0;
+        const refillRequested = submissionCounts.find((s) => s.status === "REFIL_REQUESTED")?._count.id ?? 0;
+        const intakeDropOff = submissionCounts.find((s) => s.status === "DRAFT")?._count.id ?? 0;
+
+        const totalApprovalBase = accepted + rejected;
+        const approvalRate = totalApprovalBase > 0 ? +((accepted / totalApprovalBase) * 100).toFixed(2) : 0;
+        const denialRate = totalApprovalBase > 0 ? +((rejected / totalApprovalBase) * 100).toFixed(2) : 0;
+
+        const pending = submissionCounts.find((s) => s.status === "PENDING")?._count.id ?? 0;
+        const reviewed = submissionCounts.find((s) => s.status === "REVIEWED")?._count.id ?? 0;
+        const totalSubmitted = accepted + rejected + refillRequested + pending + reviewed;
+        const refillRate = totalSubmitted > 0 ? +((refillRequested / totalSubmitted) * 100).toFixed(2) : 0;
+
+        let providerTurnaround = "N/A";
+        if (turnaroundMs > 0) {
+            const hours = Math.round(turnaroundMs / (1000 * 60 * 60));
+            if (hours > 0) {
+                providerTurnaround = `${hours} h/avg.`;
+            } else {
+                const mins = Math.round(turnaroundMs / (1000 * 60));
+                providerTurnaround = `${mins} m/avg.`;
+            }
+        }
 
         const subscriptionChurn = cancelledSubs.reduce(
             (sum, sub) => sum + sub.payments.reduce((s, p) => s + Number(p.amount), 0),
@@ -58,6 +85,9 @@ export class BusinessIntelligenceService {
             activePatients,
             approvalRate,
             denialRate,
+            refillRate,
+            intakeDropOff,
+            providerTurnaround,
             subscriptionChurn: +subscriptionChurn.toFixed(2),
             avgLTV,
         };
@@ -65,8 +95,9 @@ export class BusinessIntelligenceService {
 
     // ── /category-revenue ──────────────────────────────────────────────────────
 
-    async getCategoryRevenue() {
-        const subscriptions = await this.repo.getCategoryRevenue();
+    async getCategoryRevenue(filter?: TrendFilter) {
+        const { gte, lte } = this.getDateRange(filter);
+        const subscriptions = await this.repo.getCategoryRevenue(gte, lte);
 
         const map = new Map<string, { name: string; totalAmount: number }>();
 
@@ -142,8 +173,9 @@ export class BusinessIntelligenceService {
 
     // ── /approval-vs-denial ────────────────────────────────────────────────────
 
-    async getApprovalVsDenial() {
-        const counts = await this.repo.getApprovalDenialCounts();
+    async getApprovalVsDenial(filter: TrendFilter) {
+        const { gte, lte } = this.getDateRange(filter);
+        const counts = await this.repo.getApprovalDenialCounts(gte, lte);
 
         const approved = counts.find((s) => s.status === "ACCEPTED")?._count.id ?? 0;
         const rejected = counts.find((s) => s.status === "REJECTED")?._count.id ?? 0;
@@ -166,6 +198,27 @@ export class BusinessIntelligenceService {
 
     // ── trend helpers ──────────────────────────────────────────────────────────
 
+    private getDateRange(filter?: TrendFilter) {
+        if (!filter) return { gte: undefined, lte: undefined };
+
+        const now = new Date();
+        const lte = new Date(now);
+        let gte: Date;
+
+        if (filter === TrendFilter.TODAY) {
+            gte = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+        } else if (filter === TrendFilter.LAST_7_DAYS) {
+            gte = new Date(now.getFullYear(), now.getMonth(), now.getDate() - 7);
+        } else if (filter === TrendFilter.LAST_MONTH) {
+            gte = new Date(now.getFullYear(), now.getMonth() - 1, now.getDate());
+        } else {
+            // LAST_YEAR
+            gte = new Date(now.getFullYear() - 1, now.getMonth(), now.getDate());
+        }
+
+        return { gte, lte };
+    }
+
     private buildTrendConfig(filter: TrendFilter) {
         const now = new Date();
         const lte = new Date(now);
@@ -173,7 +226,12 @@ export class BusinessIntelligenceService {
         let labels: string[];
         let getLabel: (d: Date) => string;
 
-        if (filter === TrendFilter.LAST_7_DAYS) {
+        if (filter === TrendFilter.TODAY) {
+            gte = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+            
+            labels = Array.from({ length: 24 }, (_, i) => `${i.toString().padStart(2, '0')}:00`);
+            getLabel = (d: Date) => `${d.getHours().toString().padStart(2, '0')}:00`;
+        } else if (filter === TrendFilter.LAST_7_DAYS) {
             gte = new Date(now);
             gte.setDate(now.getDate() - 6);
             gte.setHours(0, 0, 0, 0);
@@ -226,5 +284,72 @@ export class BusinessIntelligenceService {
         }
 
         return { gte, lte, labels, getLabel };
+    }
+
+    // ── /drop-off ──────────────────────────────────────────────────────────────
+
+    async getDropOffs(query: DropOffQueryDto) {
+        const { data, total, page, limit } = await this.repo.findDropOffs(query);
+
+        const items = await Promise.all(
+            data.map(async (submission) => {
+                const user = submission.user;
+                const activeSubmissionsCount = user.assessmentSubmissions.length;
+                const patientType = activeSubmissionsCount > 0 ? "Repeat Patient" : "New Patient";
+                
+                return {
+                    id: submission.id,
+                    userName: user.patientProfile?.name ?? user.name ?? "Unknown",
+                    userImage: user.patientProfile?.avatar?.fileUrl
+                        ? await this.storageService.resolveKey(user.patientProfile.avatar.fileUrl)
+                        : null,
+                    email: user.email,
+                    assessmentName: submission.assessment.title ?? submission.assessment.category?.name ?? "Unknown",
+                    userType: patientType,
+                    status: "Drop-Off",
+                    ipAddress: user.authDevices?.[0]?.ipLastSeen ?? "Unknown",
+                    timeStamp: submission.createdAt,
+                };
+            })
+        );
+
+        return {
+            data: items,
+            meta: { page, limit, total, totalPages: Math.ceil(total / limit) },
+        };
+    }
+
+    async getDropOffById(id: string) {
+        const submission = await this.repo.findDropOffById(id);
+        if (!submission) {
+            throw new NotFoundException("Drop-off not found");
+        }
+
+        const user = submission.user;
+        const activeSubmissionsCount = user.assessmentSubmissions.length;
+        const patientType = activeSubmissionsCount > 0 ? "Repeat Patient" : "New Patient";
+
+        return {
+            id: submission.id,
+            userName: user.patientProfile?.name ?? user.name ?? "Unknown",
+            userImage: user.patientProfile?.avatar?.fileUrl
+                ? await this.storageService.resolveKey(user.patientProfile.avatar.fileUrl)
+                : null,
+            email: user.email,
+            assessmentName: submission.assessment.title ?? submission.assessment.category?.name ?? "Unknown",
+            userType: patientType,
+            status: "Drop-Off",
+            ipAddress: user.authDevices?.[0]?.ipLastSeen ?? "Unknown",
+            timeStamp: submission.createdAt,
+        };
+    }
+
+    async deleteDropOff(id: string) {
+        const submission = await this.repo.findDropOffById(id);
+        if (!submission) {
+            throw new NotFoundException("Drop-off not found");
+        }
+        await this.repo.deleteDropOff(id);
+        return { message: "Drop-off deleted successfully" };
     }
 }
