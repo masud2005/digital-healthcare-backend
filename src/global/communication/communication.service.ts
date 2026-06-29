@@ -587,6 +587,8 @@ export class CommunicationService {
                     return "Hi {{name}},\n\nYour login credentials:\n\nEmail: **{{email}}**\nPassword: **{{password}}**\n\nPlease change your password after first login.";
                 case "CONTACT_LEAD_REPLY":
                     return "Hi {{name}},\n\n{{message}}";
+                case "PAYMENT_RECEIPT":
+                    return "Hi {{name}},\n\nThank you for your payment of **${{total}}**.\n\nTransaction ID: **{{transactionId}}**\n\nWe have successfully received your payment. You can track your order or subscription status in your dashboard.";
                 default:
                     return "";
             }
@@ -605,6 +607,8 @@ export class CommunicationService {
                 return "Your Doctor Account Credentials";
             case "CONTACT_LEAD_REPLY":
                 return "{{subject}}";
+            case "PAYMENT_RECEIPT":
+                return "Payment Receipt - Thank You";
             default:
                 return "Notification from System";
         }

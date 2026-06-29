@@ -10,6 +10,7 @@ import { ProposalRepository } from "./proposal.repository";
 import { NotificationService } from "../../notification/notification.service";
 import { PrismaService } from "@global/prisma/prisma.service";
 import { CloverService } from "@global/clover/clover.service";
+import { CommunicationService } from "@global/communication/communication.service";
 
 function detectCardBrand(cardNumber: string): string {
     const num = cardNumber.replace(/\s+/g, "");
@@ -60,6 +61,7 @@ export class ProposalService {
         private readonly notificationService: NotificationService,
         private readonly prisma: PrismaService,
         private readonly cloverService: CloverService,
+        private readonly communicationService: CommunicationService,
     ) {}
 
     async rejectProposal(proposalId: string, userId: string) {
@@ -165,7 +167,7 @@ export class ProposalService {
         // Fetch names
         const patient = await this.prisma.user.findUnique({
             where: { id: userId },
-            select: { name: true, patientProfile: { select: { name: true } } },
+            select: { name: true, email: true, patientProfile: { select: { name: true } } },
         });
         const doctor = await this.prisma.user.findUnique({
             where: { id: providerId },
@@ -190,6 +192,20 @@ export class ProposalService {
             actionType: "PROPOSAL_ACCEPTED",
             referenceId: proposalId,
         });
+
+        // Email to patient
+        if (patient?.email) {
+            await this.communicationService.dispatch({
+                action: "PAYMENT_RECEIPT",
+                channel: "EMAIL",
+                to: patient.email,
+                payload: {
+                    name: patientName,
+                    total: Number(proposal.fee).toFixed(2),
+                    transactionId: payment.transactionId,
+                },
+            }).catch((err) => console.error("Failed to send proposal payment receipt email:", err));
+        }
 
         return {
             proposalId,
