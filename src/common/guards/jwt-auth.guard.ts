@@ -44,8 +44,18 @@ export class JwtAuthGuard implements CanActivate {
                                     role: {
                                         select: {
                                             name: true,
+                                            permissions: {
+                                                select: {
+                                                    permission: { select: { key: true } },
+                                                },
+                                            },
                                         },
                                     },
+                                },
+                            },
+                            userPermissions: {
+                                select: {
+                                    permission: { select: { key: true } },
                                 },
                             },
                         },
@@ -58,12 +68,27 @@ export class JwtAuthGuard implements CanActivate {
             }
 
             const roles = session.user.userRoles.map((userRole) => userRole.role.name);
+
+            // Collect permissions from all assigned roles
+            const rolePermissions = session.user.userRoles.flatMap((ur) =>
+                ur.role.permissions.map((rp) => rp.permission.key),
+            );
+
+            // Collect permissions assigned directly to the user
+            const directPermissions = session.user.userPermissions.map(
+                (up) => up.permission.key,
+            );
+
+            // Merge and deduplicate
+            const permissions = [...new Set([...rolePermissions, ...directPermissions])];
+
             const user: AuthenticatedUser = {
                 id: session.user.id,
                 email: session.user.email,
                 phone: session.user.phone,
                 roles,
                 role: roles[0] ?? "PATIENT",
+                permissions,
                 status: session.user.status,
             };
 

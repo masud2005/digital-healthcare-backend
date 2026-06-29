@@ -1,5 +1,8 @@
+import * as os from "os";
+import * as fs from "fs";
 import type { SystemHealthStatus } from "@constant/enums";
-import { BadRequestException, Injectable, NotFoundException } from "@nestjs/common";
+import { BadRequestException, Injectable, Logger, NotFoundException, OnModuleInit } from "@nestjs/common";
+import { Cron, CronExpression } from "@nestjs/schedule";
 import { SystemHealthMetricQueryDto } from "./dto/system-health-metric-query.dto";
 import { SystemHealthQueryDto } from "./dto/system-health-query.dto";
 import { SystemHealthRepository } from "./system-health.repository";
@@ -7,281 +10,172 @@ import { SystemHealthRepository } from "./system-health.repository";
 const DEFAULT_PAGE = 1;
 const DEFAULT_LIMIT = 10;
 
+// Default service definitions — seeded on startup if not present in DB
+const DEFAULT_SERVICES: Array<{
+    key: string;
+    name: string;
+    category: string;
+    status: SystemHealthStatus;
+    description: string;
+    responseTimeMs: number | null;
+    uptimePercent: number;
+    message: string;
+}> = [
+    {
+        key: "server_status",
+        name: "Server Status",
+        category: "Infrastructure",
+        status: "OPERATIONAL",
+        description: "Core application server availability",
+        responseTimeMs: null,
+        uptimePercent: 100,
+        message: "Initialising — awaiting first request",
+    },
+    {
+        key: "email_delivery",
+        name: "Email Delivery",
+        category: "Third Party",
+        status: "OPERATIONAL",
+        description: "Transactional email sending performance",
+        responseTimeMs: null,
+        uptimePercent: 100,
+        message: "Initialising — awaiting first email",
+    },
+    {
+        key: "sms_delivery",
+        name: "SMS Delivery",
+        category: "Third Party",
+        status: "OPERATIONAL",
+        description: "Two-factor authentication and notification SMS delivery",
+        responseTimeMs: null,
+        uptimePercent: 100,
+        message: "Initialising — awaiting first SMS",
+    },
+    {
+        key: "payment_gateway",
+        name: "Payment Gateway",
+        category: "Third Party",
+        status: "OPERATIONAL",
+        description: "Stripe processing gateway availability",
+        responseTimeMs: null,
+        uptimePercent: 100,
+        message: "Initialising — awaiting first payment",
+    },
+    {
+        key: "database_health",
+        name: "Database Health",
+        category: "Infrastructure",
+        status: "OPERATIONAL",
+        description: "PostgreSQL database performance and connection pool",
+        responseTimeMs: null,
+        uptimePercent: 100,
+        message: "Initialising — awaiting first query",
+    },
+    {
+        key: "login_error_rate",
+        name: "Login Error Rate",
+        category: "Authentication",
+        status: "OPERATIONAL",
+        description: "Failed login attempts rate monitoring",
+        responseTimeMs: null,
+        uptimePercent: 100,
+        message: "Initialising — awaiting first login attempt",
+    },
+];
+
+// Default metric definitions — seeded on startup if not present in DB
+const DEFAULT_METRICS: Array<{
+    key: string;
+    label: string;
+    value: number;
+    unit: string | null;
+    displayValue: string;
+}> = [
+    { key: "requests_per_min", label: "Requests/min", value: 0, unit: null, displayValue: "0" },
+    { key: "avg_response_time", label: "Avg Response", value: 0, unit: "ms", displayValue: "0ms" },
+    { key: "error_rate", label: "Error Rate", value: 0, unit: "%", displayValue: "0%" },
+    { key: "active_users", label: "Active Users", value: 0, unit: null, displayValue: "0" },
+    { key: "queue_depth", label: "Queue Depth", value: 0, unit: null, displayValue: "0" },
+    { key: "cpu_usage", label: "CPU Usage", value: 0, unit: "%", displayValue: "0%" },
+    { key: "memory_usage", label: "Memory", value: 0, unit: "%", displayValue: "0%" },
+    { key: "disk_io", label: "Disk I/O", value: 0, unit: "%", displayValue: "0%" },
+];
+
 @Injectable()
-export class SystemHealthService {
+export class SystemHealthService implements OnModuleInit {
+    private readonly logger = new Logger(SystemHealthService.name);
+
     constructor(private readonly systemHealthRepository: SystemHealthRepository) {}
 
-    private getRandomValue(min: number, max: number, decimals = 0): number {
-        const factor = Math.pow(10, decimals);
-        const value = Math.random() * (max - min) + min;
-        return Math.round(value * factor) / factor;
+    async onModuleInit() {
+        try {
+            await Promise.all([
+                ...DEFAULT_SERVICES.map((s) => this.systemHealthRepository.upsertService(s)),
+                ...DEFAULT_METRICS.map((m) =>
+                    this.systemHealthRepository.upsertMetricValue(
+                        m.key,
+                        m.label,
+                        m.value,
+                        m.unit,
+                        m.displayValue,
+                    ),
+                ),
+            ]);
+            this.logger.log("SystemHealth: default service and metric rows seeded");
+        } catch (err) {
+            this.logger.error("SystemHealth: failed to seed default rows", err);
+        }
+
+        // Immediately collect OS metrics once on startup
+        await this.collectSystemMetrics().catch(() => {});
     }
 
-    async getOverview() {
-        const startTime = Date.now();
-        // Check database connection health by executing a simple lookup on logs table.
-        // This acts as a real-time check for PostgreSQL latency without requiring any seeded data.
-        await this.systemHealthRepository.getLogs("database_health", 1).catch(() => {});
-        const dbDuration = Date.now() - startTime;
+    /**
+     * Cron job — runs every 30 seconds to sample real OS + DB metrics
+     * and persist them so the dashboard always shows live data.
+     */
+    @Cron(CronExpression.EVERY_30_SECONDS)
+    async collectSystemMetrics() {
+        try {
+            const [cpuPercent, memPercent, diskPercent, activeUsers] = await Promise.all([
+                this.getCpuUsagePercent(),
+                this.getMemoryUsagePercent(),
+                this.getDiskUsagePercent(),
+                this.systemHealthRepository.countActiveUsers(),
+            ]);
 
-        // Record database latency to logs
+            await Promise.all([
+                this.updateSystemMetric("cpu_usage", cpuPercent),
+                this.updateSystemMetric("memory_usage", memPercent),
+                this.updateSystemMetric("disk_io", diskPercent),
+                this.systemHealthRepository.upsertMetricValue(
+                    "active_users",
+                    "Active Users",
+                    activeUsers,
+                    null,
+                    activeUsers.toLocaleString(),
+                ),
+            ]);
+        } catch (err) {
+            this.logger.warn("SystemHealth: failed to collect system metrics", err);
+        }
+    }
+
+    /**
+     * Returns the full system health overview — services + metrics — read directly from DB.
+     * Also performs a live DB ping for the `database_health` service and records it.
+     */
+    async getOverview() {
+        // Live DB ping — records latency and updates database_health row
+        const dbStart = Date.now();
+        await this.systemHealthRepository.getLogs("database_health", 1).catch(() => {});
+        const dbDuration = Date.now() - dbStart;
         this.recordDatabaseQuery(dbDuration).catch(() => {});
 
-        // Build list of default services if DB is not seeded or missing entries
-        const defaultServicesMap = new Map<string, any>([
-            [
-                "server_status",
-                {
-                    key: "server_status",
-                    name: "Server Status",
-                    category: "Infrastructure",
-                    status: "OPERATIONAL",
-                    description: "Core application server availability",
-                    responseTimeMs: 42,
-                    uptimePercent: 99.98,
-                    message: "Server operating normally",
-                },
-            ],
-            [
-                "email_delivery",
-                {
-                    key: "email_delivery",
-                    name: "Email Delivery",
-                    category: "Third Party",
-                    status: "DEGRADED",
-                    description: "Transactional email sending performance",
-                    responseTimeMs: 1200,
-                    uptimePercent: 97.4,
-                    message: "Delays detected with SendGrid delivery - avg 1.2s latency",
-                },
-            ],
-            [
-                "sms_delivery",
-                {
-                    key: "sms_delivery",
-                    name: "SMS Delivery",
-                    category: "Third Party",
-                    status: "OPERATIONAL",
-                    description: "Two-factor authentication and notification SMS delivery",
-                    responseTimeMs: 340,
-                    uptimePercent: 99.9,
-                    message: "SMS gateway operating normally",
-                },
-            ],
-            [
-                "payment_gateway",
-                {
-                    key: "payment_gateway",
-                    name: "Payment Gateway",
-                    category: "Third Party",
-                    status: "OPERATIONAL",
-                    description: "Stripe processing gateway availability",
-                    responseTimeMs: 210,
-                    uptimePercent: 100.0,
-                    message: "Payment gateway operating normally",
-                },
-            ],
-            [
-                "database_health",
-                {
-                    key: "database_health",
-                    name: "Database Health",
-                    category: "Infrastructure",
-                    status: "OPERATIONAL",
-                    description: "PostgreSQL database performance and connection pool",
-                    responseTimeMs: 18,
-                    uptimePercent: 99.99,
-                    message: "Database operating normally",
-                },
-            ],
-            [
-                "login_error_rate",
-                {
-                    key: "login_error_rate",
-                    name: "Login Error Rate",
-                    category: "Authentication",
-                    status: "DEGRADED",
-                    description: "Failed login attempts rate monitoring",
-                    responseTimeMs: null,
-                    uptimePercent: 95.8,
-                    message:
-                        "Login error rate at 4.2% - above 2% threshold. Spike started 15 mins ago.",
-                },
-            ],
-        ]);
+        // Read everything from DB
+        const { services, metrics, counts } = await this.systemHealthRepository.getSummary();
 
-        const services = Array.from(defaultServicesMap.keys()).map((key) => {
-            const defaultService = defaultServicesMap.get(key)!;
-            const service = {
-                ...defaultService,
-                id: `mock-${key}`,
-                checkedAt: new Date(),
-                isActive: true,
-                createdAt: new Date(),
-                updatedAt: new Date(),
-            };
-
-            // Apply dynamic live micro-fluctuations to show "Real-time" activity:
-            // NOTE: For unintegrated services, we simulate live data. These can be integrated with actual status checks.
-            if (key === "server_status") {
-                // Fluctuates between 38ms and 45ms
-                service.responseTimeMs = this.getRandomValue(38, 45);
-                service.status = "OPERATIONAL";
-                service.message = "Server operating normally";
-            } else if (key === "email_delivery") {
-                // Fluctuates around 1.1s to 1.3s
-                const latency = this.getRandomValue(1100, 1300);
-                service.responseTimeMs = latency;
-                service.status = "DEGRADED";
-                service.message = `Delays detected with SendGrid delivery - avg ${(latency / 1000).toFixed(1)}s latency`;
-            } else if (key === "sms_delivery") {
-                // Fluctuates between 310ms and 360ms
-                service.responseTimeMs = this.getRandomValue(310, 360);
-                service.status = "OPERATIONAL";
-                service.message = "SMS gateway operating normally";
-            } else if (key === "payment_gateway") {
-                // Fluctuates between 190ms and 230ms
-                service.responseTimeMs = this.getRandomValue(190, 230);
-                service.status = "OPERATIONAL";
-                service.message = "Payment gateway operating normally";
-            } else if (key === "database_health") {
-                // Uses the actual real-time query duration from the DB transaction call!
-                service.responseTimeMs = dbDuration;
-                if (dbDuration > 100) {
-                    service.status = "DEGRADED";
-                    service.message = `High database response times detected: ${dbDuration}ms`;
-                } else {
-                    service.status = "OPERATIONAL";
-                    service.message = "Database operating normally";
-                }
-            } else if (key === "login_error_rate") {
-                // Fluctuates error rate slightly between 4.0% and 4.4%
-                const errRate = this.getRandomValue(4.0, 4.4, 1);
-                service.status = "DEGRADED";
-                service.uptimePercent = 100 - errRate;
-                service.message = `Login error rate at ${errRate}% - above 2% threshold. Spike started 15 mins ago.`;
-            }
-
-            return service;
-        });
-
-        // Build list of default metrics if DB is not seeded or missing entries
-        const defaultMetricsMap = new Map<string, any>([
-            [
-                "requests_per_min",
-                {
-                    key: "requests_per_min",
-                    label: "Requests/min",
-                    value: 1847,
-                    unit: null,
-                    displayValue: "1,847",
-                },
-            ],
-            [
-                "avg_response_time",
-                {
-                    key: "avg_response_time",
-                    label: "Avg Response",
-                    value: 124,
-                    unit: "ms",
-                    displayValue: "124ms",
-                },
-            ],
-            [
-                "error_rate",
-                {
-                    key: "error_rate",
-                    label: "Error Rate",
-                    value: 0.3,
-                    unit: "%",
-                    displayValue: "0.3%",
-                },
-            ],
-            [
-                "active_users",
-                {
-                    key: "active_users",
-                    label: "Active Users",
-                    value: 142,
-                    unit: null,
-                    displayValue: "142",
-                },
-            ],
-            [
-                "queue_depth",
-                {
-                    key: "queue_depth",
-                    label: "Queue Depth",
-                    value: 23,
-                    unit: null,
-                    displayValue: "23",
-                },
-            ],
-            [
-                "cpu_usage",
-                { key: "cpu_usage", label: "CPU Usage", value: 34, unit: "%", displayValue: "34%" },
-            ],
-            [
-                "memory_usage",
-                { key: "memory_usage", label: "Memory", value: 61, unit: "%", displayValue: "61%" },
-            ],
-            [
-                "disk_io",
-                { key: "disk_io", label: "Disk I/O", value: 12, unit: "%", displayValue: "12%" },
-            ],
-        ]);
-
-        const metrics = Array.from(defaultMetricsMap.keys()).map((key) => {
-            const defaultMetric = defaultMetricsMap.get(key)!;
-            const metric = {
-                ...defaultMetric,
-                id: `mock-${key}`,
-                recordedAt: new Date(),
-                isActive: true,
-                createdAt: new Date(),
-                updatedAt: new Date(),
-            };
-
-            // Apply realistic live micro-fluctuations to show "Real-time" activity:
-            // NOTE: These are simulated metrics for features not yet fully integrated at the OS/Infrastructure level.
-            // In the future, these can be updated by writing a background task that calls system APIs (e.g. `os` module for CPU/Memory, or Redis/Bull queue for Queue Depth).
-            if (key === "requests_per_min") {
-                metric.value = this.getRandomValue(1820, 1870);
-                metric.displayValue = metric.value.toLocaleString();
-            } else if (key === "avg_response_time") {
-                metric.value = this.getRandomValue(120, 128);
-                metric.displayValue = `${metric.value}ms`;
-            } else if (key === "error_rate") {
-                metric.value = this.getRandomValue(0.2, 0.4, 1);
-                metric.displayValue = `${metric.value}%`;
-            } else if (key === "active_users") {
-                metric.value = this.getRandomValue(138, 146);
-                metric.displayValue = metric.value.toLocaleString();
-            } else if (key === "queue_depth") {
-                metric.value = this.getRandomValue(20, 25);
-                metric.displayValue = metric.value.toString();
-            } else if (key === "cpu_usage") {
-                metric.value = this.getRandomValue(32, 36);
-                metric.displayValue = `${metric.value}%`;
-            } else if (key === "memory_usage") {
-                metric.value = this.getRandomValue(59, 62);
-                metric.displayValue = `${metric.value}%`;
-            } else if (key === "disk_io") {
-                metric.value = this.getRandomValue(11, 13);
-                metric.displayValue = `${metric.value}%`;
-            }
-
-            return metric;
-        });
-
-        // Compute status counts dynamically from the live service list
-        const totals = {
-            total: services.length,
-            operational: services.filter((s) => s.status === "OPERATIONAL").length,
-            degraded: services.filter((s) => s.status === "DEGRADED").length,
-            down: services.filter((s) => s.status === "OUTAGE").length,
-            maintenance: services.filter((s) => s.status === "MAINTENANCE").length,
-        };
+        const totals = this.buildStatusCounts(counts as any);
 
         return {
             title:
@@ -528,6 +422,76 @@ export class SystemHealthService {
         }
 
         await this.systemHealthRepository.upsertMetricValue(key, label, value, unit, displayValue);
+    }
+
+    // --- OS Metric Collectors ---
+
+    /**
+     * Samples CPU usage by comparing idle and total ticks across a 100ms interval.
+     */
+    private getCpuUsagePercent(): Promise<number> {
+        return new Promise((resolve) => {
+            const cpusBefore = os.cpus();
+
+            setTimeout(() => {
+                const cpusAfter = os.cpus();
+                let totalIdle = 0;
+                let totalTick = 0;
+
+                for (let i = 0; i < cpusBefore.length; i++) {
+                    const before = cpusBefore[i].times;
+                    const after = cpusAfter[i].times;
+
+                    const idle = after.idle - before.idle;
+                    const total =
+                        (after.user - before.user) +
+                        (after.nice - before.nice) +
+                        (after.sys - before.sys) +
+                        (after.irq - before.irq) +
+                        idle;
+
+                    totalIdle += idle;
+                    totalTick += total;
+                }
+
+                const usagePercent = totalTick > 0 ? ((totalTick - totalIdle) / totalTick) * 100 : 0;
+                resolve(parseFloat(usagePercent.toFixed(1)));
+            }, 100);
+        });
+    }
+
+    /**
+     * Returns memory usage as a percentage of total RAM.
+     */
+    private getMemoryUsagePercent(): number {
+        const total = os.totalmem();
+        const free = os.freemem();
+        return parseFloat(((1 - free / total) * 100).toFixed(1));
+    }
+
+    /**
+     * Returns disk space usage % for the root volume using fs.statfs (Node 18+).
+     * Falls back to 0 if the API is unavailable.
+     */
+    private getDiskUsagePercent(): Promise<number> {
+        return new Promise((resolve) => {
+            try {
+                // fs.statfs is available from Node.js 18.15+
+                (fs as any).statfs("/", (err: NodeJS.ErrnoException | null, stats: any) => {
+                    if (err || !stats) {
+                        resolve(0);
+                        return;
+                    }
+                    const total = stats.blocks * stats.bsize;
+                    const free = stats.bfree * stats.bsize;
+                    const used = total - free;
+                    const percent = total > 0 ? (used / total) * 100 : 0;
+                    resolve(parseFloat(percent.toFixed(1)));
+                });
+            } catch {
+                resolve(0);
+            }
+        });
     }
 
     // --- Recalculation Helpers ---
