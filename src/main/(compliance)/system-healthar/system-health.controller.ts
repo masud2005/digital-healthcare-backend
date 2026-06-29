@@ -1,54 +1,30 @@
-import { Controller, Get, Param, Query } from "@nestjs/common";
-import { ApiOkResponse, ApiOperation, ApiTags } from "@nestjs/swagger";
-import { SystemHealthParamDto } from "./dto/system-health-param.dto";
-import { SystemHealthMetricQueryDto } from "./dto/system-health-metric-query.dto";
-import { SystemHealthQueryDto } from "./dto/system-health-query.dto";
-import {
-    SystemHealthListResponseDto,
-    SystemHealthMetricListResponseDto,
-    SystemHealthMetricResponseDto,
-    SystemHealthResponseDto,
-    SystemHealthSummaryResponseDto,
-} from "./dto/system-health-response.dto";
+import { RequirePermissions } from "@common/decorators";
+import { AppPermission } from "@common/auth/permissions.constants";
+import { JwtAuthGuard, PermissionsGuard } from "@common/guards";
+import { Controller, Get, UseGuards } from "@nestjs/common";
+import { ApiBearerAuth, ApiOkResponse, ApiOperation, ApiTags } from "@nestjs/swagger";
+import { SystemHealthSummaryResponseDto } from "./dto/system-health-response.dto";
 import { SystemHealthService } from "./system-health.service";
 
 @ApiTags("(Compliance) System Health")
+@ApiBearerAuth()
+@UseGuards(JwtAuthGuard, PermissionsGuard)
 @Controller("compliance/system-health")
 export class SystemHealthController {
     constructor(private readonly systemHealthService: SystemHealthService) {}
 
-    @Get("overview")
-    @ApiOperation({ summary: "Get system health overview" })
+    @Get()
+    @RequirePermissions(AppPermission.VIEW_SYSTEM_HEALTH)
+    @ApiOperation({
+        summary: "Get full system health overview",
+        description:
+            "Returns all service statuses (server, email, SMS, payments, database, login) " +
+            "and real-time system metrics (CPU, memory, disk, requests/min, error rate, " +
+            "active users) sourced directly from the database. " +
+            "Requires the 'view:system_health' permission. ADMIN role bypasses automatically.",
+    })
     @ApiOkResponse({ type: SystemHealthSummaryResponseDto })
     getOverview() {
         return this.systemHealthService.getOverview();
-    }
-
-    @Get("services")
-    @ApiOperation({ summary: "Get system health services" })
-    @ApiOkResponse({ type: SystemHealthListResponseDto })
-    findAll(@Query() query: SystemHealthQueryDto) {
-        return this.systemHealthService.findAll(query);
-    }
-
-    @Get("services/:id")
-    @ApiOperation({ summary: "Get a system health service by id" })
-    @ApiOkResponse({ type: SystemHealthResponseDto })
-    findOne(@Param() params: SystemHealthParamDto) {
-        return this.systemHealthService.findOne(params.id);
-    }
-
-    @Get("metrics")
-    @ApiOperation({ summary: "Get system health metrics" })
-    @ApiOkResponse({ type: SystemHealthMetricListResponseDto })
-    findAllMetrics(@Query() query: SystemHealthMetricQueryDto) {
-        return this.systemHealthService.findAllMetrics(query);
-    }
-
-    @Get("metrics/:id")
-    @ApiOperation({ summary: "Get a system health metric by id" })
-    @ApiOkResponse({ type: SystemHealthMetricResponseDto })
-    findOneMetric(@Param() params: SystemHealthParamDto) {
-        return this.systemHealthService.findOneMetric(params.id);
     }
 }

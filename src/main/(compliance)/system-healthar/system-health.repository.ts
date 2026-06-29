@@ -168,6 +168,44 @@ export class SystemHealthRepository {
         });
     }
 
+    async upsertService(data: {
+        key: string;
+        name: string;
+        category: string;
+        status: SystemHealthStatus;
+        description: string;
+        responseTimeMs?: number | null;
+        uptimePercent?: number | null;
+        message?: string | null;
+    }) {
+        return this.prisma.systemHealth.upsert({
+            where: { key: data.key },
+            update: {},
+            create: {
+                key: data.key,
+                name: data.name,
+                category: data.category,
+                status: data.status,
+                description: data.description,
+                responseTimeMs: data.responseTimeMs,
+                uptimePercent: data.uptimePercent,
+                message: data.message,
+                isActive: true,
+            },
+        });
+    }
+
+    countActiveUsers() {
+        const fifteenMinutesAgo = new Date(Date.now() - 15 * 60 * 1000);
+        return this.prisma.authSession.count({
+            where: {
+                revokedAt: null,
+                expiresAt: { gt: new Date() },
+                lastUsedAt: { gte: fifteenMinutesAgo },
+            },
+        });
+    }
+
     private buildWhere(params: SystemHealthFindAllParams): Prisma.SystemHealthWhereInput {
         const checkedAtFilter = this.buildDateRangeFilter(params.checkedFrom, params.checkedTo);
 
