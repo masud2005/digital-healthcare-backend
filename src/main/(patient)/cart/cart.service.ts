@@ -167,10 +167,6 @@ export class CartService {
                 throw new BadRequestException("Invalid submissionId");
             }
             paymentPlan = submission.assessment?.category?.paymentPlan ?? null;
-        } else {
-            const user = await this.cartRepository.findUserWithCategory(userId);
-            paymentPlan =
-                user?.category?.paymentPlan ?? cart?.items[0]?.product?.category?.paymentPlan ?? null;
         }
 
         let subtotal = 0;
@@ -188,7 +184,7 @@ export class CartService {
 
         const serviceFees = paymentPlan ? Number(paymentPlan.price) : 0;
         const serviceDuration = paymentPlan?.billingCycle ?? null;
-        const shippingCharge = SHIPPING_CHARGE;
+        const shippingCharge = (cart?.items?.length ?? 0) > 0 ? SHIPPING_CHARGE : 0;
 
         let discount = 0;
         let discountMeta: { code: string; type: string; value: number } | null = null;
@@ -216,19 +212,24 @@ export class CartService {
 
         const total = parseFloat((subtotal + serviceFees + shippingCharge - discount).toFixed(2));
 
+        const responseData: any = {
+            subtotal: subtotal.toFixed(2),
+            shippingCharge: shippingCharge.toFixed(2),
+            discount: discount.toFixed(2),
+            discountMeta,
+            total: total.toFixed(2),
+        };
+
+        if (submissionId) {
+            responseData.serviceDuration = serviceDuration;
+            responseData.serviceFees = serviceFees.toFixed(2);
+        }
+
         return {
             success: true,
             statusCode: 200,
             message: "Cart summary fetched successfully",
-            data: {
-                subtotal: subtotal.toFixed(2),
-                serviceDuration,
-                serviceFees: serviceFees.toFixed(2),
-                shippingCharge: shippingCharge.toFixed(2),
-                discount: discount.toFixed(2),
-                discountMeta,
-                total: total.toFixed(2),
-            },
+            data: responseData,
         };
     }
 
