@@ -7,6 +7,11 @@ export class MyOrderSubmissionRefDto {
     @ApiProperty({ example: "Weight Loss" }) assessmentTitle: string;
 }
 
+export class MyOrderCategoryDto {
+    @ApiProperty({ example: "cat-uuid" }) id: string;
+    @ApiProperty({ example: "Men's Health" }) name: string;
+}
+
 export class MyOrderApprovedByDto {
     @ApiProperty({ example: "doctor-user-uuid" }) id: string;
     @ApiPropertyOptional({ example: "Dr. Emily Chen", nullable: true }) name: string | null;
@@ -24,6 +29,8 @@ export class MyOrderListItemDto {
     reviewedBy: MyOrderApprovedByDto | null;
     @ApiPropertyOptional({ type: MyOrderSubmissionRefDto, nullable: true })
     submission: MyOrderSubmissionRefDto | null;
+    @ApiPropertyOptional({ type: MyOrderCategoryDto, nullable: true })
+    category: MyOrderCategoryDto | null;
 }
 
 export class MyOrderListResponseDto {
@@ -54,6 +61,8 @@ export class MyOrderInfoDto {
     @ApiPropertyOptional({ example: "David Wilson", nullable: true }) patientName: string | null;
     @ApiPropertyOptional({ type: MyOrderApprovedByDto, nullable: true })
     approvedBy: MyOrderApprovedByDto | null;
+    @ApiPropertyOptional({ type: MyOrderCategoryDto, nullable: true })
+    category: MyOrderCategoryDto | null;
 }
 
 export class MyOrderShippingAddressDto {

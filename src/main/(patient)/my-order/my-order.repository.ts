@@ -70,7 +70,16 @@ export class MyOrderRepository {
                     total: true,
                     createdAt: true,
                     items: {
-                        select: { id: true, productNameSnapshot: true },
+                        select: { 
+                            id: true, 
+                            productNameSnapshot: true,
+                            product: {
+                                select: {
+                                    categoryId: true,
+                                    category: { select: { name: true } }
+                                }
+                            }
+                        },
                     },
                     payments: {
                         select: {
@@ -82,7 +91,11 @@ export class MyOrderRepository {
                             id: true,
                             reviewedBy: true,
                             assessment: {
-                                select: { title: true },
+                                select: { 
+                                    title: true,
+                                    categoryId: true,
+                                    category: { select: { name: true } },
+                                },
                             },
                         },
                     },
@@ -111,7 +124,16 @@ export class MyOrderRepository {
         return this.prisma.order.findFirst({
             where: { id, userId },
             include: {
-                items: true,
+                items: {
+                    include: {
+                        product: {
+                            select: {
+                                categoryId: true,
+                                category: { select: { name: true } },
+                            },
+                        },
+                    },
+                },
                 payments: {
                     include: {
                         subscription: { include: { paymentPlan: true } },
@@ -126,6 +148,8 @@ export class MyOrderRepository {
                             select: {
                                 id: true,
                                 title: true,
+                                categoryId: true,
+                                category: { select: { name: true } },
                             },
                         },
                     },

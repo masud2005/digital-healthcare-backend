@@ -39,6 +39,15 @@ export class MyOrderService {
         const mappedOrders = await Promise.all(
             orders.map(async (order) => {
                 const reviewer = await this.resolveReviewer(order.submission?.reviewedBy);
+                let categoryId = order.submission?.assessment?.categoryId ?? null;
+                let categoryName = order.submission?.assessment?.category?.name ?? null;
+
+                if (!categoryId && order.items.length > 0) {
+                    const firstItemProduct = order.items[0]?.product;
+                    categoryId = firstItemProduct?.categoryId ?? null;
+                    categoryName = firstItemProduct?.category?.name ?? null;
+                }
+
                 return {
                     id: order.id,
                     orderNumber: order.orderNumber,
@@ -48,6 +57,7 @@ export class MyOrderService {
                     createdAt: order.createdAt,
                     transactionId: order.payments?.[0]?.transactionId ?? null,
                     reviewedBy: reviewer,
+                    category: categoryId ? { id: categoryId, name: categoryName } : null,
                     submission: order.submission
                         ? {
                               id: order.submission.id,
@@ -94,6 +104,15 @@ export class MyOrderService {
 
         const reviewer = await this.resolveReviewer(order.submission?.reviewedBy);
 
+        let categoryId = order.submission?.assessment?.categoryId ?? null;
+        let categoryName = order.submission?.assessment?.category?.name ?? null;
+
+        if (!categoryId && order.items.length > 0) {
+            const firstItemProduct = order.items[0]?.product;
+            categoryId = firstItemProduct?.categoryId ?? null;
+            categoryName = firstItemProduct?.category?.name ?? null;
+        }
+
         return {
             id: order.id,
             orderNumber: order.orderNumber,
@@ -114,6 +133,7 @@ export class MyOrderService {
                 orderStatus: order.status,
                 patientName: order.user?.name ?? null,
                 approvedBy: reviewer,
+                category: categoryId ? { id: categoryId, name: categoryName } : null,
             },
             items,
             subtotal: Number(order.subtotal),
