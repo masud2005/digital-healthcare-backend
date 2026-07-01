@@ -57,6 +57,7 @@ export class DoctorMyConsultationController {
         };
     }
 
+    // 
     @UseGuards(JwtAuthGuard)
     @Get(":id")
     @ApiOperation({
