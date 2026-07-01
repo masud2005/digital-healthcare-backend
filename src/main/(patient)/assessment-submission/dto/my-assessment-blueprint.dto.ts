@@ -102,6 +102,15 @@ export class MyAssessmentBlueprintDto {
     @ApiProperty({ example: true })
     isEditable: boolean;
 
+    @ApiProperty({ example: "2026-06-19T00:00:00.000Z" })
+    submissionDate: Date;
+
+    @ApiPropertyOptional({ example: "John Doe", nullable: true })
+    name: string | null;
+
+    @ApiPropertyOptional({ example: "url", nullable: true })
+    patientImage: string | null;
+
     @ApiProperty({ type: BlueprintAssessmentDto })
     assessment: BlueprintAssessmentDto;
 
