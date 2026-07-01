@@ -1,5 +1,6 @@
-import { Roles } from "@common/decorators";
-import { JwtAuthGuard, RolesGuard } from "@common/guards";
+import { AppPermission } from "@common/auth/permissions.constants";
+import { RequirePermissions } from "@common/decorators";
+import { JwtAuthGuard, PermissionsGuard } from "@common/guards";
 import { Controller, Get, HttpStatus, Param, Query, UseGuards } from "@nestjs/common";
 import { ApiBearerAuth, ApiOkResponse, ApiOperation, ApiTags } from "@nestjs/swagger";
 import { PaymentDetailDto, PaymentListResponseDto, PaymentQueryDto } from "./dto/payment.dto";
@@ -7,8 +8,8 @@ import { AdminPaymentService } from "./payment.service";
 
 @ApiTags("(Admin) Payments")
 @ApiBearerAuth()
-@UseGuards(JwtAuthGuard, RolesGuard)
-@Roles("ADMIN")
+@UseGuards(JwtAuthGuard, PermissionsGuard)
+@RequirePermissions(AppPermission.VIEW_PAYMENTS)
 @Controller("admin/payments")
 export class AdminPaymentController {
     constructor(private readonly paymentService: AdminPaymentService) {}

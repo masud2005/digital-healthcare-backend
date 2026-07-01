@@ -1,14 +1,14 @@
-import { Roles } from "@common/decorators";
-import { RolesGuard } from "@common/guards";
-import { JwtAuthGuard } from "@common/guards/jwt-auth.guard";
+import { AppPermission } from "@common/auth/permissions.constants";
+import { RequirePermissions } from "@common/decorators";
+import { JwtAuthGuard, PermissionsGuard } from "@common/guards";
 import { Controller, Get, UseGuards } from "@nestjs/common";
 import { ApiBearerAuth, ApiOkResponse, ApiOperation, ApiTags } from "@nestjs/swagger";
 import { DashboardService } from "./dashboard.service";
 
 @ApiTags("(Admin) Dashboard Overview")
 @ApiBearerAuth()
-@UseGuards(JwtAuthGuard, RolesGuard)
-@Roles("ADMIN")
+@UseGuards(JwtAuthGuard, PermissionsGuard)
+@RequirePermissions(AppPermission.VIEW_DASHBOARD)
 @Controller("admin/dashboard")
 export class DashboardController {
     constructor(private readonly dashboardService: DashboardService) {}

@@ -1,5 +1,6 @@
-import { Roles } from "@common/decorators";
-import { JwtAuthGuard, RolesGuard } from "@common/guards";
+import { AppPermission } from "@common/auth/permissions.constants";
+import { RequirePermissions } from "@common/decorators";
+import { JwtAuthGuard, PermissionsGuard } from "@common/guards";
 import {
     Body,
     Controller,
@@ -32,13 +33,13 @@ import { QuestionOptionService } from "./question-option.service";
 
 @ApiTags("(Admin) Question Option")
 @ApiBearerAuth()
-@UseGuards(JwtAuthGuard, RolesGuard)
-@Roles("ADMIN")
+@UseGuards(JwtAuthGuard, PermissionsGuard)
 @Controller("admin/question-options")
 export class QuestionOptionController {
     constructor(private readonly questionOptionService: QuestionOptionService) {}
 
     @Post()
+    @RequirePermissions(AppPermission.MANAGE_ASSESSMENTS)
     @ApiOperation({ summary: "Create a question option" })
     @ApiCreatedResponse({ type: QuestionOptionResponseDto })
     create(@Body() payload: CreateQuestionOptionDto) {
@@ -46,6 +47,7 @@ export class QuestionOptionController {
     }
 
     @Get()
+    @RequirePermissions(AppPermission.VIEW_ASSESSMENTS)
     @ApiOperation({ summary: "Get question options" })
     @ApiOkResponse({ type: QuestionOptionListResponseDto })
     findAll(@Query() query: QuestionOptionQueryDto) {
@@ -53,6 +55,7 @@ export class QuestionOptionController {
     }
 
     @Get(":id")
+    @RequirePermissions(AppPermission.VIEW_ASSESSMENTS)
     @ApiOperation({ summary: "Get a question option by id" })
     @ApiOkResponse({ type: QuestionOptionResponseDto })
     findOne(@Param() params: QuestionOptionParamDto) {
@@ -60,6 +63,7 @@ export class QuestionOptionController {
     }
 
     @Patch(":id")
+    @RequirePermissions(AppPermission.MANAGE_ASSESSMENTS)
     @ApiOperation({ summary: "Update a question option" })
     @ApiOkResponse({ type: QuestionOptionResponseDto })
     update(@Param() params: QuestionOptionParamDto, @Body() payload: UpdateQuestionOptionDto) {
@@ -68,6 +72,7 @@ export class QuestionOptionController {
 
     @Delete(":id")
     @HttpCode(204)
+    @RequirePermissions(AppPermission.MANAGE_ASSESSMENTS)
     @ApiOperation({ summary: "Delete a question option" })
     @ApiNoContentResponse({ description: "Question option deleted successfully" })
     remove(@Param() params: QuestionOptionParamDto) {

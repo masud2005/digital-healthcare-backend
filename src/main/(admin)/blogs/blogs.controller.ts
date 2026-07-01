@@ -1,5 +1,6 @@
-import { Roles } from "@common/decorators";
-import { JwtAuthGuard, RolesGuard } from "@common/guards";
+import { AppPermission } from "@common/auth/permissions.constants";
+import { RequirePermissions } from "@common/decorators";
+import { JwtAuthGuard, PermissionsGuard } from "@common/guards";
 import {
     Body,
     Controller,
@@ -31,13 +32,13 @@ import { BlogListResponseDto, BlogResponseDto } from "./dto/blog-response.dto";
 
 @ApiTags("(Admin) Blogs")
 @ApiBearerAuth()
-@UseGuards(JwtAuthGuard, RolesGuard)
-@Roles("ADMIN")
+@UseGuards(JwtAuthGuard, PermissionsGuard)
 @Controller("admin/blogs")
 export class BlogsController {
     constructor(private readonly blogsService: BlogsService) {}
 
     @Post()
+    @RequirePermissions(AppPermission.MANAGE_WEBSITE_MANAGEMENT)
     @ApiOperation({ summary: "Create a blog post" })
     @ApiCreatedResponse({ type: BlogResponseDto })
     create(@Body() payload: CreateBlogDto, @CurrentUser() user: AuthenticatedUser) {
@@ -45,6 +46,7 @@ export class BlogsController {
     }
 
     @Get()
+    @RequirePermissions(AppPermission.VIEW_WEBSITE_MANAGEMENT)
     @ApiOperation({ summary: "Get paginated blog posts" })
     @ApiOkResponse({ type: BlogListResponseDto })
     findAll(@Query() query: BlogQueryDto) {
@@ -52,6 +54,7 @@ export class BlogsController {
     }
 
     @Get(":id")
+    @RequirePermissions(AppPermission.VIEW_WEBSITE_MANAGEMENT)
     @ApiOperation({ summary: "Get a blog post by id" })
     @ApiOkResponse({ type: BlogResponseDto })
     findOne(@Param() params: BlogParamDto) {
@@ -59,6 +62,7 @@ export class BlogsController {
     }
 
     @Patch(":id")
+    @RequirePermissions(AppPermission.MANAGE_WEBSITE_MANAGEMENT)
     @ApiOperation({ summary: "Update a blog post" })
     @ApiOkResponse({ type: BlogResponseDto })
     update(@Param() params: BlogParamDto, @Body() payload: UpdateBlogDto) {
@@ -67,6 +71,7 @@ export class BlogsController {
 
     @Delete(":id")
     @HttpCode(204)
+    @RequirePermissions(AppPermission.MANAGE_WEBSITE_MANAGEMENT)
     @ApiOperation({ summary: "Delete a blog post" })
     @ApiNoContentResponse({ description: "Blog post deleted successfully" })
     async remove(@Param() params: BlogParamDto) {

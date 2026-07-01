@@ -1,5 +1,6 @@
-import { Roles } from "@common/decorators";
-import { JwtAuthGuard, RolesGuard } from "@common/guards";
+import { AppPermission } from "@common/auth/permissions.constants";
+import { RequirePermissions } from "@common/decorators";
+import { JwtAuthGuard, PermissionsGuard } from "@common/guards";
 import { Body, Controller, Get, Headers, Patch, UseGuards } from "@nestjs/common";
 import { ApiBearerAuth, ApiOkResponse, ApiOperation, ApiTags } from "@nestjs/swagger";
 import { UpdateContactInfoDto } from "./dto/update-contact-info.dto";
@@ -15,6 +16,7 @@ import { WebsiteService } from "./website.service";
 export class WebsiteController {
     constructor(private readonly websiteService: WebsiteService) {}
 
+    // Public — used by the frontend to fetch settings without auth
     @Get()
     @ApiOperation({ summary: "Get website settings" })
     @ApiOkResponse({ type: WebsiteSettingsResponseDto })
@@ -26,8 +28,8 @@ export class WebsiteController {
     @ApiOperation({ summary: "Update core site settings" })
     @ApiOkResponse({ type: WebsiteSettingsResponseDto })
     @ApiBearerAuth()
-    @UseGuards(JwtAuthGuard, RolesGuard)
-    @Roles("ADMIN")
+    @UseGuards(JwtAuthGuard, PermissionsGuard)
+    @RequirePermissions(AppPermission.MANAGE_WEBSITE_MANAGEMENT)
     updateSiteSettings(@Body() payload: UpdateSiteSettingsDto) {
         return this.websiteService.updateSettings(payload);
     }
@@ -36,8 +38,8 @@ export class WebsiteController {
     @ApiOperation({ summary: "Update a single office address" })
     @ApiOkResponse({ type: WebsiteSettingsResponseDto })
     @ApiBearerAuth()
-    @UseGuards(JwtAuthGuard, RolesGuard)
-    @Roles("ADMIN")
+    @UseGuards(JwtAuthGuard, PermissionsGuard)
+    @RequirePermissions(AppPermission.MANAGE_WEBSITE_MANAGEMENT)
     updateOfficeAddress(@Headers("id") officeId: string, @Body() payload: OfficeLocationDto) {
         return this.websiteService.updateOfficeAddress(officeId, payload);
     }
@@ -46,8 +48,8 @@ export class WebsiteController {
     @ApiOperation({ summary: "Update contact info" })
     @ApiOkResponse({ type: WebsiteSettingsResponseDto })
     @ApiBearerAuth()
-    @UseGuards(JwtAuthGuard, RolesGuard)
-    @Roles("ADMIN")
+    @UseGuards(JwtAuthGuard, PermissionsGuard)
+    @RequirePermissions(AppPermission.MANAGE_WEBSITE_MANAGEMENT)
     updateContactInfo(@Body() payload: UpdateContactInfoDto) {
         return this.websiteService.updateSettings({ contactInfo: payload });
     }
@@ -56,8 +58,8 @@ export class WebsiteController {
     @ApiOperation({ summary: "Update social links" })
     @ApiOkResponse({ type: WebsiteSettingsResponseDto })
     @ApiBearerAuth()
-    @UseGuards(JwtAuthGuard, RolesGuard)
-    @Roles("ADMIN")
+    @UseGuards(JwtAuthGuard, PermissionsGuard)
+    @RequirePermissions(AppPermission.MANAGE_WEBSITE_MANAGEMENT)
     updateSocialLinks(@Body() payload: UpdateSocialLinksDto) {
         return this.websiteService.updateSettings(payload);
     }
@@ -66,8 +68,8 @@ export class WebsiteController {
     @ApiOperation({ summary: "Update Google Analytics settings" })
     @ApiOkResponse({ type: WebsiteSettingsResponseDto })
     @ApiBearerAuth()
-    @UseGuards(JwtAuthGuard, RolesGuard)
-    @Roles("ADMIN")
+    @UseGuards(JwtAuthGuard, PermissionsGuard)
+    @RequirePermissions(AppPermission.MANAGE_WEBSITE_MANAGEMENT)
     updateGoogleAnalytics(@Body() payload: UpdateGoogleAnalyticsDto) {
         return this.websiteService.updateSettings({ googleAnalytics: payload });
     }

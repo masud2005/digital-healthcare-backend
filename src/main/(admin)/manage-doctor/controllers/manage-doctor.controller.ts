@@ -1,5 +1,6 @@
-import { Roles } from "@common/decorators";
-import { JwtAuthGuard, RolesGuard } from "@common/guards";
+import { AppPermission } from "@common/auth/permissions.constants";
+import { RequirePermissions } from "@common/decorators";
+import { JwtAuthGuard, PermissionsGuard } from "@common/guards";
 import {
     Body,
     Controller,
@@ -36,13 +37,13 @@ import { ManageDoctorService } from "../services/manage-doctor.service";
 
 @ApiTags("(Admin) Doctor manage")
 @ApiBearerAuth()
-@UseGuards(JwtAuthGuard, RolesGuard)
-@Roles("ADMIN")
+@UseGuards(JwtAuthGuard, PermissionsGuard)
 @Controller("admin/doctors")
 export class ManageDoctorController {
     constructor(private readonly manageDoctorService: ManageDoctorService) {}
 
     @Post()
+    @RequirePermissions(AppPermission.MANAGE_DOCTOR_MANAGEMENT)
     @ApiOperation({ summary: "Create a doctor" })
     @ApiCreatedResponse({ type: DoctorResponseDto })
     async create(@Body() payload: CreateDoctorDto) {
@@ -56,6 +57,7 @@ export class ManageDoctorController {
     }
 
     @Get()
+    @RequirePermissions(AppPermission.VIEW_DOCTOR_MANAGEMENT)
     @ApiOperation({ summary: "Get doctors" })
     @ApiOkResponse({ type: DoctorListResponseDto })
     async findAll(@Query() query: DoctorQueryDto) {
@@ -69,6 +71,7 @@ export class ManageDoctorController {
     }
 
     @Get("titles")
+    @RequirePermissions(AppPermission.VIEW_DOCTOR_MANAGEMENT)
     @ApiOperation({ summary: "Get doctor titles" })
     @ApiOkResponse({ type: DoctorTitleListResponseDto })
     async findTitles() {
@@ -82,6 +85,7 @@ export class ManageDoctorController {
     }
 
     @Get(":id")
+    @RequirePermissions(AppPermission.VIEW_DOCTOR_MANAGEMENT)
     @ApiOperation({ summary: "Get a doctor by id" })
     @ApiOkResponse({ type: DoctorResponseDto })
     async findOne(@Param() params: DoctorParamDto) {
@@ -95,6 +99,7 @@ export class ManageDoctorController {
     }
 
     @Patch(":id")
+    @RequirePermissions(AppPermission.MANAGE_DOCTOR_MANAGEMENT)
     @ApiOperation({ summary: "Update a doctor" })
     @ApiOkResponse({ type: DoctorResponseDto })
     async update(@Param() params: DoctorParamDto, @Body() payload: UpdateDoctorDto) {
@@ -108,6 +113,7 @@ export class ManageDoctorController {
     }
 
     @Patch(":id/status")
+    @RequirePermissions(AppPermission.MANAGE_DOCTOR_MANAGEMENT)
     @ApiOperation({ summary: "Update a doctor status" })
     @ApiOkResponse({ type: DoctorResponseDto })
     async updateStatus(@Param() params: DoctorParamDto, @Body() payload: UpdateDoctorStatusDto) {
@@ -122,6 +128,7 @@ export class ManageDoctorController {
 
     @Delete(":id")
     @HttpCode(204)
+    @RequirePermissions(AppPermission.MANAGE_DOCTOR_MANAGEMENT)
     @ApiOperation({ summary: "Delete a doctor" })
     @ApiNoContentResponse({ description: "Doctor deleted successfully" })
     async remove(@Param() params: DoctorParamDto) {

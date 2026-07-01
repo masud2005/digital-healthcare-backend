@@ -1,5 +1,6 @@
-import { Roles } from "@common/decorators";
-import { JwtAuthGuard, RolesGuard } from "@common/guards";
+import { AppPermission } from "@common/auth/permissions.constants";
+import { RequirePermissions } from "@common/decorators";
+import { JwtAuthGuard, PermissionsGuard } from "@common/guards";
 import { StorageService } from "@global/storage/storage.service";
 import {
     Body,
@@ -30,8 +31,7 @@ import { ProductService } from "./product.service";
 
 @ApiTags("(Admin) Product")
 @ApiBearerAuth()
-@UseGuards(JwtAuthGuard, RolesGuard)
-@Roles("ADMIN")
+@UseGuards(JwtAuthGuard, PermissionsGuard)
 @Controller("admin/products")
 export class ProductController {
     constructor(
@@ -40,6 +40,7 @@ export class ProductController {
     ) {}
 
     @Post()
+    @RequirePermissions(AppPermission.MANAGE_PRODUCTS)
     @ApiOperation({ summary: "Create a product" })
     @ApiCreatedResponse({ type: ProductResponseDto })
     create(@Body() payload: CreateProductDto) {
@@ -47,6 +48,7 @@ export class ProductController {
     }
 
     @Get()
+    @RequirePermissions(AppPermission.VIEW_PRODUCTS)
     @ApiOperation({ summary: "Get products" })
     @ApiOkResponse({ type: ProductListResponseDto })
     findAll(@Query() query: ProductQueryDto) {
@@ -54,6 +56,7 @@ export class ProductController {
     }
 
     @Get(":id")
+    @RequirePermissions(AppPermission.VIEW_PRODUCTS)
     @ApiOperation({ summary: "Get a product by id" })
     @ApiOkResponse({ type: ProductResponseDto })
     findOne(@Param() params: ProductParamDto) {
@@ -61,6 +64,7 @@ export class ProductController {
     }
 
     @Patch(":id")
+    @RequirePermissions(AppPermission.MANAGE_PRODUCTS)
     @ApiOperation({ summary: "Update a product" })
     @ApiOkResponse({ type: ProductResponseDto })
     update(@Param() params: ProductParamDto, @Body() payload: UpdateProductDto) {
@@ -69,6 +73,7 @@ export class ProductController {
 
     @Delete(":id")
     @HttpCode(204)
+    @RequirePermissions(AppPermission.MANAGE_PRODUCTS)
     @ApiOperation({ summary: "Delete a product" })
     @ApiNoContentResponse({ description: "Product deleted successfully" })
     async remove(@Param() params: ProductParamDto) {

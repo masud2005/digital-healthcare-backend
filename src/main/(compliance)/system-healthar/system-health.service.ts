@@ -122,6 +122,27 @@ export class SystemHealthService implements OnModuleInit {
                 ),
             ]);
             this.logger.log("SystemHealth: default service and metric rows seeded");
+
+            // Verify configuration status of third-party delivery integrations
+            const smtpHost = process.env.SMTP_HOST?.trim();
+            const smtpUser = process.env.SMTP_USER?.trim();
+            const smtpPass = process.env.SMTP_PASS;
+            if (!smtpHost || !smtpUser || !smtpPass) {
+                await this.systemHealthRepository.updateServiceHealth("email_delivery", {
+                    status: "OUTAGE",
+                    message: "Email provider is not configured. Missing SMTP host, user or password credentials.",
+                });
+            }
+
+            const twilioSid = process.env.TWILIO_ACCOUNT_SID;
+            const twilioToken = process.env.TWILIO_AUTH_TOKEN;
+            const twilioFrom = process.env.TWILIO_FROM_NUMBER ?? process.env.TWILIO_PHONE_NUMBER;
+            if (!twilioSid || !twilioToken || !twilioFrom) {
+                await this.systemHealthRepository.updateServiceHealth("sms_delivery", {
+                    status: "OUTAGE",
+                    message: "SMS gateway is not configured. Missing Twilio SID, token or sender number.",
+                });
+            }
         } catch (err) {
             this.logger.error("SystemHealth: failed to seed default rows", err);
         }
@@ -137,11 +158,12 @@ export class SystemHealthService implements OnModuleInit {
     @Cron(CronExpression.EVERY_30_SECONDS)
     async collectSystemMetrics() {
         try {
-            const [cpuPercent, memPercent, diskPercent, activeUsers] = await Promise.all([
+            const [cpuPercent, memPercent, diskPercent, activeUsers, pendingSubmissions] = await Promise.all([
                 this.getCpuUsagePercent(),
                 this.getMemoryUsagePercent(),
                 this.getDiskUsagePercent(),
                 this.systemHealthRepository.countActiveUsers(),
+                this.systemHealthRepository.countPendingSubmissions(),
             ]);
 
             await Promise.all([
@@ -154,6 +176,13 @@ export class SystemHealthService implements OnModuleInit {
                     activeUsers,
                     null,
                     activeUsers.toLocaleString(),
+                ),
+                this.systemHealthRepository.upsertMetricValue(
+                    "queue_depth",
+                    "Queue Depth",
+                    pendingSubmissions,
+                    null,
+                    pendingSubmissions.toLocaleString(),
                 ),
             ]);
         } catch (err) {
@@ -387,7 +416,7 @@ export class SystemHealthService implements OnModuleInit {
     async recordHttpRequest(responseTimeMs: number, isError: boolean) {
         await this.systemHealthRepository.createLog({
             systemKey: "http_requests",
-            status: isError ? "DEGRADED" : "OPERATIONAL",
+            status: isError ? "OUTAGE" : "OPERATIONAL",
             responseTimeMs,
         });
         await this.recalculateHttpMetrics();
@@ -641,8 +670,8 @@ export class SystemHealthService implements OnModuleInit {
                 responseTimes.length > 0
                     ? responseTimes.reduce((a, b) => a + b, 0) / responseTimes.length
                     : 0;
-            const errorLogs = logs.filter((l) => l.status === "DEGRADED").length;
-            errorRate = (errorLogs / logs.length) * 100;
+            const systemErrorLogs = logs.filter((l) => l.status === "OUTAGE").length;
+            errorRate = (systemErrorLogs / logs.length) * 100;
         }
 
         await this.systemHealthRepository.upsertMetricValue(

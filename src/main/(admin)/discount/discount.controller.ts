@@ -1,5 +1,6 @@
-import { Roles } from "@common/decorators";
-import { JwtAuthGuard, RolesGuard } from "@common/guards";
+import { AppPermission } from "@common/auth/permissions.constants";
+import { RequirePermissions } from "@common/decorators";
+import { JwtAuthGuard, PermissionsGuard } from "@common/guards";
 import {
     Body,
     Controller,
@@ -29,13 +30,13 @@ import { UpdateDiscountDto } from "./dto/update-discount.dto";
 
 @ApiTags("(Admin) Discount")
 @ApiBearerAuth()
-@UseGuards(JwtAuthGuard, RolesGuard)
-@Roles("ADMIN")
+@UseGuards(JwtAuthGuard, PermissionsGuard)
 @Controller("admin/discounts")
 export class DiscountController {
     constructor(private readonly discountService: DiscountService) {}
 
     @Post()
+    @RequirePermissions(AppPermission.MANAGE_DISCOUNTS_AND_MARKETING)
     @ApiOperation({ summary: "Create a discount" })
     @ApiCreatedResponse({ type: DiscountResponseDto })
     create(@Body() payload: CreateDiscountDto) {
@@ -43,6 +44,7 @@ export class DiscountController {
     }
 
     @Get()
+    @RequirePermissions(AppPermission.VIEW_DISCOUNTS_AND_MARKETING)
     @ApiOperation({ summary: "Get discounts" })
     @ApiOkResponse({ type: DiscountListResponseDto })
     findAll(@Query() query: DiscountQueryDto) {
@@ -50,6 +52,7 @@ export class DiscountController {
     }
 
     @Get(":id")
+    @RequirePermissions(AppPermission.VIEW_DISCOUNTS_AND_MARKETING)
     @ApiOperation({ summary: "Get a discount by id" })
     @ApiOkResponse({ type: DiscountResponseDto })
     findOne(@Param() params: DiscountParamDto) {
@@ -57,6 +60,7 @@ export class DiscountController {
     }
 
     @Patch(":id")
+    @RequirePermissions(AppPermission.MANAGE_DISCOUNTS_AND_MARKETING)
     @ApiOperation({ summary: "Update a discount" })
     @ApiOkResponse({ type: DiscountResponseDto })
     update(@Param() params: DiscountParamDto, @Body() payload: UpdateDiscountDto) {
@@ -65,6 +69,7 @@ export class DiscountController {
 
     @Delete(":id")
     @HttpCode(204)
+    @RequirePermissions(AppPermission.MANAGE_DISCOUNTS_AND_MARKETING)
     @ApiOperation({ summary: "Delete a discount" })
     @ApiNoContentResponse({ description: "Discount deleted successfully" })
     async remove(@Param() params: DiscountParamDto) {
