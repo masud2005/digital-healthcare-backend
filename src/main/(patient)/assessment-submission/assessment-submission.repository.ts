@@ -87,6 +87,15 @@ const blueprintSubmissionInclude = {
             createdAt: true,
         },
     },
+    user: {
+        include: {
+            patientProfile: {
+                include: {
+                    avatar: true,
+                },
+            },
+        },
+    },
 } satisfies Prisma.AssessmentSubmissionInclude;
 
 export type AssessmentSubmissionRecord = Prisma.AssessmentSubmissionGetPayload<{

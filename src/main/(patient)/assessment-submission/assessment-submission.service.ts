@@ -369,11 +369,19 @@ export class AssessmentSubmissionService {
             if (doc) reviewer = { id: doc.userId, name: doc.name };
         }
 
+        const patientProfile = submission.user?.patientProfile;
+        const patientImage = patientProfile?.avatar?.fileUrl
+            ? await this.storageService.resolveKey(patientProfile.avatar.fileUrl)
+            : null;
+
         return {
             submissionId: submission.id,
             submissionCode: submission.submissionCode,
+            submissionDate: submission.createdAt,
             status: submission.status,
             isEditable: EDITABLE_STATUSES.includes(submission.status),
+            name: patientProfile?.name ?? submission.user?.name ?? null,
+            patientImage,
             assessment: {
                 id: assessment.id,
                 title: assessment.title,
