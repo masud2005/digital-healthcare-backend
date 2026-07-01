@@ -1,5 +1,6 @@
-import { Roles } from "@common/decorators";
-import { JwtAuthGuard, RolesGuard } from "@common/guards";
+import { AppPermission } from "@common/auth/permissions.constants";
+import { RequirePermissions } from "@common/decorators";
+import { JwtAuthGuard, PermissionsGuard } from "@common/guards";
 import {
     Body,
     Controller,
@@ -21,13 +22,13 @@ import { PatientManageService } from "./patient-manage.service";
 
 @ApiTags("(Admin) Patient Manage")
 @ApiBearerAuth()
-@UseGuards(JwtAuthGuard, RolesGuard)
-@Roles("ADMIN")
+@UseGuards(JwtAuthGuard, PermissionsGuard)
 @Controller("admin/patient-manage")
 export class PatientManageController {
     constructor(private readonly patientManageService: PatientManageService) {}
 
     @Get("all-assessments")
+    @RequirePermissions(AppPermission.VIEW_PATIENT_MANAGEMENT)
     @ApiOperation({ summary: "Get all patient assessment submissions (excludes DRAFT)" })
     async findAllAssessments(@Query() query: PatientAssessmentQueryDto) {
         const result = await this.patientManageService.findAllAssessments(query);
@@ -40,6 +41,7 @@ export class PatientManageController {
     }
 
     @Get("all-assessments/:id")
+    @RequirePermissions(AppPermission.VIEW_PATIENT_MANAGEMENT)
     @ApiOperation({ summary: "Get a single assessment submission by submissionId" })
     async findAssessmentById(@Param() params: PatientParamDto) {
         const data = await this.patientManageService.findAssessmentSubmissionById(params.id);
@@ -52,6 +54,7 @@ export class PatientManageController {
     }
 
     @Get("all-categories")
+    @RequirePermissions(AppPermission.VIEW_PATIENT_MANAGEMENT)
     @ApiOperation({ summary: "Get all categories (id and name)" })
     async findAllCategories() {
         const result = await this.patientManageService.findAllCategories();
@@ -64,6 +67,7 @@ export class PatientManageController {
     }
 
     @Get("all-doctors")
+    @RequirePermissions(AppPermission.VIEW_PATIENT_MANAGEMENT)
     @ApiOperation({ summary: "Get all doctors (id and name)" })
     async findAllDoctors() {
         const result = await this.patientManageService.findAllDoctors();
@@ -76,6 +80,7 @@ export class PatientManageController {
     }
 
     @Post("assign")
+    @RequirePermissions(AppPermission.MANAGE_PATIENT_MANAGEMENT)
     @ApiOperation({ summary: "Assign a doctor to an assessment submission" })
     async assignDoctor(@Body() payload: AssignDoctorDto) {
         const data = await this.patientManageService.assignDoctor(
@@ -91,6 +96,7 @@ export class PatientManageController {
     }
 
     @Get("all-patients")
+    @RequirePermissions(AppPermission.VIEW_PATIENT_MANAGEMENT)
     @ApiOperation({ summary: "Get all patients" })
     async findAllPatients(@Query() query: PatientQueryDto) {
         const result = await this.patientManageService.findAllPatients(query);
@@ -103,6 +109,7 @@ export class PatientManageController {
     }
 
     @Get(":id")
+    @RequirePermissions(AppPermission.VIEW_PATIENT_MANAGEMENT)
     @ApiOperation({ summary: "Get a single patient by id" })
     async findPatientById(@Param() params: PatientParamDto) {
         const data = await this.patientManageService.findPatientById(params.id);
@@ -115,6 +122,7 @@ export class PatientManageController {
     }
 
     @Patch("status/:id")
+    @RequirePermissions(AppPermission.MANAGE_PATIENT_MANAGEMENT)
     @ApiOperation({ summary: "Update patient status (Deleted = soft delete)" })
     async updateStatus(@Param() params: PatientParamDto, @Body() payload: UpdatePatientStatusDto) {
         const data = await this.patientManageService.updatePatientStatus(params.id, payload.status);

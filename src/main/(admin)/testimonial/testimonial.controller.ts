@@ -1,3 +1,6 @@
+import { AppPermission } from "@common/auth/permissions.constants";
+import { RequirePermissions } from "@common/decorators";
+import { JwtAuthGuard, PermissionsGuard } from "@common/guards";
 import {
     Body,
     Controller,
@@ -9,8 +12,10 @@ import {
     Post,
     Query,
     Res,
+    UseGuards,
 } from "@nestjs/common";
 import {
+    ApiBearerAuth,
     ApiCreatedResponse,
     ApiNoContentResponse,
     ApiOkResponse,
@@ -28,11 +33,14 @@ import { UpdateTestimonialDto } from "./dto/update-testimonial.dto";
 import { TestimonialService } from "./testimonial.service";
 
 @ApiTags("(Admin) Testimonial")
+@ApiBearerAuth()
+@UseGuards(JwtAuthGuard, PermissionsGuard)
 @Controller("admin/testimonials")
 export class TestimonialController {
     constructor(private readonly testimonialService: TestimonialService) {}
 
     @Post()
+    @RequirePermissions(AppPermission.MANAGE_TESTIMONIALS)
     @ApiOperation({ summary: "Create a testimonial" })
     @ApiCreatedResponse({ type: TestimonialResponseDto })
     create(@Body() payload: CreateTestimonialDto) {
@@ -40,6 +48,7 @@ export class TestimonialController {
     }
 
     @Get()
+    @RequirePermissions(AppPermission.VIEW_TESTIMONIALS)
     @ApiOperation({ summary: "Get testimonials" })
     @ApiOkResponse({ type: TestimonialListResponseDto })
     findAll(@Query() query: TestimonialQueryDto) {
@@ -47,6 +56,7 @@ export class TestimonialController {
     }
 
     @Get("export")
+    @RequirePermissions(AppPermission.VIEW_TESTIMONIALS)
     @ApiOperation({ summary: "Export testimonials as CSV" })
     @ApiProduces("text/csv")
     @ApiQuery({ name: "search", required: false })
@@ -95,6 +105,7 @@ export class TestimonialController {
     }
 
     @Get(":id")
+    @RequirePermissions(AppPermission.VIEW_TESTIMONIALS)
     @ApiOperation({ summary: "Get a testimonial by id" })
     @ApiOkResponse({ type: TestimonialResponseDto })
     findOne(@Param() params: TestimonialParamDto) {
@@ -102,6 +113,7 @@ export class TestimonialController {
     }
 
     @Patch(":id")
+    @RequirePermissions(AppPermission.MANAGE_TESTIMONIALS)
     @ApiOperation({ summary: "Update a testimonial" })
     @ApiOkResponse({ type: TestimonialResponseDto })
     update(@Param() params: TestimonialParamDto, @Body() payload: UpdateTestimonialDto) {
@@ -110,6 +122,7 @@ export class TestimonialController {
 
     @Delete(":id")
     @HttpCode(204)
+    @RequirePermissions(AppPermission.MANAGE_TESTIMONIALS)
     @ApiOperation({ summary: "Delete a testimonial" })
     @ApiNoContentResponse({ description: "Testimonial deleted successfully" })
     async remove(@Param() params: TestimonialParamDto) {

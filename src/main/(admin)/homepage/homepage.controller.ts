@@ -1,5 +1,6 @@
-import { Roles } from "@common/decorators";
-import { JwtAuthGuard, RolesGuard } from "@common/guards";
+import { AppPermission } from "@common/auth/permissions.constants";
+import { RequirePermissions } from "@common/decorators";
+import { JwtAuthGuard, PermissionsGuard } from "@common/guards";
 import { Body, Controller, Get, Put, UseGuards } from "@nestjs/common";
 import { ApiBearerAuth, ApiOkResponse, ApiOperation, ApiTags } from "@nestjs/swagger";
 import { HomePageContentResponseDto } from "./dto/homepage-response.dto";
@@ -19,6 +20,7 @@ import { HomePageService } from "./homepage.service";
 export class HomePageController {
     constructor(private readonly homePageService: HomePageService) {}
 
+    // Public — used by the frontend to render the homepage
     @Get()
     @ApiOperation({ summary: "Get homepage content" })
     @ApiOkResponse({ type: HomePageContentResponseDto })
@@ -30,8 +32,8 @@ export class HomePageController {
     @ApiOperation({ summary: "Update Hero section" })
     @ApiOkResponse({ type: HomePageContentResponseDto })
     @ApiBearerAuth()
-    @UseGuards(JwtAuthGuard, RolesGuard)
-    @Roles("ADMIN")
+    @UseGuards(JwtAuthGuard, PermissionsGuard)
+    @RequirePermissions(AppPermission.MANAGE_WEBSITE_MANAGEMENT)
     updateHeroSection(@Body() payload: UpdateHeroSectionDto) {
         return this.homePageService.updateHeroSection(payload);
     }
@@ -40,8 +42,8 @@ export class HomePageController {
     @ApiOperation({ summary: "Update Assessment section" })
     @ApiOkResponse({ type: HomePageContentResponseDto })
     @ApiBearerAuth()
-    @UseGuards(JwtAuthGuard, RolesGuard)
-    @Roles("ADMIN")
+    @UseGuards(JwtAuthGuard, PermissionsGuard)
+    @RequirePermissions(AppPermission.MANAGE_WEBSITE_MANAGEMENT)
     updateAssessmentSection(@Body() payload: UpdateAssessmentSectionDto) {
         return this.homePageService.updateAssessmentSection(payload);
     }
@@ -50,8 +52,8 @@ export class HomePageController {
     @ApiOperation({ summary: "Update About section" })
     @ApiOkResponse({ type: HomePageContentResponseDto })
     @ApiBearerAuth()
-    @UseGuards(JwtAuthGuard, RolesGuard)
-    @Roles("ADMIN")
+    @UseGuards(JwtAuthGuard, PermissionsGuard)
+    @RequirePermissions(AppPermission.MANAGE_WEBSITE_MANAGEMENT)
     updateAboutSection(@Body() payload: UpdateAboutSectionDto) {
         return this.homePageService.updateAboutSection(payload);
     }
@@ -60,8 +62,8 @@ export class HomePageController {
     @ApiOperation({ summary: "Update Providers section" })
     @ApiOkResponse({ type: HomePageContentResponseDto })
     @ApiBearerAuth()
-    @UseGuards(JwtAuthGuard, RolesGuard)
-    @Roles("ADMIN")
+    @UseGuards(JwtAuthGuard, PermissionsGuard)
+    @RequirePermissions(AppPermission.MANAGE_WEBSITE_MANAGEMENT)
     updateProvidersSection(@Body() payload: UpdateProvidersSectionDto) {
         return this.homePageService.updateProvidersSection(payload);
     }
@@ -70,8 +72,8 @@ export class HomePageController {
     @ApiOperation({ summary: "Update How It Works section" })
     @ApiOkResponse({ type: HomePageContentResponseDto })
     @ApiBearerAuth()
-    @UseGuards(JwtAuthGuard, RolesGuard)
-    @Roles("ADMIN")
+    @UseGuards(JwtAuthGuard, PermissionsGuard)
+    @RequirePermissions(AppPermission.MANAGE_WEBSITE_MANAGEMENT)
     updateHowItWorksSection(@Body() payload: UpdateHowItWorksSectionDto) {
         return this.homePageService.updateHowItWorksSection(payload);
     }
@@ -80,8 +82,8 @@ export class HomePageController {
     @ApiOperation({ summary: "Update Testimonials section" })
     @ApiOkResponse({ type: HomePageContentResponseDto })
     @ApiBearerAuth()
-    @UseGuards(JwtAuthGuard, RolesGuard)
-    @Roles("ADMIN")
+    @UseGuards(JwtAuthGuard, PermissionsGuard)
+    @RequirePermissions(AppPermission.MANAGE_WEBSITE_MANAGEMENT)
     updateTestimonialsSection(@Body() payload: UpdateTestimonialsSectionDto) {
         return this.homePageService.updateTestimonialsSection(payload);
     }
@@ -90,8 +92,8 @@ export class HomePageController {
     @ApiOperation({ summary: "Update FAQ section" })
     @ApiOkResponse({ type: HomePageContentResponseDto })
     @ApiBearerAuth()
-    @UseGuards(JwtAuthGuard, RolesGuard)
-    @Roles("ADMIN")
+    @UseGuards(JwtAuthGuard, PermissionsGuard)
+    @RequirePermissions(AppPermission.MANAGE_WEBSITE_MANAGEMENT)
     updateFaqSection(@Body() payload: UpdateFaqSectionDto) {
         return this.homePageService.updateFaqSection(payload);
     }

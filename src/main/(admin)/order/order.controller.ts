@@ -1,5 +1,6 @@
-import { Roles } from "@common/decorators";
-import { JwtAuthGuard, RolesGuard } from "@common/guards";
+import { AppPermission } from "@common/auth/permissions.constants";
+import { RequirePermissions } from "@common/decorators";
+import { JwtAuthGuard, PermissionsGuard } from "@common/guards";
 import { Body, Controller, Get, HttpStatus, Param, Patch, Query, UseGuards } from "@nestjs/common";
 import { ApiBearerAuth, ApiOkResponse, ApiOperation, ApiTags } from "@nestjs/swagger";
 import {
@@ -12,13 +13,13 @@ import { AdminOrderService } from "./order.service";
 
 @ApiTags("(Admin) Orders")
 @ApiBearerAuth()
-@UseGuards(JwtAuthGuard, RolesGuard)
-@Roles("ADMIN")
+@UseGuards(JwtAuthGuard, PermissionsGuard)
 @Controller("admin/orders")
 export class AdminOrderController {
     constructor(private readonly orderService: AdminOrderService) {}
 
     @Get()
+    @RequirePermissions(AppPermission.VIEW_ORDERS)
     @ApiOperation({
         summary: "Get all orders (paginated, searchable, filterable)",
         description:
@@ -36,6 +37,7 @@ export class AdminOrderController {
     }
 
     @Get(":id")
+    @RequirePermissions(AppPermission.VIEW_ORDERS)
     @ApiOperation({
         summary: "Get a single order by ID",
         description:
@@ -53,6 +55,7 @@ export class AdminOrderController {
     }
 
     @Patch(":id")
+    @RequirePermissions(AppPermission.MANAGE_ORDERS)
     @ApiOperation({
         summary: "Update an order",
         description: "Update the status, trackingNumber, or trackingCarrier of an order.",

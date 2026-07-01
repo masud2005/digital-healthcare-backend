@@ -1,6 +1,7 @@
-import { Roles } from "@common/decorators";
+import { AppPermission } from "@common/auth/permissions.constants";
+import { RequirePermissions } from "@common/decorators";
 import { CurrentUser } from "@common/decorators/current-user.decorator";
-import { JwtAuthGuard, RolesGuard } from "@common/guards";
+import { JwtAuthGuard, PermissionsGuard } from "@common/guards";
 import { AttachmentService } from "@global/attachment/attachment.service";
 import type { AuthenticatedUser } from "@main/auth/auth.types";
 import {
@@ -50,6 +51,7 @@ export class ContactLeadsController {
         private readonly attachmentService: AttachmentService,
     ) {}
 
+    // Public — no auth required (customers submit leads from the website)
     @Post()
     @ApiOperation({ summary: "Create a contact lead" })
     @ApiConsumes("multipart/form-data")
@@ -74,8 +76,8 @@ export class ContactLeadsController {
     }
 
     @Get()
-    @UseGuards(JwtAuthGuard, RolesGuard)
-    @Roles("ADMIN")
+    @UseGuards(JwtAuthGuard, PermissionsGuard)
+    @RequirePermissions(AppPermission.VIEW_CONTACT_LEADS)
     @ApiBearerAuth()
     @ApiOperation({ summary: "Get contact leads" })
     @ApiOkResponse({ type: ContactLeadListResponseDto })
@@ -84,8 +86,8 @@ export class ContactLeadsController {
     }
 
     @Get("export")
-    @UseGuards(JwtAuthGuard, RolesGuard)
-    @Roles("ADMIN")
+    @UseGuards(JwtAuthGuard, PermissionsGuard)
+    @RequirePermissions(AppPermission.VIEW_CONTACT_LEADS)
     @ApiBearerAuth()
     @ApiOperation({ summary: "Export contact leads as CSV" })
     @ApiProduces("text/csv")
@@ -127,8 +129,8 @@ export class ContactLeadsController {
     }
 
     @Get(":id")
-    @UseGuards(JwtAuthGuard, RolesGuard)
-    @Roles("ADMIN")
+    @UseGuards(JwtAuthGuard, PermissionsGuard)
+    @RequirePermissions(AppPermission.VIEW_CONTACT_LEADS)
     @ApiBearerAuth()
     @ApiOperation({ summary: "Get a contact lead by id" })
     @ApiOkResponse({ type: ContactLeadResponseDto })
@@ -137,8 +139,8 @@ export class ContactLeadsController {
     }
 
     @Patch(":id")
-    @UseGuards(JwtAuthGuard, RolesGuard)
-    @Roles("ADMIN")
+    @UseGuards(JwtAuthGuard, PermissionsGuard)
+    @RequirePermissions(AppPermission.MANAGE_CONTACT_LEADS)
     @ApiBearerAuth()
     @ApiOperation({ summary: "Update a contact lead" })
     @ApiConsumes("multipart/form-data")
@@ -164,8 +166,8 @@ export class ContactLeadsController {
     }
 
     @Delete(":id")
-    @UseGuards(JwtAuthGuard, RolesGuard)
-    @Roles("ADMIN")
+    @UseGuards(JwtAuthGuard, PermissionsGuard)
+    @RequirePermissions(AppPermission.MANAGE_CONTACT_LEADS)
     @ApiBearerAuth()
     @HttpCode(204)
     @ApiOperation({ summary: "Delete a contact lead" })
@@ -175,8 +177,8 @@ export class ContactLeadsController {
     }
 
     @Post(":id/respond")
-    @UseGuards(JwtAuthGuard, RolesGuard)
-    @Roles("ADMIN")
+    @UseGuards(JwtAuthGuard, PermissionsGuard)
+    @RequirePermissions(AppPermission.MANAGE_CONTACT_LEADS)
     @ApiBearerAuth()
     @ApiOperation({ summary: "Send a response back to a contact lead" })
     @ApiConsumes("multipart/form-data")

@@ -1,5 +1,6 @@
-import { Roles } from "@common/decorators";
-import { JwtAuthGuard, RolesGuard } from "@common/guards";
+import { AppPermission } from "@common/auth/permissions.constants";
+import { RequirePermissions } from "@common/decorators";
+import { JwtAuthGuard, PermissionsGuard } from "@common/guards";
 import { StorageService } from "@global/storage/storage.service";
 import {
     Body,
@@ -34,8 +35,7 @@ import { QuestionService } from "./question.service";
 
 @ApiTags("(Admin) Question")
 @ApiBearerAuth()
-@UseGuards(JwtAuthGuard, RolesGuard)
-@Roles("ADMIN")
+@UseGuards(JwtAuthGuard, PermissionsGuard)
 @Controller("admin/questions")
 export class QuestionController {
     constructor(
@@ -44,6 +44,7 @@ export class QuestionController {
     ) {}
 
     @Post()
+    @RequirePermissions(AppPermission.MANAGE_ASSESSMENTS)
     @ApiOperation({ summary: "Create a question" })
     @ApiConsumes("multipart/form-data")
     @UseInterceptors(FileInterceptor("media"))
@@ -62,6 +63,7 @@ export class QuestionController {
     }
 
     @Get()
+    @RequirePermissions(AppPermission.VIEW_ASSESSMENTS)
     @ApiOperation({ summary: "Get questions" })
     @ApiOkResponse({ type: QuestionListResponseDto })
     findAll(@Query() query: QuestionQueryDto) {
@@ -69,6 +71,7 @@ export class QuestionController {
     }
 
     @Get(":id")
+    @RequirePermissions(AppPermission.VIEW_ASSESSMENTS)
     @ApiOperation({ summary: "Get a question by id" })
     @ApiOkResponse({ type: QuestionResponseDto })
     findOne(@Param() params: QuestionParamDto) {
@@ -76,6 +79,7 @@ export class QuestionController {
     }
 
     @Patch(":id")
+    @RequirePermissions(AppPermission.MANAGE_ASSESSMENTS)
     @ApiOperation({ summary: "Update a question" })
     @ApiConsumes("multipart/form-data")
     @UseInterceptors(FileInterceptor("media"))
@@ -99,6 +103,7 @@ export class QuestionController {
 
     @Delete(":id")
     @HttpCode(204)
+    @RequirePermissions(AppPermission.MANAGE_ASSESSMENTS)
     @ApiOperation({ summary: "Delete a question" })
     @ApiNoContentResponse({ description: "Question deleted successfully" })
     remove(@Param() params: QuestionParamDto) {

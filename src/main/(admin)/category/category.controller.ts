@@ -1,5 +1,6 @@
-import { Roles } from "@common/decorators";
-import { JwtAuthGuard, RolesGuard } from "@common/guards";
+import { AppPermission } from "@common/auth/permissions.constants";
+import { RequirePermissions } from "@common/decorators";
+import { JwtAuthGuard, PermissionsGuard } from "@common/guards";
 import {
     Body,
     Controller,
@@ -29,14 +30,14 @@ import { UpdateCategoryDto } from "./dto/update-category.dto";
 
 @ApiTags("(Admin) Category")
 @ApiBearerAuth()
-@UseGuards(JwtAuthGuard, RolesGuard)
-@Roles("ADMIN")
+@UseGuards(JwtAuthGuard, PermissionsGuard)
 @Controller("admin/categories")
 export class CategoryController {
     constructor(private readonly categoryService: CategoryService) {}
 
     // Create a category
     @Post()
+    @RequirePermissions(AppPermission.MANAGE_SERVICE_CATEGORIES_AND_PLANS)
     @ApiOperation({ summary: "Create a category" })
     @ApiCreatedResponse({ type: CategoryResponseDto })
     create(@Body() payload: CreateCategoryDto) {
@@ -44,6 +45,7 @@ export class CategoryController {
     }
 
     @Get()
+    @RequirePermissions(AppPermission.VIEW_SERVICE_CATEGORIES_AND_PLANS)
     @ApiOperation({ summary: "Get categories" })
     @ApiOkResponse({ type: CategoryListResponseDto })
     findAll(@Query() query: CategoryQueryDto) {
@@ -51,6 +53,7 @@ export class CategoryController {
     }
 
     @Get(":id")
+    @RequirePermissions(AppPermission.VIEW_SERVICE_CATEGORIES_AND_PLANS)
     @ApiOperation({ summary: "Get a category by id" })
     @ApiOkResponse({ type: CategoryResponseDto })
     findOne(@Param() params: CategoryParamDto) {
@@ -58,6 +61,7 @@ export class CategoryController {
     }
 
     @Patch(":id")
+    @RequirePermissions(AppPermission.MANAGE_SERVICE_CATEGORIES_AND_PLANS)
     @ApiOperation({ summary: "Update a category" })
     @ApiOkResponse({ type: CategoryResponseDto })
     update(@Param() params: CategoryParamDto, @Body() payload: UpdateCategoryDto) {
@@ -66,6 +70,7 @@ export class CategoryController {
 
     @Delete(":id")
     @HttpCode(204)
+    @RequirePermissions(AppPermission.MANAGE_SERVICE_CATEGORIES_AND_PLANS)
     @ApiOperation({ summary: "Delete a category" })
     @ApiNoContentResponse({ description: "Category deleted successfully" })
     async remove(@Param() params: CategoryParamDto) {

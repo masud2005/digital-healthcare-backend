@@ -1,5 +1,6 @@
-import { Roles } from "@common/decorators";
-import { JwtAuthGuard, RolesGuard } from "@common/guards";
+import { AppPermission } from "@common/auth/permissions.constants";
+import { RequirePermissions } from "@common/decorators";
+import { JwtAuthGuard, PermissionsGuard } from "@common/guards";
 import { StorageService } from "@global/storage/storage.service";
 import {
     Body,
@@ -47,8 +48,8 @@ export class AssessmentController {
 
     @Post()
     @ApiBearerAuth()
-    @UseGuards(JwtAuthGuard, RolesGuard)
-    @Roles("ADMIN")
+    @UseGuards(JwtAuthGuard, PermissionsGuard)
+    @RequirePermissions(AppPermission.MANAGE_ASSESSMENTS)
     @ApiOperation({ summary: "Create an assessment" })
     @ApiConsumes("multipart/form-data")
     @UseInterceptors(FileInterceptor("thumbnail"))
@@ -68,8 +69,8 @@ export class AssessmentController {
 
     @Get()
     @ApiBearerAuth()
-    @UseGuards(JwtAuthGuard, RolesGuard)
-    @Roles("ADMIN")
+    @UseGuards(JwtAuthGuard, PermissionsGuard)
+    @RequirePermissions(AppPermission.VIEW_ASSESSMENTS)
     @ApiOperation({ summary: "Get all assessments" })
     @ApiOkResponse({ type: AssessmentListResponseDto })
     findAll(@Query() query: AssessmentQueryDto) {
@@ -78,14 +79,15 @@ export class AssessmentController {
 
     @Get("stats")
     @ApiBearerAuth()
-    @UseGuards(JwtAuthGuard, RolesGuard)
-    @Roles("ADMIN")
+    @UseGuards(JwtAuthGuard, PermissionsGuard)
+    @RequirePermissions(AppPermission.VIEW_ASSESSMENTS)
     @ApiOperation({ summary: "Get assessment stats" })
     @ApiOkResponse({ type: AssessmentStatsResponseDto })
     findStats() {
         return this.assessmentService.findStats();
     }
 
+    // Public — used by the patient-facing assessment flow
     @Get(":id")
     @ApiOperation({ summary: "Get an assessment by id (Public)" })
     @ApiOkResponse({ type: AssessmentResponseDto })
@@ -95,8 +97,8 @@ export class AssessmentController {
 
     @Patch(":id")
     @ApiBearerAuth()
-    @UseGuards(JwtAuthGuard, RolesGuard)
-    @Roles("ADMIN")
+    @UseGuards(JwtAuthGuard, PermissionsGuard)
+    @RequirePermissions(AppPermission.MANAGE_ASSESSMENTS)
     @ApiOperation({ summary: "Update an assessment" })
     @ApiConsumes("multipart/form-data")
     @UseInterceptors(FileInterceptor("thumbnail"))
@@ -120,8 +122,8 @@ export class AssessmentController {
 
     @Delete(":id")
     @ApiBearerAuth()
-    @UseGuards(JwtAuthGuard, RolesGuard)
-    @Roles("ADMIN")
+    @UseGuards(JwtAuthGuard, PermissionsGuard)
+    @RequirePermissions(AppPermission.MANAGE_ASSESSMENTS)
     @HttpCode(204)
     @ApiOperation({ summary: "Delete an assessment" })
     @ApiNoContentResponse({ description: "Assessment deleted successfully" })
