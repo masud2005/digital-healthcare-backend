@@ -1,3 +1,6 @@
+import { CloverService } from "@global/clover/clover.service";
+import { CommunicationService } from "@global/communication/communication.service";
+import { PrismaService } from "@global/prisma/prisma.service";
 import {
     BadRequestException,
     ConflictException,
@@ -5,13 +8,10 @@ import {
     NotFoundException,
     UnprocessableEntityException,
 } from "@nestjs/common";
+import { NotificationService } from "../../notification/notification.service";
 import { CartRepository } from "../cart/cart.repository";
 import type { CheckoutDto } from "./dto/checkout.dto";
 import { PaymentRepository } from "./payment.repository";
-import { NotificationService } from "../../notification/notification.service";
-import { PrismaService } from "@global/prisma/prisma.service";
-import { CloverService } from "@global/clover/clover.service";
-import { CommunicationService } from "@global/communication/communication.service";
 
 const SHIPPING_CHARGE = 20;
 
@@ -330,7 +330,7 @@ export class PaymentService {
             where: { id: userId },
             select: { name: true, email: true, patientProfile: { select: { name: true } } },
         });
-        const patientName = user?.patientProfile?.name ?? user?.name ?? "A patient";
+        const patientName = user?.patientProfile?.name ?? user?.email ?? "A patient";
 
         // Notifications
         await this.notificationService.sendToAdmins({
@@ -357,7 +357,8 @@ export class PaymentService {
                 to: user.email,
                 payload: {
                     name: patientName,
-                    total: total.toFixed(2),
+                    amount: total,
+                    orderId: result.orderNumber,
                     transactionId: result.transactionId,
                 },
             }).catch((err) => console.error("Failed to send payment receipt email:", err));
