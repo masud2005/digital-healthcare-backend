@@ -34,6 +34,8 @@ export class SystemHealthInterceptor implements NestInterceptor {
                     const isClientError = err?.status >= 400 && err?.status < 500;
                     const isSystemError = !isClientError;
 
+                    // System errors (5xx/unexpected) are marked as OUTAGE for server status and http_requests.
+                    // Client errors (4xx) are marked as DEGRADED.
                     this.systemHealthService
                         .recordHttpRequest(duration, isSystemError)
                         .catch(() => {});

@@ -196,13 +196,12 @@ export class SystemHealthRepository {
     }
 
     countActiveUsers() {
-        const fifteenMinutesAgo = new Date(Date.now() - 15 * 60 * 1000);
-        return this.prisma.authSession.count({
-            where: {
-                revokedAt: null,
-                expiresAt: { gt: new Date() },
-                lastUsedAt: { gte: fifteenMinutesAgo },
-            },
+        return this.prisma.user.count();
+    }
+
+    countPendingSubmissions() {
+        return this.prisma.assessmentSubmission.count({
+            where: { status: "PENDING" },
         });
     }
 
