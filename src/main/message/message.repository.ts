@@ -280,4 +280,12 @@ export class MessageRepository {
             },
         });
     }
+
+    findLastMessageBySender(conversationId: string, senderId: string) {
+        return this.prisma.message.findFirst({
+            where: { conversationId, senderId },
+            orderBy: { createdAt: "desc" },
+            select: { createdAt: true },
+        });
+    }
 }
