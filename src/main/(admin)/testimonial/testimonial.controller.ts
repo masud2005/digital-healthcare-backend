@@ -33,13 +33,13 @@ import { UpdateTestimonialDto } from "./dto/update-testimonial.dto";
 import { TestimonialService } from "./testimonial.service";
 
 @ApiTags("(Admin) Testimonial")
-@ApiBearerAuth()
-@UseGuards(JwtAuthGuard, PermissionsGuard)
 @Controller("admin/testimonials")
 export class TestimonialController {
     constructor(private readonly testimonialService: TestimonialService) {}
 
     @Post()
+    @ApiBearerAuth()
+    @UseGuards(JwtAuthGuard, PermissionsGuard)
     @RequirePermissions(AppPermission.MANAGE_TESTIMONIALS)
     @ApiOperation({ summary: "Create a testimonial" })
     @ApiCreatedResponse({ type: TestimonialResponseDto })
@@ -48,7 +48,6 @@ export class TestimonialController {
     }
 
     @Get()
-    @RequirePermissions(AppPermission.VIEW_TESTIMONIALS)
     @ApiOperation({ summary: "Get testimonials" })
     @ApiOkResponse({ type: TestimonialListResponseDto })
     findAll(@Query() query: TestimonialQueryDto) {
@@ -56,6 +55,8 @@ export class TestimonialController {
     }
 
     @Get("export")
+    @ApiBearerAuth()
+    @UseGuards(JwtAuthGuard, PermissionsGuard)
     @RequirePermissions(AppPermission.VIEW_TESTIMONIALS)
     @ApiOperation({ summary: "Export testimonials as CSV" })
     @ApiProduces("text/csv")
@@ -106,6 +107,8 @@ export class TestimonialController {
 
     @Get(":id")
     @RequirePermissions(AppPermission.VIEW_TESTIMONIALS)
+    @ApiBearerAuth()
+    @UseGuards(JwtAuthGuard, PermissionsGuard)
     @ApiOperation({ summary: "Get a testimonial by id" })
     @ApiOkResponse({ type: TestimonialResponseDto })
     findOne(@Param() params: TestimonialParamDto) {
@@ -113,6 +116,8 @@ export class TestimonialController {
     }
 
     @Patch(":id")
+    @ApiBearerAuth()
+    @UseGuards(JwtAuthGuard, PermissionsGuard)
     @RequirePermissions(AppPermission.MANAGE_TESTIMONIALS)
     @ApiOperation({ summary: "Update a testimonial" })
     @ApiOkResponse({ type: TestimonialResponseDto })
@@ -122,6 +127,8 @@ export class TestimonialController {
 
     @Delete(":id")
     @HttpCode(204)
+    @ApiBearerAuth()
+    @UseGuards(JwtAuthGuard, PermissionsGuard)
     @RequirePermissions(AppPermission.MANAGE_TESTIMONIALS)
     @ApiOperation({ summary: "Delete a testimonial" })
     @ApiNoContentResponse({ description: "Testimonial deleted successfully" })
