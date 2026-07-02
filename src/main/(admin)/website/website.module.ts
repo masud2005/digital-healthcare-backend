@@ -9,5 +9,6 @@ import { WebsiteService } from "./website.service";
     imports: [PrismaModule, StorageModule],
     controllers: [WebsiteController],
     providers: [WebsiteService, WebsiteRepository],
+    exports: [WebsiteService],
 })
 export class WebsiteModule {}
