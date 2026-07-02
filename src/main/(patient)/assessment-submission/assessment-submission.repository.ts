@@ -296,7 +296,7 @@ export class AssessmentSubmissionRepository {
         if (options?.userId) {
             where.userId = options.userId;
         } else if (options?.doctorId) {
-            where.OR = [{ reviewedBy: options.doctorId }, { status: "PENDING" }];
+            where.reviewedBy = options.doctorId;
         }
         return this.prisma.assessmentSubmission.findFirst({
             where,

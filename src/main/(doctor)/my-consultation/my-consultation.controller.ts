@@ -17,9 +17,9 @@ import {
     UpdateConsultationStatusDto,
 } from "./dto/my-consultation.dto";
 import { DoctorMyConsultationService } from "./my-consultation.service";
+import { Roles } from "@common/decorators";
 
 @ApiTags("(Doctor) My Consultations")
-@ApiBearerAuth()
 @Controller("doctor/my-consultation")
 export class DoctorMyConsultationController {
     constructor(
@@ -27,7 +27,9 @@ export class DoctorMyConsultationController {
         private readonly assessmentSubmissionService: AssessmentSubmissionService,
     ) {}
 
+    @ApiBearerAuth()
     @UseGuards(JwtAuthGuard)
+    @Roles("DOCTOR")
     @Get()
     @ApiOperation({
         summary: "Get my consultations (list view)",
@@ -57,8 +59,9 @@ export class DoctorMyConsultationController {
         };
     }
 
-    // 
+    @ApiBearerAuth()
     @UseGuards(JwtAuthGuard)
+    @Roles("DOCTOR")
     @Get(":id")
     @ApiOperation({
         summary: "Get a specific consultation (assessment blueprint)",
@@ -78,7 +81,9 @@ export class DoctorMyConsultationController {
         };
     }
 
+    @ApiBearerAuth()
     @UseGuards(JwtAuthGuard)
+    @Roles("DOCTOR")
     @Patch("status/:id")
     @ApiOperation({
         summary: "Update the status of a consultation",
