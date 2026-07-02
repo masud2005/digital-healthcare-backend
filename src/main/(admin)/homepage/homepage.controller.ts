@@ -1,7 +1,7 @@
 import { AppPermission } from "@common/auth/permissions.constants";
 import { RequirePermissions } from "@common/decorators";
 import { JwtAuthGuard, PermissionsGuard } from "@common/guards";
-import { Body, Controller, Get, Put, UseGuards } from "@nestjs/common";
+import { Body, Controller, Put, UseGuards } from "@nestjs/common";
 import { ApiBearerAuth, ApiOkResponse, ApiOperation, ApiTags } from "@nestjs/swagger";
 import { HomePageContentResponseDto } from "./dto/homepage-response.dto";
 import {
@@ -19,14 +19,6 @@ import { HomePageService } from "./homepage.service";
 @Controller("admin/homepage-content")
 export class HomePageController {
     constructor(private readonly homePageService: HomePageService) {}
-
-    // Public — used by the frontend to render the homepage
-    @Get()
-    @ApiOperation({ summary: "Get homepage content" })
-    @ApiOkResponse({ type: HomePageContentResponseDto })
-    getContent() {
-        return this.homePageService.getContent();
-    }
 
     @Put("hero")
     @ApiOperation({ summary: "Update Hero section" })

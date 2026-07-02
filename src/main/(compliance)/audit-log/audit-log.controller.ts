@@ -1,4 +1,9 @@
-import { Controller, Get, Query, Res, Body, Post, Req, UseGuards } from "@nestjs/common";
+import { AppPermission } from "@common/auth/permissions.constants";
+import { RequirePermissions } from "@common/decorators";
+import { CurrentUser } from "@common/decorators/current-user.decorator";
+import { JwtAuthGuard, PermissionsGuard } from "@common/guards";
+import type { AuthenticatedUser } from "@main/auth/auth.types";
+import { Body, Controller, Get, Post, Query, Req, Res, UseGuards } from "@nestjs/common";
 import {
     ApiBearerAuth,
     ApiOkResponse,
@@ -11,9 +16,6 @@ import type { Response } from "express";
 import { AuditLogService } from "./audit-log.service";
 import { AuditLogQueryDto } from "./dto/audit-log-query.dto";
 import { AuditLogListResponseDto, AuditLogStatsResponseDto } from "./dto/audit-log-response.dto";
-import { OptionalJwtAuthGuard } from "@common/guards/optional-jwt-auth.guard";
-import { CurrentUser } from "@common/decorators/current-user.decorator";
-import type { AuthenticatedUser } from "@main/auth/auth.types";
 
 @ApiTags("(Compliance) Audit Logs")
 @Controller("compliance/audit-logs")
@@ -21,6 +23,9 @@ export class AuditLogController {
     constructor(private readonly auditLogService: AuditLogService) {}
 
     @Get("stats")
+    @ApiBearerAuth()
+    @UseGuards(JwtAuthGuard, PermissionsGuard)
+    @RequirePermissions(AppPermission.VIEW_AUDIT_LOGS)
     @ApiOperation({ summary: "Get audit log dashboard stats" })
     @ApiOkResponse({ type: AuditLogStatsResponseDto })
     getStats() {
@@ -28,6 +33,9 @@ export class AuditLogController {
     }
 
     @Get()
+    @ApiBearerAuth()
+    @UseGuards(JwtAuthGuard, PermissionsGuard)
+    @RequirePermissions(AppPermission.VIEW_AUDIT_LOGS)
     @ApiOperation({ summary: "List audit logs with filtering and pagination" })
     @ApiOkResponse({ type: AuditLogListResponseDto })
     listLogs(@Query() query: AuditLogQueryDto) {
@@ -35,8 +43,9 @@ export class AuditLogController {
     }
 
     @Get("export")
-    @UseGuards(OptionalJwtAuthGuard)
     @ApiBearerAuth()
+    @UseGuards(JwtAuthGuard, PermissionsGuard)
+    @RequirePermissions(AppPermission.VIEW_AUDIT_LOGS)
     @ApiOperation({ summary: "Export audit logs as CSV" })
     @ApiProduces("text/csv")
     @ApiQuery({ name: "search", required: false })
@@ -77,6 +86,8 @@ export class AuditLogController {
     }
 
     @Post("log")
+    @ApiBearerAuth()
+    @UseGuards(JwtAuthGuard)
     @ApiOperation({ summary: "Create an audit log entry (internal/system use)" })
     async createLog(
         @Req() req: any,
