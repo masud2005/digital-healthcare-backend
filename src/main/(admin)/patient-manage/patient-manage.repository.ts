@@ -85,6 +85,9 @@ export class PatientManageRepository {
                             category: { select: { id: true, name: true } },
                         },
                     },
+                    orders: {
+                        select: { total: true },
+                    },
                 },
             }),
             this.prisma.assessmentSubmission.count({ where }),
@@ -210,6 +213,10 @@ export class PatientManageRepository {
                             avatar: { select: { fileUrl: true } },
                         },
                     },
+                    payments: {
+                        where: { status: "COMPLETED" },
+                        select: { amount: true },
+                    },
                 },
             }),
             this.prisma.user.count({ where }),
@@ -230,6 +237,10 @@ export class PatientManageRepository {
                     include: {
                         avatar: { select: { fileUrl: true } },
                     },
+                },
+                payments: {
+                    where: { status: "COMPLETED" },
+                    select: { amount: true },
                 },
             },
         });

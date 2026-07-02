@@ -46,6 +46,7 @@ export class DashboardService {
                     categoryName: submission.assessment.category.name,
                     status: submission.status,
                     date: submission.createdAt,
+                    payment: submission.orders?.reduce((acc, order) => acc + Number(order.total), 0) ?? 0,
                 };
             }),
         );
