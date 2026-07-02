@@ -2,7 +2,6 @@ import { AppPermission } from "@common/auth/permissions.constants";
 import { RequirePermissions } from "@common/decorators";
 import { CurrentUser } from "@common/decorators/current-user.decorator";
 import { JwtAuthGuard, PermissionsGuard } from "@common/guards";
-import { AttachmentService } from "@global/attachment/attachment.service";
 import type { AuthenticatedUser } from "@main/auth/auth.types";
 import {
     Body,
@@ -23,7 +22,6 @@ import { FileInterceptor } from "@nestjs/platform-express";
 import {
     ApiBearerAuth,
     ApiConsumes,
-    ApiCreatedResponse,
     ApiNoContentResponse,
     ApiOkResponse,
     ApiOperation,
@@ -39,46 +37,18 @@ import {
     ContactLeadListResponseDto,
     ContactLeadResponseDto,
 } from "./dto/contact-lead-response.dto";
-import { CreateContactLeadDto } from "./dto/create-contact-lead.dto";
 import { RespondContactLeadDto } from "./dto/respond-contact-lead.dto";
 import { UpdateContactLeadDto } from "./dto/update-contact-lead.dto";
 
 @ApiTags("(Admin) Contact Leads")
+@ApiBearerAuth()
+@UseGuards(JwtAuthGuard, PermissionsGuard)
 @Controller("admin/contact-leads")
 export class ContactLeadsController {
-    constructor(
-        private readonly contactLeadsService: ContactLeadsService,
-        private readonly attachmentService: AttachmentService,
-    ) {}
-
-    // Public — no auth required (customers submit leads from the website)
-    @Post()
-    @ApiOperation({ summary: "Create a contact lead" })
-    @ApiConsumes("multipart/form-data")
-    @UseInterceptors(FileInterceptor("attachments"))
-    @ApiCreatedResponse({ type: ContactLeadResponseDto })
-    async create(
-        @Body() payload: CreateContactLeadDto,
-        @UploadedFile() file?: Express.Multer.File,
-    ) {
-        let attachmentId: string | undefined = undefined;
-        if (file) {
-            const res = await this.attachmentService.upload([file], {
-                context: "CONTACT_LEAD_ATTACHMENT",
-            });
-            attachmentId = Array.isArray(res.data) ? res.data[0].id : (res.data as any).id;
-        }
-
-        return this.contactLeadsService.create({
-            ...payload,
-            attachments: attachmentId || undefined,
-        });
-    }
+    constructor(private readonly contactLeadsService: ContactLeadsService) {}
 
     @Get()
-    @UseGuards(JwtAuthGuard, PermissionsGuard)
     @RequirePermissions(AppPermission.VIEW_CONTACT_LEADS)
-    @ApiBearerAuth()
     @ApiOperation({ summary: "Get contact leads" })
     @ApiOkResponse({ type: ContactLeadListResponseDto })
     findAll(@Query() query: ContactLeadQueryDto) {
@@ -86,9 +56,7 @@ export class ContactLeadsController {
     }
 
     @Get("export")
-    @UseGuards(JwtAuthGuard, PermissionsGuard)
     @RequirePermissions(AppPermission.VIEW_CONTACT_LEADS)
-    @ApiBearerAuth()
     @ApiOperation({ summary: "Export contact leads as CSV" })
     @ApiProduces("text/csv")
     @ApiQuery({ name: "search", required: false })
@@ -129,9 +97,7 @@ export class ContactLeadsController {
     }
 
     @Get(":id")
-    @UseGuards(JwtAuthGuard, PermissionsGuard)
     @RequirePermissions(AppPermission.VIEW_CONTACT_LEADS)
-    @ApiBearerAuth()
     @ApiOperation({ summary: "Get a contact lead by id" })
     @ApiOkResponse({ type: ContactLeadResponseDto })
     findOne(@Param() params: ContactLeadParamDto) {
@@ -139,9 +105,7 @@ export class ContactLeadsController {
     }
 
     @Patch(":id")
-    @UseGuards(JwtAuthGuard, PermissionsGuard)
     @RequirePermissions(AppPermission.MANAGE_CONTACT_LEADS)
-    @ApiBearerAuth()
     @ApiOperation({ summary: "Update a contact lead" })
     @ApiConsumes("multipart/form-data")
     @UseInterceptors(FileInterceptor("attachments"))
@@ -151,24 +115,11 @@ export class ContactLeadsController {
         @Body() payload: UpdateContactLeadDto,
         @UploadedFile() file?: Express.Multer.File,
     ) {
-        let attachmentId: string | undefined = undefined;
-        if (file) {
-            const res = await this.attachmentService.upload([file], {
-                context: "CONTACT_LEAD_ATTACHMENT",
-            });
-            attachmentId = Array.isArray(res.data) ? res.data[0].id : (res.data as any).id;
-        }
-
-        return this.contactLeadsService.update(params.id, {
-            ...payload,
-            attachments: attachmentId || undefined,
-        });
+        return this.contactLeadsService.update(params.id, payload);
     }
 
     @Delete(":id")
-    @UseGuards(JwtAuthGuard, PermissionsGuard)
     @RequirePermissions(AppPermission.MANAGE_CONTACT_LEADS)
-    @ApiBearerAuth()
     @HttpCode(204)
     @ApiOperation({ summary: "Delete a contact lead" })
     @ApiNoContentResponse({ description: "Contact lead deleted successfully" })
@@ -177,9 +128,7 @@ export class ContactLeadsController {
     }
 
     @Post(":id/respond")
-    @UseGuards(JwtAuthGuard, PermissionsGuard)
     @RequirePermissions(AppPermission.MANAGE_CONTACT_LEADS)
-    @ApiBearerAuth()
     @ApiOperation({ summary: "Send a response back to a contact lead" })
     @ApiConsumes("multipart/form-data")
     @UseInterceptors(FileInterceptor("attachments"))

@@ -1,12 +1,12 @@
 import { AppPermission } from "@common/auth/permissions.constants";
 import { RequirePermissions } from "@common/decorators";
-import { Body, Controller, Get, Param, Patch, Query, UseGuards } from "@nestjs/common";
-import { ApiTags, ApiOperation, ApiBearerAuth, ApiQuery } from "@nestjs/swagger";
-import { CommunicationChannel, CommunicationAction } from "@prisma/client";
-import { CommunicationTemplateService } from "./communication-template.service";
-import { UpdateTemplateDto } from "./dto/update-template.dto";
-import { UpdateLayoutDto } from "./dto/update-layout.dto";
 import { JwtAuthGuard, PermissionsGuard } from "@common/guards";
+import { Body, Controller, Get, Param, Patch, Query, UseGuards } from "@nestjs/common";
+import { ApiBearerAuth, ApiOperation, ApiQuery, ApiTags } from "@nestjs/swagger";
+import { CommunicationAction, CommunicationChannel } from "@prisma/client";
+import { CommunicationTemplateService } from "./communication-template.service";
+import { UpdateLayoutDto } from "./dto/update-layout.dto";
+import { UpdateTemplateDto } from "./dto/update-template.dto";
 
 @ApiTags("(Admin) Communication Templates")
 @ApiBearerAuth()
