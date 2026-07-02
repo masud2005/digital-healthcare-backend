@@ -1,7 +1,7 @@
 import { AppPermission } from "@common/auth/permissions.constants";
 import { RequirePermissions } from "@common/decorators";
 import { JwtAuthGuard, PermissionsGuard } from "@common/guards";
-import { Body, Controller, Get, Headers, Patch, UseGuards } from "@nestjs/common";
+import { Body, Controller, Headers, Patch, UseGuards } from "@nestjs/common";
 import { ApiBearerAuth, ApiOkResponse, ApiOperation, ApiTags } from "@nestjs/swagger";
 import { UpdateContactInfoDto } from "./dto/update-contact-info.dto";
 import { UpdateGoogleAnalyticsDto } from "./dto/update-google-analytics.dto";
@@ -15,14 +15,6 @@ import { WebsiteService } from "./website.service";
 @Controller("admin/website-settings")
 export class WebsiteController {
     constructor(private readonly websiteService: WebsiteService) {}
-
-    // Public — used by the frontend to fetch settings without auth
-    @Get()
-    @ApiOperation({ summary: "Get website settings" })
-    @ApiOkResponse({ type: WebsiteSettingsResponseDto })
-    getSettings() {
-        return this.websiteService.getSettings();
-    }
 
     @Patch("site-settings")
     @ApiOperation({ summary: "Update core site settings" })

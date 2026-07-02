@@ -1,7 +1,6 @@
 import { AppPermission } from "@common/auth/permissions.constants";
 import { RequirePermissions } from "@common/decorators";
 import { JwtAuthGuard, PermissionsGuard } from "@common/guards";
-import { StorageService } from "@global/storage/storage.service";
 import {
     Body,
     Controller,
@@ -34,10 +33,7 @@ import { ProductService } from "./product.service";
 @UseGuards(JwtAuthGuard, PermissionsGuard)
 @Controller("admin/products")
 export class ProductController {
-    constructor(
-        private readonly productService: ProductService,
-        private readonly storageService: StorageService,
-    ) {}
+    constructor(private readonly productService: ProductService) {}
 
     @Post()
     @RequirePermissions(AppPermission.MANAGE_PRODUCTS)
