@@ -1,3 +1,6 @@
+import { ExportService } from "@global/export/export.service";
+import { PrismaService } from "@global/prisma/prisma.service";
+import type { AuthenticatedUser } from "@main/auth/auth.types";
 import {
     BadRequestException,
     Injectable,
@@ -5,14 +8,11 @@ import {
     NotFoundException,
     OnModuleInit,
 } from "@nestjs/common";
-import { PrismaService } from "@global/prisma/prisma.service";
-import { ExportService } from "@global/export/export.service";
-import { ConsentRepository } from "./consent.repository";
-import { CreateConsentDto } from "./dto/create-consent.dto";
-import { ConsentQueryDto } from "./dto/consent-query.dto";
-import type { AuthenticatedUser } from "@main/auth/auth.types";
-import { DEFAULT_CONSENTS, generateExtraConsents } from "./consent-seed.data";
 import { IncidentService } from "../incident/incident.service";
+import { DEFAULT_CONSENTS, generateExtraConsents } from "./consent-seed.data";
+import { ConsentRepository } from "./consent.repository";
+import { ConsentQueryDto } from "./dto/consent-query.dto";
+import { CreateConsentDto } from "./dto/create-consent.dto";
 
 const DEFAULT_PAGE = 1;
 const DEFAULT_LIMIT = 10;
@@ -29,7 +29,7 @@ export class ConsentService implements OnModuleInit {
     ) {}
 
     async onModuleInit() {
-        // await this.seedConsents();
+        await this.seedConsents();
     }
 
     async seedConsents() {
