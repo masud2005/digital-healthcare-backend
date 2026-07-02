@@ -305,6 +305,8 @@ export class MessageService {
             if (!attachment) throw new NotFoundException("Attachment not found");
         }
 
+        const lastMessage = await this.repo.findLastMessageBySender(dto.conversationId, senderId);
+
         const message = await this.repo.createMessage(dto, senderId);
 
         const recipientId =
@@ -332,13 +334,18 @@ export class MessageService {
                 });
             }
         } else {
-            await this.notificationService.send({
-                userId: recipientId,
-                title: "New Message",
-                message: `You have a new message from ${senderName}.`,
-                actionType: "NEW_MESSAGE",
-                referenceId: message.id,
-            });
+            const oneHourAgo = new Date(Date.now() - 60 * 60 * 1000);
+            const shouldNotify = !lastMessage || lastMessage.createdAt < oneHourAgo;
+
+            if (shouldNotify) {
+                await this.notificationService.send({
+                    userId: recipientId,
+                    title: "New Message",
+                    message: `You have a new message from ${senderName}.`,
+                    actionType: "NEW_MESSAGE",
+                    referenceId: message.id,
+                });
+            }
         }
 
         return this.resolveMessageAttachments(message);

@@ -49,6 +49,9 @@ export class DashboardRepository {
                         category: { select: { id: true, name: true } },
                     },
                 },
+                orders: {
+                    select: { total: true },
+                },
             },
         });
     }

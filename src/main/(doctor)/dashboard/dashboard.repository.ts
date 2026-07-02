@@ -10,7 +10,7 @@ export class DoctorDashboardRepository {
         return this.prisma.assessmentSubmission.groupBy({
             by: ["status"],
             where: {
-                OR: [{ reviewedBy: userId }, { status: "PENDING" }],
+                reviewedBy: userId,
             },
             _count: {
                 status: true,

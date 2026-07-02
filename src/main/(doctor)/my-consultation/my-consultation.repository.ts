@@ -17,7 +17,7 @@ export class DoctorMyConsultationRepository {
         const skip = (currentPage - 1) * currentLimit;
 
         const baseWhere: Prisma.AssessmentSubmissionWhereInput = {
-            OR: [{ reviewedBy: userId }, { status: SubmissionStatus.PENDING }],
+            reviewedBy: userId,
         };
 
         const statusMap: Record<ConsultationTab, SubmissionStatus[] | undefined> = {
