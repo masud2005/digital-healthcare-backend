@@ -576,7 +576,7 @@ export class SystemHealthService implements OnModuleInit {
     private async recalculateEmailDeliveryHealth() {
         await this.recalculateService(
             "email_delivery",
-            { outageUptime: 95, degradedUptime: 98, degradedLatency: 1000 },
+            { outageUptime: 95, degradedUptime: 98, degradedLatency: 5000 },
             {
                 operational: "Email delivery operating normally",
                 outage: (upt) =>
@@ -590,7 +590,7 @@ export class SystemHealthService implements OnModuleInit {
     private async recalculateSmsDeliveryHealth() {
         await this.recalculateService(
             "sms_delivery",
-            { outageUptime: 95, degradedUptime: 99, degradedLatency: 1000 },
+            { outageUptime: 95, degradedUptime: 99, degradedLatency: 5000 },
             {
                 operational: "SMS gateway operating normally",
                 outage: () => "SMS gateway experiencing high failure rate",
