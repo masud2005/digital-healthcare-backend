@@ -19,6 +19,11 @@ export class NotificationService {
 
     /** Save to DB and push realtime — call this from anywhere */
     async send(payload: SendNotificationPayload) {
+        const preference = await this.repo.getUserPreference(payload.userId);
+        if (preference && preference.pushNotifications === false) {
+            return null; // Skip notification based on user preference
+        }
+
         const notification = await this.repo.create(payload);
         this.gateway.pushToUser(payload.userId, notification);
         return notification;

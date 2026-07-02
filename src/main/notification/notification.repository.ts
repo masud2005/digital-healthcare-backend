@@ -5,6 +5,13 @@ import { Injectable } from "@nestjs/common";
 export class NotificationRepository {
     constructor(private readonly prisma: PrismaService) {}
 
+    getUserPreference(userId: string) {
+        return this.prisma.userPreference.findUnique({
+            where: { userId },
+            select: { pushNotifications: true },
+        });
+    }
+
     create(data: {
         userId: string;
         title: string;
