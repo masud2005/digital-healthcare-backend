@@ -1,3 +1,5 @@
+import { AttachmentService } from "@global/attachment/attachment.service";
+import { StorageService } from "@global/storage/storage.service";
 import {
     BadRequestException,
     ForbiddenException,
@@ -5,12 +7,10 @@ import {
     NotFoundException,
 } from "@nestjs/common";
 import { createPublicKey } from "crypto";
-import { AttachmentService } from "@global/attachment/attachment.service";
-import { StorageService } from "@global/storage/storage.service";
+import { NotificationService } from "../notification/notification.service";
+import { CreateConversationDto, RegisterPublicKeyDto, SendMessageDto } from "./dto/message.dto";
 import { MessageRepository } from "./message.repository";
 import { OnlineStore } from "./online.store";
-import { CreateConversationDto, RegisterPublicKeyDto, SendMessageDto } from "./dto/message.dto";
-import { NotificationService } from "../notification/notification.service";
 
 @Injectable()
 export class MessageService {
@@ -263,7 +263,7 @@ export class MessageService {
 
     // ── Messages ───────────────────────────────────────────────────────────
 
-    async sendMessage(dto: SendMessageDto, senderId: string) {
+    async sendMessage(dto: SendMessageDto, senderId: string, isRecipientActive: boolean = false) {
         const conversation = await this.repo.findConversation(dto.conversationId);
         if (!conversation) throw new NotFoundException("Conversation not found");
 
@@ -334,8 +334,8 @@ export class MessageService {
                 });
             }
         } else {
-            const oneHourAgo = new Date(Date.now() - 60 * 60 * 1000);
-            const shouldNotify = !lastMessage || lastMessage.createdAt < oneHourAgo;
+            const fiveMinutesAgo = new Date(Date.now() - 5 * 60 * 1000);
+            const shouldNotify = !isRecipientActive && (!lastMessage || lastMessage.createdAt < fiveMinutesAgo);
 
             if (shouldNotify) {
                 await this.notificationService.send({

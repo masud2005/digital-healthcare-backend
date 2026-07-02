@@ -121,7 +121,10 @@ export class MessageGateway implements OnGatewayConnection, OnGatewayDisconnect 
         const userId = client.data.user?.id;
         if (!userId) throw new WsException("Unauthorized");
 
-        const message = await this.messageService.sendMessage(dto, userId);
+        const socketsInConvRoom = await this.server.in(`conversation:${dto.conversationId}`).fetchSockets();
+        const isRecipientActive = socketsInConvRoom.some((socket) => socket.data?.user?.id !== userId);
+
+        const message = await this.messageService.sendMessage(dto, userId, isRecipientActive);
 
         // Broadcast encrypted message to everyone in the conversation room
         this.server.to(`conversation:${dto.conversationId}`).emit("new_message", message);
