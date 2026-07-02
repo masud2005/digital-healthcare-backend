@@ -1,12 +1,24 @@
-import { Body, Controller, Delete, Get, HttpCode, Param, Patch, Post, Query } from "@nestjs/common";
+import { AppPermission } from "@common/auth/permissions.constants";
+import { RequirePermissions } from "@common/decorators";
+import { JwtAuthGuard, PermissionsGuard } from "@common/guards";
 import {
-    ApiCreatedResponse,
+    Body,
+    Controller,
+    Delete,
+    Get,
+    HttpCode,
+    Param,
+    Patch,
+    Query,
+    UseGuards,
+} from "@nestjs/common";
+import {
+    ApiBearerAuth,
     ApiNoContentResponse,
     ApiOkResponse,
     ApiOperation,
     ApiTags,
 } from "@nestjs/swagger";
-import { CreateSideEffectReportDto } from "./dto/create-side-effect-report.dto";
 import { SideEffectReportParamDto } from "./dto/side-effect-report-param.dto";
 import { SideEffectReportQueryDto } from "./dto/side-effect-report-query.dto";
 import {
@@ -18,18 +30,14 @@ import { UpdateSideEffectReportDto } from "./dto/update-side-effect-report.dto";
 import { SideEffectReportService } from "./side-effect-report.service";
 
 @ApiTags("(Compliance) Side Effect Reports")
+@ApiBearerAuth()
+@UseGuards(JwtAuthGuard, PermissionsGuard)
 @Controller("compliance/side-effect-reports")
 export class SideEffectReportController {
     constructor(private readonly sideEffectReportService: SideEffectReportService) {}
 
-    @Post()
-    @ApiOperation({ summary: "Create a side effect report" })
-    @ApiCreatedResponse({ type: SideEffectReportResponseDto })
-    create(@Body() payload: CreateSideEffectReportDto) {
-        return this.sideEffectReportService.create(payload);
-    }
-
     @Get("overview")
+    @RequirePermissions(AppPermission.VIEW_COMPLIANCE_CENTER)
     @ApiOperation({ summary: "Get side effect reports overview counts" })
     @ApiOkResponse({ type: SideEffectReportOverviewResponseDto })
     getOverview() {
@@ -37,6 +45,7 @@ export class SideEffectReportController {
     }
 
     @Get()
+    @RequirePermissions(AppPermission.VIEW_COMPLIANCE_CENTER)
     @ApiOperation({ summary: "Get side effect reports with pagination/filters" })
     @ApiOkResponse({ type: SideEffectReportListResponseDto })
     findAll(@Query() query: SideEffectReportQueryDto) {
@@ -44,6 +53,7 @@ export class SideEffectReportController {
     }
 
     @Get(":id")
+    @RequirePermissions(AppPermission.VIEW_COMPLIANCE_CENTER)
     @ApiOperation({ summary: "Get a side effect report by id" })
     @ApiOkResponse({ type: SideEffectReportResponseDto })
     findOne(@Param() params: SideEffectReportParamDto) {
@@ -51,6 +61,7 @@ export class SideEffectReportController {
     }
 
     @Patch(":id")
+    @RequirePermissions(AppPermission.MANAGE_COMPLIANCE_CENTER)
     @ApiOperation({ summary: "Update a side effect report status/severity" })
     @ApiOkResponse({ type: SideEffectReportResponseDto })
     update(@Param() params: SideEffectReportParamDto, @Body() payload: UpdateSideEffectReportDto) {
@@ -58,6 +69,7 @@ export class SideEffectReportController {
     }
 
     @Delete(":id")
+    @RequirePermissions(AppPermission.MANAGE_COMPLIANCE_CENTER)
     @HttpCode(204)
     @ApiOperation({ summary: "Delete a side effect report" })
     @ApiNoContentResponse({ description: "Side effect report deleted successfully" })
