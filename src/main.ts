@@ -21,7 +21,7 @@ async function bootstrap() {
             "https://dashboard.weightlossmdcherrycreek.com",
             "https://impracticably-sclerometric-niki.ngrok-free.dev",
             "http://127.0.0.1:5500",
-            "https://doc-frontend-pied.vercel.app"
+            "https://doc-frontend-pied.vercel.app",
         ],
         methods: "GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS",
         credentials: true,

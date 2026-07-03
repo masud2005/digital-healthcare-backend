@@ -5,7 +5,8 @@ import { PublicContactLeadModule } from "./public-contact-lead/public-contact-le
 import { PublicHomePageModule } from "./public-homepage/public-homepage.module";
 import { PublicWebsiteModule } from "./public-website/public-website.module";
 import { PublicSideEffectReportModule } from "./public-side-effect-report/public-side-effect-report.module";
-import { PublicProductModule } from './public-product/public-product.module';
+import { PublicProductModule } from "./public-product/public-product.module";
+import { PublicServicePageModule } from "./public-service-page/public-service-page.module";
 
 @Module({
     imports: [
@@ -16,7 +17,7 @@ import { PublicProductModule } from './public-product/public-product.module';
         PublicWebsiteModule,
         PublicSideEffectReportModule,
         PublicProductModule,
+        PublicServicePageModule,
     ],
 })
 export class PublicModule {}
-

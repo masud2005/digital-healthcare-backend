@@ -12,9 +12,9 @@ model Testimonial {
   isPublished Boolean @default(true) @map("is_published")
 
   // Google Places sync fields — nullable so existing rows are unaffected
-  googleReviewId      String?  @unique @map("google_review_id")     // stable key from Places API v1 review name
-  isGoogleReviewDirty Boolean  @default(false) @map("is_google_review_dirty") // true = admin edited; cron will skip
-  googleAvatarUrl     String?  @map("google_avatar_url")            // profile photo URL from Google (external CDN)
+  googleReviewId      String? @unique @map("google_review_id") // stable key from Places API v1 review name
+  isGoogleReviewDirty Boolean @default(false) @map("is_google_review_dirty") // true = admin edited; cron will skip
+  googleAvatarUrl     String? @map("google_avatar_url") // profile photo URL from Google (external CDN)
 
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")

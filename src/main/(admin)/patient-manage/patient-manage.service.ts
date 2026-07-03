@@ -21,7 +21,8 @@ export class PatientManageService {
     ) {}
 
     async findAssessmentSubmissionById(submissionId: string) {
-        const result = await this.assessmentSubmissionService.getMyAssessmentBlueprint(submissionId);
+        const result =
+            await this.assessmentSubmissionService.getMyAssessmentBlueprint(submissionId);
         return {
             ...result,
             payment: result.paymentSummary?.total ?? 0,
@@ -56,7 +57,9 @@ export class PatientManageService {
                     categoryName: submission.assessment.category.name,
                     status: submission.status,
                     date: submission.createdAt,
-                    payment: submission.orders?.reduce((sum, order) => sum + Number(order.total), 0) ?? 0,
+                    payment:
+                        submission.orders?.reduce((sum, order) => sum + Number(order.total), 0) ??
+                        0,
                 };
             }),
         );
@@ -129,7 +132,8 @@ export class PatientManageService {
                 activeConsultation: user.assessmentSubmissions.length,
                 status: user.status,
                 joiningDate: user.createdAt,
-                payment: user.payments?.reduce((sum, payment) => sum + Number(payment.amount), 0) ?? 0,
+                payment:
+                    user.payments?.reduce((sum, payment) => sum + Number(payment.amount), 0) ?? 0,
             })),
         );
 

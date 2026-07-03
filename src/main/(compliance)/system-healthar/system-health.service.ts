@@ -1,7 +1,13 @@
 import * as os from "os";
 import * as fs from "fs";
 import type { SystemHealthStatus } from "@constant/enums";
-import { BadRequestException, Injectable, Logger, NotFoundException, OnModuleInit } from "@nestjs/common";
+import {
+    BadRequestException,
+    Injectable,
+    Logger,
+    NotFoundException,
+    OnModuleInit,
+} from "@nestjs/common";
 import { Cron, CronExpression } from "@nestjs/schedule";
 import { SystemHealthMetricQueryDto } from "./dto/system-health-metric-query.dto";
 import { SystemHealthQueryDto } from "./dto/system-health-query.dto";
@@ -130,7 +136,8 @@ export class SystemHealthService implements OnModuleInit {
             if (!smtpHost || !smtpUser || !smtpPass) {
                 await this.systemHealthRepository.updateServiceHealth("email_delivery", {
                     status: "OUTAGE",
-                    message: "Email provider is not configured. Missing SMTP host, user or password credentials.",
+                    message:
+                        "Email provider is not configured. Missing SMTP host, user or password credentials.",
                 });
             }
 
@@ -140,7 +147,8 @@ export class SystemHealthService implements OnModuleInit {
             if (!twilioSid || !twilioToken || !twilioFrom) {
                 await this.systemHealthRepository.updateServiceHealth("sms_delivery", {
                     status: "OUTAGE",
-                    message: "SMS gateway is not configured. Missing Twilio SID, token or sender number.",
+                    message:
+                        "SMS gateway is not configured. Missing Twilio SID, token or sender number.",
                 });
             }
         } catch (err) {
@@ -158,13 +166,14 @@ export class SystemHealthService implements OnModuleInit {
     @Cron(CronExpression.EVERY_30_SECONDS)
     async collectSystemMetrics() {
         try {
-            const [cpuPercent, memPercent, diskPercent, activeUsers, pendingSubmissions] = await Promise.all([
-                this.getCpuUsagePercent(),
-                this.getMemoryUsagePercent(),
-                this.getDiskUsagePercent(),
-                this.systemHealthRepository.countActiveUsers(),
-                this.systemHealthRepository.countPendingSubmissions(),
-            ]);
+            const [cpuPercent, memPercent, diskPercent, activeUsers, pendingSubmissions] =
+                await Promise.all([
+                    this.getCpuUsagePercent(),
+                    this.getMemoryUsagePercent(),
+                    this.getDiskUsagePercent(),
+                    this.systemHealthRepository.countActiveUsers(),
+                    this.systemHealthRepository.countPendingSubmissions(),
+                ]);
 
             await Promise.all([
                 this.updateSystemMetric("cpu_usage", cpuPercent),
@@ -473,7 +482,8 @@ export class SystemHealthService implements OnModuleInit {
 
                     const idle = after.idle - before.idle;
                     const total =
-                        (after.user - before.user) +
+                        after.user -
+                        before.user +
                         (after.nice - before.nice) +
                         (after.sys - before.sys) +
                         (after.irq - before.irq) +
@@ -483,7 +493,8 @@ export class SystemHealthService implements OnModuleInit {
                     totalTick += total;
                 }
 
-                const usagePercent = totalTick > 0 ? ((totalTick - totalIdle) / totalTick) * 100 : 0;
+                const usagePercent =
+                    totalTick > 0 ? ((totalTick - totalIdle) / totalTick) * 100 : 0;
                 resolve(parseFloat(usagePercent.toFixed(1)));
             }, 100);
         });

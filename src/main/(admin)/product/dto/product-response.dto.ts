@@ -58,7 +58,10 @@ export class ProductResponseDto {
     @ApiProperty({ type: [ProductVariantResponseDto] })
     variants: ProductVariantResponseDto[];
 
-    @ApiPropertyOptional({ example: "<p>Rich text HTML content for product description...</p>", nullable: true })
+    @ApiPropertyOptional({
+        example: "<p>Rich text HTML content for product description...</p>",
+        nullable: true,
+    })
     description: string | null;
 
     @ApiProperty({ example: "7f4145d8-087e-4d33-82bd-0f65d3fbdb4f" })

@@ -80,7 +80,7 @@ export class AdminOrderService {
                     quantity: item.quantity,
                     totalPrice: Number(item.totalPrice),
                     productImage: await this.storageService.resolveKey(item.productImageSnapshot),
-                }))
+                })),
             ),
             subtotal: Number(order.subtotal),
             discountAmount: Number(order.discountAmount),

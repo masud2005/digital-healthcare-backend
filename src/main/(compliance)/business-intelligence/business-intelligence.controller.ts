@@ -28,7 +28,9 @@ export class BusinessIntelligenceController {
     @Get("category-revenue")
     @ApiOperation({ summary: "Revenue breakdown per assessment category with percentage" })
     async getCategoryRevenue(@Query() query: TrendQueryDto) {
-        const data = await this.biService.getCategoryRevenue(query.filter ?? TrendFilter.LAST_7_DAYS);
+        const data = await this.biService.getCategoryRevenue(
+            query.filter ?? TrendFilter.LAST_7_DAYS,
+        );
         return {
             success: true,
             statusCode: HttpStatus.OK,
@@ -68,7 +70,9 @@ export class BusinessIntelligenceController {
     @Get("approval-vs-denial")
     @ApiOperation({ summary: "Assessment submission approval vs denial counts and percentages" })
     async getApprovalVsDenial(@Query() query: TrendQueryDto) {
-        const data = await this.biService.getApprovalVsDenial(query.filter ?? TrendFilter.LAST_7_DAYS);
+        const data = await this.biService.getApprovalVsDenial(
+            query.filter ?? TrendFilter.LAST_7_DAYS,
+        );
         return {
             success: true,
             statusCode: HttpStatus.OK,

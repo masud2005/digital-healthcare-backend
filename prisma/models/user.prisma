@@ -87,10 +87,10 @@ model UserRole {
 }
 
 model Permission {
-  id          String           @id @default(uuid())
-  key         String           @unique
-  name        String
-  description String?
+  id              String           @id @default(uuid())
+  key             String           @unique
+  name            String
+  description     String?
   roles           RolePermission[]
   userPermissions UserPermission[]
 

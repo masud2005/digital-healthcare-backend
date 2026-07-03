@@ -32,7 +32,10 @@ export class CartSummaryQueryDto {
     @IsString()
     discountCode?: string;
 
-    @ApiPropertyOptional({ example: "uuid-here", description: "Optional submissionId to fetch its service fee" })
+    @ApiPropertyOptional({
+        example: "uuid-here",
+        description: "Optional submissionId to fetch its service fee",
+    })
     @IsOptional()
     @IsString()
     submissionId?: string;

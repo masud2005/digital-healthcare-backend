@@ -15,6 +15,7 @@ import { ProductModule } from "./product/product.module";
 import { QuestionModule } from "./question/question.module";
 import { TestimonialModule } from "./testimonial/testimonial.module";
 import { WebsiteModule } from "./website/website.module";
+import { AdminServicePageModule } from "./service-page/service-page.module";
 import { EmployeePermissionModule } from "./employee-permission/employee-permission.module";
 import { BlogsModule } from "./blogs/blogs.module";
 
@@ -38,6 +39,7 @@ import { BlogsModule } from "./blogs/blogs.module";
         CommunicationTemplateModule,
         EmployeePermissionModule,
         BlogsModule,
+        AdminServicePageModule,
     ],
 })
 export class AdminModule {}

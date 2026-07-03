@@ -10,7 +10,12 @@ import { TestimonialService } from "./testimonial.service";
 @Module({
     imports: [PrismaModule, ExportModule],
     controllers: [TestimonialController],
-    providers: [TestimonialService, TestimonialRepository, GoogleReviewService, TestimonialCronService],
+    providers: [
+        TestimonialService,
+        TestimonialRepository,
+        GoogleReviewService,
+        TestimonialCronService,
+    ],
     exports: [TestimonialService, GoogleReviewService],
 })
 export class TestimonialModule {}

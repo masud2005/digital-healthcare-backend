@@ -191,20 +191,26 @@ export class DoctorMyConsultationService {
         });
 
         // Email to patient based on status
-        const patientUser = await this.prisma.user.findUnique({ where: { id: result.userId }, select: { email: true } });
+        const patientUser = await this.prisma.user.findUnique({
+            where: { id: result.userId },
+            select: { email: true },
+        });
         if (patientUser?.email) {
             let action: any = null;
             if (status === SubmissionStatus.ACCEPTED) action = "ASSESSMENT_APPROVED";
             else if (status === SubmissionStatus.REJECTED) action = "ASSESSMENT_REJECTED";
-            else if (status === SubmissionStatus.REFIL_REQUESTED) action = "ASSESSMENT_REFILL_REQUEST";
+            else if (status === SubmissionStatus.REFIL_REQUESTED)
+                action = "ASSESSMENT_REFILL_REQUEST";
 
             if (action) {
-                await this.communicationService.dispatch({
-                    action,
-                    channel: "EMAIL",
-                    to: patientUser.email,
-                    payload: { name: patientName }
-                }).catch(e => console.error("Failed to send status update email:", e));
+                await this.communicationService
+                    .dispatch({
+                        action,
+                        channel: "EMAIL",
+                        to: patientUser.email,
+                        payload: { name: patientName },
+                    })
+                    .catch((e) => console.error("Failed to send status update email:", e));
             }
         }
 

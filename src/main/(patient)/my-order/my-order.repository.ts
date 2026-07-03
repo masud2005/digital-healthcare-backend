@@ -70,15 +70,15 @@ export class MyOrderRepository {
                     total: true,
                     createdAt: true,
                     items: {
-                        select: { 
-                            id: true, 
+                        select: {
+                            id: true,
                             productNameSnapshot: true,
                             product: {
                                 select: {
                                     categoryId: true,
-                                    category: { select: { name: true } }
-                                }
-                            }
+                                    category: { select: { name: true } },
+                                },
+                            },
                         },
                     },
                     payments: {
@@ -91,7 +91,7 @@ export class MyOrderRepository {
                             id: true,
                             reviewedBy: true,
                             assessment: {
-                                select: { 
+                                select: {
                                     title: true,
                                     categoryId: true,
                                     category: { select: { name: true } },

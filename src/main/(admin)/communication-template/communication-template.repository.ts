@@ -28,7 +28,7 @@ export class CommunicationTemplateRepository {
             "NEW_PROPOSAL",
             "PROPOSAL_ACCEPTED",
             "PROPOSAL_REJECTED",
-            "SUBSCRIPTION_CANCELLED"
+            "SUBSCRIPTION_CANCELLED",
         ];
 
         const sortFn = (a: any, b: any) => {
@@ -58,7 +58,7 @@ export class CommunicationTemplateRepository {
         const sms = await this.prisma.smsTemplate.findMany({
             where: action ? { action } : undefined,
         });
-        
+
         return [...emails.sort(sortFn), ...sms.sort(sortFn)];
     }
 
