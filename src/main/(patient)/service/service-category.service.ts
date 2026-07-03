@@ -10,7 +10,23 @@ export class ServiceCategoryService {
     ) {}
 
     async getAllCategoriesName() {
-        return this.serviceCategoryRepository.findAllNames();
+        const categories = await this.serviceCategoryRepository.findAllNames();
+
+        return Promise.all(
+            categories.map(async (category) => {
+                return {
+                    id: category.id,
+                    name: category.name,
+                    assessments: await Promise.all(
+                        category.assessments.map(async (assessment) => ({
+                            id: assessment.id,
+                            title: assessment.title,
+                            image: await this.storageService.resolveKey(assessment.thumbnail),
+                        })),
+                    ),
+                };
+            }),
+        );
     }
 
     async getCategories(categoryName?: string) {
