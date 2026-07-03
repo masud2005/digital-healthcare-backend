@@ -15,10 +15,10 @@ export class PublicProductController {
     return this.publicProductService.findAll();
   }
 
-  @Get(':id')
-  @ApiOperation({ summary: 'Get a product by id' })
+  @Get(':identifier')
+  @ApiOperation({ summary: 'Get a product by id or slug' })
   @ApiOkResponse({ type: PublicProductDetailsResponseDto })
-  findOne(@Param('id') id: string) {
-    return this.publicProductService.findOne(id);
+  findOne(@Param('identifier') identifier: string) {
+    return this.publicProductService.findOne(identifier);
   }
 }

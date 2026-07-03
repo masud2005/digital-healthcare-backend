@@ -56,9 +56,14 @@ export class PublicProductService {
     );
   }
 
-  async findOne(id: string) {
-    const product = await this.prisma.product.findUnique({
-      where: { id },
+  async findOne(identifier: string) {
+    const product = await this.prisma.product.findFirst({
+      where: {
+        OR: [
+          { id: identifier },
+          { slug: identifier },
+        ]
+      },
       include: {
         images: true,
         variants: true,
