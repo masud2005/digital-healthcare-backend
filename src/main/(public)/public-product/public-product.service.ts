@@ -1,6 +1,8 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from 'src/global/prisma/prisma.service';
 import { StorageService } from 'src/global/storage/storage.service';
+import { PublicProductQueryDto } from './dto/public-product-query.dto';
+import { Prisma } from '@prisma/client';
 
 @Injectable()
 export class PublicProductService {
@@ -9,8 +11,27 @@ export class PublicProductService {
     private readonly storageService: StorageService,
   ) {}
 
-  async findAll() {
+  async findAll(query?: PublicProductQueryDto) {
+    const where: Prisma.ProductWhereInput = {};
+
+    if (query?.search) {
+      where.name = {
+        contains: query.search,
+        mode: 'insensitive',
+      };
+    }
+
+    if (query?.category) {
+      where.category = {
+        OR: [
+          { id: query.category },
+          { slug: query.category },
+        ],
+      };
+    }
+
     const products = await this.prisma.product.findMany({
+      where,
       include: {
         images: true,
         category: {
@@ -56,9 +77,14 @@ export class PublicProductService {
     );
   }
 
-  async findOne(id: string) {
-    const product = await this.prisma.product.findUnique({
-      where: { id },
+  async findOne(identifier: string) {
+    const product = await this.prisma.product.findFirst({
+      where: {
+        OR: [
+          { id: identifier },
+          { slug: identifier },
+        ]
+      },
       include: {
         images: true,
         variants: true,
