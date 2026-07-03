@@ -46,7 +46,6 @@ export class CommunicationService {
             }
         }
 
-
         // 1. Fetch Template
         let template: any = null;
         if (channel === "SMS") {

@@ -234,3 +234,18 @@ export const communicationAction = [
     "SUBSCRIPTION_CANCELLED",
 ] as const;
 export type CommunicationAction = (typeof communicationAction)[number];
+
+export const pageType = [
+    "ServiceCategory",
+    "Blog",
+    "BlogDetail",
+    "LabTest",
+    "MedicalTeam",
+    "HowItWorks",
+    "Eligiblity",
+    "Coverage",
+    "Faq",
+    "BillingCancellation",
+    "ShippingInfo",
+] as const;
+export type PageType = (typeof pageType)[number];

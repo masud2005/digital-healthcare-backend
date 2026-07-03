@@ -158,7 +158,7 @@ export class CartService {
 
     async getCartSummary(userId: string, discountCode?: string, submissionId?: string) {
         const cart = await this.cartRepository.findCartByUserId(userId);
-        
+
         let paymentPlan: any = null;
 
         if (submissionId) {

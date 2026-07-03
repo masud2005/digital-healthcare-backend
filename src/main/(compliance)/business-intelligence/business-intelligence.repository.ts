@@ -11,7 +11,10 @@ export class BusinessIntelligenceRepository {
 
     getTotalRevenue(gte?: Date, lte?: Date) {
         return this.prisma.payment.aggregate({
-            where: { status: PaymentStatus.COMPLETED, ...(gte && lte ? { createdAt: { gte, lte } } : {}) },
+            where: {
+                status: PaymentStatus.COMPLETED,
+                ...(gte && lte ? { createdAt: { gte, lte } } : {}),
+            },
             _sum: { amount: true },
         });
     }
@@ -28,7 +31,9 @@ export class BusinessIntelligenceRepository {
             where: {
                 deletedAt: null,
                 userRoles: { some: { role: { name: "PATIENT" } } },
-                ...(gte && lte ? { createdAt: { gte, lte } } : { createdAt: { gte: this.startOfCurrentMonth() } }),
+                ...(gte && lte
+                    ? { createdAt: { gte, lte } }
+                    : { createdAt: { gte: this.startOfCurrentMonth() } }),
             },
         });
     }
@@ -68,7 +73,10 @@ export class BusinessIntelligenceRepository {
         // Average total completed payment amount per unique user
         return this.prisma.payment.groupBy({
             by: ["userId"],
-            where: { status: PaymentStatus.COMPLETED, ...(gte && lte ? { createdAt: { gte, lte } } : {}) },
+            where: {
+                status: PaymentStatus.COMPLETED,
+                ...(gte && lte ? { createdAt: { gte, lte } } : {}),
+            },
             _sum: { amount: true },
         });
     }
@@ -84,7 +92,10 @@ export class BusinessIntelligenceRepository {
             include: {
                 category: { select: { id: true, name: true } },
                 payments: {
-                    where: { status: PaymentStatus.COMPLETED, ...(gte && lte ? { createdAt: { gte, lte } } : {}) },
+                    where: {
+                        status: PaymentStatus.COMPLETED,
+                        ...(gte && lte ? { createdAt: { gte, lte } } : {}),
+                    },
                     select: { amount: true },
                 },
             },
@@ -124,9 +135,9 @@ export class BusinessIntelligenceRepository {
         const submissions = await this.prisma.assessmentSubmission.findMany({
             where: {
                 reviewedAt: { not: null },
-                ...(gte && lte ? { createdAt: { gte, lte } } : {})
+                ...(gte && lte ? { createdAt: { gte, lte } } : {}),
             },
-            select: { createdAt: true, reviewedAt: true }
+            select: { createdAt: true, reviewedAt: true },
         });
 
         if (submissions.length === 0) return 0;
@@ -145,7 +156,10 @@ export class BusinessIntelligenceRepository {
     getApprovalDenialCounts(gte?: Date, lte?: Date) {
         return this.prisma.assessmentSubmission.groupBy({
             by: ["status"],
-            where: { status: { in: [SubmissionStatus.ACCEPTED, SubmissionStatus.REJECTED] }, ...(gte && lte ? { createdAt: { gte, lte } } : {}) },
+            where: {
+                status: { in: [SubmissionStatus.ACCEPTED, SubmissionStatus.REJECTED] },
+                ...(gte && lte ? { createdAt: { gte, lte } } : {}),
+            },
             _count: { id: true },
         });
     }
@@ -177,7 +191,11 @@ export class BusinessIntelligenceRepository {
         if (query.search) {
             where.OR = [
                 { user: { name: { contains: query.search, mode: "insensitive" } } },
-                { user: { patientProfile: { name: { contains: query.search, mode: "insensitive" } } } },
+                {
+                    user: {
+                        patientProfile: { name: { contains: query.search, mode: "insensitive" } },
+                    },
+                },
                 { user: { email: { contains: query.search, mode: "insensitive" } } },
             ];
         }
@@ -200,9 +218,18 @@ export class BusinessIntelligenceRepository {
         }
 
         if (query.patientType) {
-            const userFilter = query.patientType === "New Patient"
-                ? { assessmentSubmissions: { none: { status: { not: SubmissionStatus.DRAFT } } } }
-                : { assessmentSubmissions: { some: { status: { not: SubmissionStatus.DRAFT } } } };
+            const userFilter =
+                query.patientType === "New Patient"
+                    ? {
+                          assessmentSubmissions: {
+                              none: { status: { not: SubmissionStatus.DRAFT } },
+                          },
+                      }
+                    : {
+                          assessmentSubmissions: {
+                              some: { status: { not: SubmissionStatus.DRAFT } },
+                          },
+                      };
 
             where.user = { ...where.user, ...userFilter };
         }
@@ -220,25 +247,25 @@ export class BusinessIntelligenceRepository {
                             name: true,
                             email: true,
                             patientProfile: {
-                                select: { name: true, avatar: { select: { fileUrl: true } } }
+                                select: { name: true, avatar: { select: { fileUrl: true } } },
                             },
                             authDevices: {
                                 orderBy: { lastSeenAt: "desc" },
                                 take: 1,
-                                select: { ipLastSeen: true }
+                                select: { ipLastSeen: true },
                             },
                             assessmentSubmissions: {
                                 where: { status: { not: SubmissionStatus.DRAFT } },
-                                select: { id: true }
-                            }
-                        }
+                                select: { id: true },
+                            },
+                        },
                     },
                     assessment: {
-                        select: { title: true, category: { select: { name: true } } }
-                    }
-                }
+                        select: { title: true, category: { select: { name: true } } },
+                    },
+                },
             }),
-            this.prisma.assessmentSubmission.count({ where })
+            this.prisma.assessmentSubmission.count({ where }),
         ]);
 
         return { data, total, page, limit };
@@ -254,29 +281,29 @@ export class BusinessIntelligenceRepository {
                         name: true,
                         email: true,
                         patientProfile: {
-                            select: { name: true, avatar: { select: { fileUrl: true } } }
+                            select: { name: true, avatar: { select: { fileUrl: true } } },
                         },
                         authDevices: {
                             orderBy: { lastSeenAt: "desc" },
                             take: 1,
-                            select: { ipLastSeen: true }
+                            select: { ipLastSeen: true },
                         },
                         assessmentSubmissions: {
                             where: { status: { not: SubmissionStatus.DRAFT } },
-                            select: { id: true }
-                        }
-                    }
+                            select: { id: true },
+                        },
+                    },
                 },
                 assessment: {
-                    select: { title: true, category: { select: { name: true } } }
-                }
-            }
+                    select: { title: true, category: { select: { name: true } } },
+                },
+            },
         });
     }
 
     deleteDropOff(id: string) {
         return this.prisma.assessmentSubmission.delete({
-            where: { id }
+            where: { id },
         });
     }
 }

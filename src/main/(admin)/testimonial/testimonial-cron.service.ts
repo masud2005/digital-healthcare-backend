@@ -30,7 +30,9 @@ export class TestimonialCronService {
         try {
             reviews = await this.googleReviewService.fetchReviews();
         } catch (error: any) {
-            this.logger.error(`❌ Failed to fetch reviews from Google Places API: ${error.message}`);
+            this.logger.error(
+                `❌ Failed to fetch reviews from Google Places API: ${error.message}`,
+            );
             return;
         }
 

@@ -220,12 +220,14 @@ export class MessageService {
 
         // Email to Doctor
         if ((conversation.provider as any).email) {
-            await this.communicationService.dispatch({
-                action: "SUBSCRIPTION_CANCELLED",
-                channel: "EMAIL",
-                to: (conversation.provider as any).email,
-                payload: { name: patientName, serviceName },
-            }).catch(e => console.error("Failed to send subscription cancelled email:", e));
+            await this.communicationService
+                .dispatch({
+                    action: "SUBSCRIPTION_CANCELLED",
+                    channel: "EMAIL",
+                    to: (conversation.provider as any).email,
+                    payload: { name: patientName, serviceName },
+                })
+                .catch((e) => console.error("Failed to send subscription cancelled email:", e));
         }
 
         // Notify Admins
@@ -328,12 +330,14 @@ export class MessageService {
                 ? (conversation.patient.patientProfile?.name ?? conversation.patient.name)
                 : (conversation.provider.doctorProfile?.name ?? conversation.provider.name);
 
-        const recipientEmail = conversation.patientId === senderId
-            ? (conversation.provider as any).email
-            : (conversation.patient as any).email;
-        const recipientName = conversation.patientId === senderId
-            ? (conversation.provider.doctorProfile?.name ?? conversation.provider.name)
-            : (conversation.patient.patientProfile?.name ?? conversation.patient.name);
+        const recipientEmail =
+            conversation.patientId === senderId
+                ? (conversation.provider as any).email
+                : (conversation.patient as any).email;
+        const recipientName =
+            conversation.patientId === senderId
+                ? (conversation.provider.doctorProfile?.name ?? conversation.provider.name)
+                : (conversation.patient.patientProfile?.name ?? conversation.patient.name);
 
         if (dto.messageType === "PROPOSAL") {
             await this.notificationService.send({
@@ -345,12 +349,14 @@ export class MessageService {
             });
 
             if (recipientEmail) {
-                await this.communicationService.dispatch({
-                    action: "NEW_PROPOSAL",
-                    channel: "EMAIL",
-                    to: recipientEmail,
-                    payload: { name: recipientName, senderName },
-                }).catch(e => console.error("Failed to send new proposal email:", e));
+                await this.communicationService
+                    .dispatch({
+                        action: "NEW_PROPOSAL",
+                        channel: "EMAIL",
+                        to: recipientEmail,
+                        payload: { name: recipientName, senderName },
+                    })
+                    .catch((e) => console.error("Failed to send new proposal email:", e));
             }
 
             if (conversation.providerId === senderId) {
@@ -363,7 +369,8 @@ export class MessageService {
             }
         } else {
             const fiveMinutesAgo = new Date(Date.now() - 5 * 60 * 1000);
-            const shouldNotify = !isRecipientActive && (!lastMessage || lastMessage.createdAt < fiveMinutesAgo);
+            const shouldNotify =
+                !isRecipientActive && (!lastMessage || lastMessage.createdAt < fiveMinutesAgo);
 
             if (shouldNotify) {
                 await this.notificationService.send({
@@ -375,12 +382,14 @@ export class MessageService {
                 });
 
                 if (recipientEmail) {
-                    await this.communicationService.dispatch({
-                        action: "NEW_MESSAGE",
-                        channel: "EMAIL",
-                        to: recipientEmail,
-                        payload: { name: recipientName, senderName },
-                    }).catch(e => console.error("Failed to send new message email:", e));
+                    await this.communicationService
+                        .dispatch({
+                            action: "NEW_MESSAGE",
+                            channel: "EMAIL",
+                            to: recipientEmail,
+                            payload: { name: recipientName, senderName },
+                        })
+                        .catch((e) => console.error("Failed to send new message email:", e));
                 }
             }
         }
