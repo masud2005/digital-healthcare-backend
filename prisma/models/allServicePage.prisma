@@ -1,1 +1,64 @@
+model ServicePageHeroSection {
+  id         String   @id @default(uuid())
+  categoryId String   @unique
+  category   Category @relation(fields: [categoryId], references: [id], onDelete: Cascade)
 
+  bannerImageId String?     @unique
+  bannerImage   Attachment? @relation("HeroBanner", fields: [bannerImageId], references: [id], onDelete: SetNull)
+  pageTitle     String      @db.Text
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("service_page_hero_sections")
+}
+
+model ServicePageSecondSection {
+  id         String   @id @default(uuid())
+  categoryId String   @unique
+  category   Category @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+
+  sectionTitle       String      @db.VarChar(255)
+  sectionDescription String      @db.Text
+  ctaButtonText      String      @db.VarChar(100)
+  url                String      @db.Text
+  buttonTarget       Boolean     @default(false)
+  featuredMediaId    String?     @unique
+  featuredMedia      Attachment? @relation("SecondSectionMedia", fields: [featuredMediaId], references: [id], onDelete: SetNull)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("service_page_second_sections")
+}
+
+model ServicePageFaqSection {
+  id         String   @id @default(uuid())
+  categoryId String   @unique
+  category   Category @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+
+  sectionTitle String @db.VarChar(255)
+
+  faqs ServicePageFaqItem[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("service_page_faq_sections")
+}
+
+model ServicePageFaqItem {
+  id           String                @id @default(uuid())
+  faqSectionId String
+  faqSection   ServicePageFaqSection @relation(fields: [faqSectionId], references: [id], onDelete: Cascade)
+
+  question String @db.Text
+  answer   String @db.Text
+
+  order Int @default(0)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("service_page_faq_items")
+}

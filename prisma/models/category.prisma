@@ -21,6 +21,10 @@ model Category {
   homePageFeaturedService2 HomePageContent[]  @relation("AboutFeaturedService2")
   homePageFeaturedService3 HomePageContent[]  @relation("AboutFeaturedService3")
 
+  servicePageHeroSection   ServicePageHeroSection?
+  servicePageSecondSection ServicePageSecondSection?
+  servicePageFaqSection    ServicePageFaqSection?
+
   createdAt     DateTime       @default(now())
   updatedAt     DateTime       @updatedAt
   paymentPlan   PaymentPlan?

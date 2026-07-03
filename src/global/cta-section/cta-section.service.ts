@@ -1,23 +1,11 @@
 import { PrismaService } from "@global/prisma/prisma.service";
 import { Injectable, NotFoundException } from "@nestjs/common";
 import { PageType } from "@prisma/client";
-import { CreateCtaSectionDto } from "./dto/create-cta-section.dto";
 import { UpdateCtaSectionDto } from "./dto/update-cta-section.dto";
 
 @Injectable()
 export class CtaSectionService {
     constructor(private readonly prisma: PrismaService) {}
-
-    async create(dto: CreateCtaSectionDto) {
-        const ctaSection = await this.prisma.bottomCtaSection.create({
-            data: dto,
-        });
-        return {
-            success: true,
-            message: "CTA section created successfully",
-            data: ctaSection,
-        };
-    }
 
     async update(id: string, dto: UpdateCtaSectionDto) {
         const existing = await this.prisma.bottomCtaSection.findUnique({ where: { id } });

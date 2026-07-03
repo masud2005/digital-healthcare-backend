@@ -30,8 +30,11 @@ model Attachment {
   contactLead                 ContactLead?     @relation("ContactLeadAttachment")
   contactLeadResponse         ContactLead?     @relation("ContactLeadResponseAttachment")
   testimonial                 Testimonial?
-  blogFeaturedImage           Blog?             @relation("BlogFeaturedImage")
+  blogFeaturedImage           Blog?            @relation("BlogFeaturedImage")
   emailLayout                 EmailLayout?     @relation("EmailLayoutLogo")
+
+  servicePageHeroSection   ServicePageHeroSection?   @relation("HeroBanner")
+  servicePageSecondSection ServicePageSecondSection? @relation("SecondSectionMedia")
 
   conversationId String?
   conversation   Conversation? @relation(fields: [conversationId], references: [id], onDelete: Cascade)
