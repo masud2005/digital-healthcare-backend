@@ -11,6 +11,14 @@ export class ServiceCategoryRepository {
             select: {
                 id: true,
                 name: true,
+                assessments: {
+                    where: { status: "ACTIVE" },
+                    select: {
+                        id: true,
+                        title: true,
+                        thumbnail: true,
+                    },
+                },
             },
         });
     }
