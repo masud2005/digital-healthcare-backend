@@ -53,7 +53,7 @@ export class UpdateProductDto {
     @Type(() => ProductVariantDto)
     variants?: ProductVariantDto[];
 
-    @ApiPropertyOptional({ example: "Digital upper-arm blood pressure monitor", nullable: true })
+    @ApiPropertyOptional({ example: "<p>Rich text HTML content for product description...</p>", nullable: true })
     @IsOptional()
     @IsString()
     description?: string | null;
