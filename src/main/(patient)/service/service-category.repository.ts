@@ -25,7 +25,7 @@ export class ServiceCategoryRepository {
                 id: true,
                 name: true,
                 description: true,
-                // icon: true,
+                icon: true,
                 paymentPlan: true,
                 assessments: {
                     where: { status: "ACTIVE" },
