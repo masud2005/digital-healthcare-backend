@@ -1,4 +1,4 @@
-import { PrismaClient, CommunicationAction, CommunicationChannel } from "@prisma/client";
+import { CommunicationAction, CommunicationChannel, PrismaClient } from "@prisma/client";
 
 export async function communicationTemplateSeed(prisma: PrismaClient) {
     console.log("Seeding Communication Templates...");

@@ -1,7 +1,6 @@
-import { Injectable } from "@nestjs/common";
 import { PrismaService } from "@global/prisma/prisma.service";
-import { Prisma } from "@prisma/client";
-import { CommunicationChannel, CommunicationAction } from "@prisma/client";
+import { Injectable } from "@nestjs/common";
+import { CommunicationAction, CommunicationChannel, Prisma } from "@prisma/client";
 
 @Injectable()
 export class CommunicationTemplateRepository {
@@ -10,28 +9,57 @@ export class CommunicationTemplateRepository {
     // ─── Templates ──────────────────────────────────────────────────────────────
 
     async findAllTemplates(channel?: CommunicationChannel, action?: CommunicationAction) {
+        const actionOrder = [
+            "OTP_LOGIN",
+            "OTP_REGISTER",
+            "OTP_FORGOT_PASSWORD",
+            "WELCOME_PATIENT",
+            "DOCTOR_CREDENTIALS",
+            "CONTACT_LEAD_REPLY",
+            "ORDER_CONFIRMATION",
+            "PAYMENT_RECEIPT",
+            "ASSESSMENT_SUBMITTED",
+            "NEW_PATIENT_REGISTERED_ADMIN",
+            "ASSESSMENT_APPROVED",
+            "ASSESSMENT_REJECTED",
+            "ASSESSMENT_REFILL_REQUEST",
+            "ASSESSMENT_EDIT_SUBMITTED",
+            "NEW_MESSAGE",
+            "NEW_PROPOSAL",
+            "PROPOSAL_ACCEPTED",
+            "PROPOSAL_REJECTED",
+            "SUBSCRIPTION_CANCELLED"
+        ];
+
+        const sortFn = (a: any, b: any) => {
+            const indexA = actionOrder.indexOf(a.action);
+            const indexB = actionOrder.indexOf(b.action);
+            const posA = indexA === -1 ? 999 : indexA;
+            const posB = indexB === -1 ? 999 : indexB;
+            return posA - posB;
+        };
+
         if (channel === "SMS") {
-            return this.prisma.smsTemplate.findMany({
+            const sms = await this.prisma.smsTemplate.findMany({
                 where: action ? { action } : undefined,
-                orderBy: { createdAt: "desc" },
             });
+            return sms.sort(sortFn);
         }
         if (channel === "EMAIL") {
-            return this.prisma.messageTemplate.findMany({
+            const emails = await this.prisma.messageTemplate.findMany({
                 where: action ? { action } : undefined,
-                orderBy: { createdAt: "desc" },
             });
+            return emails.sort(sortFn);
         }
 
         const emails = await this.prisma.messageTemplate.findMany({
             where: action ? { action } : undefined,
-            orderBy: { createdAt: "desc" },
         });
         const sms = await this.prisma.smsTemplate.findMany({
             where: action ? { action } : undefined,
-            orderBy: { createdAt: "desc" },
         });
-        return [...emails, ...sms];
+        
+        return [...emails.sort(sortFn), ...sms.sort(sortFn)];
     }
 
     async findTemplateById(id: string) {

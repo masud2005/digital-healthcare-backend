@@ -78,20 +78,32 @@ export class CommunicationTemplateService {
 
     getTemplateVariables(channel?: CommunicationChannel, action?: CommunicationAction) {
         let variables: Record<string, string[]> = {
-            OTP_LOGIN: ["code", "name"],
-            OTP_REGISTER: ["code", "name"],
-            OTP_FORGOT_PASSWORD: ["code", "name"],
+            OTP_LOGIN: ["name", "code"],
+            OTP_REGISTER: ["name", "code"],
+            OTP_FORGOT_PASSWORD: ["name", "code"],
             DOCTOR_CREDENTIALS: ["name", "email", "password"],
             CONTACT_LEAD_REPLY: ["name", "subject", "message"],
             ORDER_CONFIRMATION: ["name", "orderId", "amount", "items"],
             PAYMENT_RECEIPT: ["name", "orderId", "amount"],
+            ASSESSMENT_SUBMITTED: ["name"],
+            WELCOME_PATIENT: ["name"],
+            NEW_PATIENT_REGISTERED_ADMIN: ["name"],
+            ASSESSMENT_APPROVED: ["name"],
+            ASSESSMENT_REJECTED: ["name"],
+            ASSESSMENT_REFILL_REQUEST: ["name"],
+            ASSESSMENT_EDIT_SUBMITTED: ["doctorName", "name"],
+            NEW_MESSAGE: ["name", "senderName"],
+            NEW_PROPOSAL: ["name", "senderName"],
+            PROPOSAL_ACCEPTED: ["name"],
+            PROPOSAL_REJECTED: ["name"],
+            SUBSCRIPTION_CANCELLED: ["name", "serviceName"],
         };
 
         if (channel === "SMS") {
             variables = {
-                OTP_LOGIN: ["code", "name"],
-                OTP_REGISTER: ["code", "name"],
-                OTP_FORGOT_PASSWORD: ["code", "name"],
+                OTP_LOGIN: ["code"],
+                OTP_REGISTER: ["code"],
+                OTP_FORGOT_PASSWORD: ["code"],
             };
         }
 
