@@ -9,6 +9,7 @@ import type { AuthRequestContext } from "./auth-context.type";
 import { AuthOtpDeliveryService } from "./auth-otp-delivery.service";
 import { AuthSessionService } from "./auth-session.service";
 import { AuthSharedService } from "./auth-shared.service";
+import { CommunicationService } from "@global/communication/communication.service";
 
 const OTP_EXPIRY_MINUTES = 10;
 const FLOW_EXPIRY_MINUTES = 15;
@@ -23,6 +24,7 @@ export class AuthOtpService {
         private readonly authOtpDeliveryService: AuthOtpDeliveryService,
         private readonly authSessionService: AuthSessionService,
         private readonly authSharedService: AuthSharedService,
+        private readonly communicationService: CommunicationService,
     ) {}
 
     async sendOtp(payload: SendOtpDto, context: AuthRequestContext) {
@@ -221,6 +223,25 @@ export class AuthOtpService {
 
         if (challenge.purpose === "REGISTER") {
             await this.authRepository.assignRole(user.id, "PATIENT", true);
+
+            const displayName = this.authSharedService.deriveDisplayName(user.email);
+            
+            // Dispatch Welcome Patient
+            this.communicationService.dispatch({
+                action: "WELCOME_PATIENT",
+                channel: "EMAIL",
+                to: user.email,
+                payload: { name: displayName },
+            }).catch(e => console.error("Failed to send welcome email:", e));
+
+            // Notify Admin (we can send to a default admin email from env or config)
+            const adminEmail = process.env.ADMIN_EMAIL || "admin@weightlossmd.com";
+            this.communicationService.dispatch({
+                action: "NEW_PATIENT_REGISTERED_ADMIN",
+                channel: "EMAIL",
+                to: adminEmail,
+                payload: { name: displayName },
+            }).catch(e => console.error("Failed to notify admin:", e));
         }
 
         if (challenge.purpose === "FORGOT_PASSWORD") {

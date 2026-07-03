@@ -11,6 +11,7 @@ import { NotificationService } from "../notification/notification.service";
 import { CreateConversationDto, RegisterPublicKeyDto, SendMessageDto } from "./dto/message.dto";
 import { MessageRepository } from "./message.repository";
 import { OnlineStore } from "./online.store";
+import { CommunicationService } from "@global/communication/communication.service";
 
 @Injectable()
 export class MessageService {
@@ -20,6 +21,7 @@ export class MessageService {
         private readonly storageService: StorageService,
         private readonly onlineStore: OnlineStore,
         private readonly notificationService: NotificationService,
+        private readonly communicationService: CommunicationService,
     ) {}
 
     // ── Public Key ─────────────────────────────────────────────────────────
@@ -216,6 +218,16 @@ export class MessageService {
             referenceId: info.id,
         });
 
+        // Email to Doctor
+        if ((conversation.provider as any).email) {
+            await this.communicationService.dispatch({
+                action: "SUBSCRIPTION_CANCELLED",
+                channel: "EMAIL",
+                to: (conversation.provider as any).email,
+                payload: { name: patientName, serviceName },
+            }).catch(e => console.error("Failed to send subscription cancelled email:", e));
+        }
+
         // Notify Admins
         await this.notificationService.sendToAdmins({
             title: "Subscription Cancelled",
@@ -316,6 +328,13 @@ export class MessageService {
                 ? (conversation.patient.patientProfile?.name ?? conversation.patient.name)
                 : (conversation.provider.doctorProfile?.name ?? conversation.provider.name);
 
+        const recipientEmail = conversation.patientId === senderId
+            ? (conversation.provider as any).email
+            : (conversation.patient as any).email;
+        const recipientName = conversation.patientId === senderId
+            ? (conversation.provider.doctorProfile?.name ?? conversation.provider.name)
+            : (conversation.patient.patientProfile?.name ?? conversation.patient.name);
+
         if (dto.messageType === "PROPOSAL") {
             await this.notificationService.send({
                 userId: recipientId,
@@ -324,6 +343,15 @@ export class MessageService {
                 actionType: "NEW_PROPOSAL",
                 referenceId: message.id,
             });
+
+            if (recipientEmail) {
+                await this.communicationService.dispatch({
+                    action: "NEW_PROPOSAL",
+                    channel: "EMAIL",
+                    to: recipientEmail,
+                    payload: { name: recipientName, senderName },
+                }).catch(e => console.error("Failed to send new proposal email:", e));
+            }
 
             if (conversation.providerId === senderId) {
                 await this.notificationService.sendToAdmins({
@@ -345,6 +373,15 @@ export class MessageService {
                     actionType: "NEW_MESSAGE",
                     referenceId: message.id,
                 });
+
+                if (recipientEmail) {
+                    await this.communicationService.dispatch({
+                        action: "NEW_MESSAGE",
+                        channel: "EMAIL",
+                        to: recipientEmail,
+                        payload: { name: recipientName, senderName },
+                    }).catch(e => console.error("Failed to send new message email:", e));
+                }
             }
         }
 

@@ -362,6 +362,25 @@ export class PaymentService {
                     transactionId: result.transactionId,
                 },
             }).catch((err) => console.error("Failed to send payment receipt email:", err));
+
+            if (dto.submissionId && submission) {
+                await this.communicationService.dispatch({
+                    action: "ASSESSMENT_SUBMITTED",
+                    channel: "EMAIL",
+                    to: user.email,
+                    payload: { name: patientName },
+                }).catch((err) => console.error("Failed to send assessment submitted email:", err));
+            }
+
+            if (hasCartItems) {
+                const itemDetails = (cart?.items ?? []).map(item => `- ${item.quantity}x ${item.product.name}`).join("\\n");
+                await this.communicationService.dispatch({
+                    action: "ORDER_CONFIRMATION",
+                    channel: "EMAIL",
+                    to: user.email,
+                    payload: { name: patientName, orderId: result.orderNumber, amount: total, items: itemDetails },
+                }).catch((err) => console.error("Failed to send order confirmation email:", err));
+            }
         }
 
         return result;

@@ -28,6 +28,25 @@ export class CommunicationService {
     }) {
         const { action, channel, to, payload, attachments } = options;
 
+        const BYPASS_PREFERENCE_ACTIONS: CommunicationAction[] = [
+            "OTP_LOGIN",
+            "OTP_REGISTER",
+            "OTP_FORGOT_PASSWORD",
+            "DOCTOR_CREDENTIALS",
+        ];
+
+        if (channel === "EMAIL" && !BYPASS_PREFERENCE_ACTIONS.includes(action)) {
+            const user = await this.prisma.user.findUnique({
+                where: { email: to },
+                include: { userPreference: true },
+            });
+            if (user?.userPreference && !user.userPreference.emailNotifications) {
+                this.logger.log(`Skipping EMAIL to ${to} due to user preferences.`);
+                return;
+            }
+        }
+
+
         // 1. Fetch Template
         let template: any = null;
         if (channel === "SMS") {
