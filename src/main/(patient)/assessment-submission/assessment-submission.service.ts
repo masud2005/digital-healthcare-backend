@@ -149,9 +149,12 @@ export class AssessmentSubmissionService {
         const questionMap = new Map(questions.map((q) => [q.id, q]));
         this.validateAnswers(normalizedAnswers, submittedQuestions, questionMap);
 
+        const newStatus = submission.status === "REFIL_REQUESTED" ? "PENDING" : undefined;
+
         const updated = await this.assessmentSubmissionRepository.updateSubmission(
             submissionId,
             normalizedAnswers,
+            newStatus,
         );
         return this.mapBlueprint(updated);
     }

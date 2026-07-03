@@ -220,5 +220,17 @@ export const communicationAction = [
     "CONTACT_LEAD_REPLY",
     "ORDER_CONFIRMATION",
     "PAYMENT_RECEIPT",
+    "ASSESSMENT_SUBMITTED",
+    "WELCOME_PATIENT",
+    "NEW_PATIENT_REGISTERED_ADMIN",
+    "ASSESSMENT_APPROVED",
+    "ASSESSMENT_REJECTED",
+    "ASSESSMENT_REFILL_REQUEST",
+    "ASSESSMENT_EDIT_SUBMITTED",
+    "NEW_MESSAGE",
+    "NEW_PROPOSAL",
+    "PROPOSAL_ACCEPTED",
+    "PROPOSAL_REJECTED",
+    "SUBSCRIPTION_CANCELLED",
 ] as const;
 export type CommunicationAction = (typeof communicationAction)[number];

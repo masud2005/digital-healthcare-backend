@@ -137,6 +137,138 @@ export async function communicationTemplateSeed(prisma: PrismaClient) {
             showInfoCards: false,
             isActive: true,
         },
+        {
+            action: "ASSESSMENT_SUBMITTED",
+            channel: "EMAIL",
+            subject: "Assessment Submitted Successfully",
+            headerTitle: "Assessment Submitted",
+            headerSubtitle: "We have received your medical assessment.",
+            content:
+                "Hi {{name}},\n\nYour assessment has been successfully submitted and is currently under review by one of our healthcare professionals. We will notify you as soon as the review is complete.\n\nThank you for choosing WeightLossMD.",
+            showInfoCards: false,
+            isActive: true,
+        },
+        {
+            action: "WELCOME_PATIENT",
+            channel: "EMAIL",
+            subject: "Welcome to WeightLossMD!",
+            headerTitle: "Welcome Aboard!",
+            headerSubtitle: "We're thrilled to have you here.",
+            content:
+                "Hi {{name}},\n\nWelcome to WeightLossMD! We are excited to support you on your healthcare journey. You can now log in to your dashboard to start an assessment or message a doctor.",
+            showInfoCards: false,
+            isActive: true,
+        },
+        {
+            action: "NEW_PATIENT_REGISTERED_ADMIN",
+            channel: "EMAIL",
+            subject: "New Patient Registration",
+            headerTitle: "New Patient Registered",
+            headerSubtitle: "A new patient has joined the platform.",
+            content:
+                "Hello Admin,\n\nA new patient, **{{name}}**, has just registered on the platform.",
+            showInfoCards: false,
+            isActive: true,
+        },
+        {
+            action: "ASSESSMENT_APPROVED",
+            channel: "EMAIL",
+            subject: "Your Assessment is Approved",
+            headerTitle: "Assessment Approved",
+            headerSubtitle: "Your doctor has reviewed and approved your assessment.",
+            content:
+                "Hi {{name}},\n\nGood news! Your recent assessment has been reviewed and approved by your healthcare provider. Please log in to your dashboard to view the details and your prescription.",
+            showInfoCards: false,
+            isActive: true,
+        },
+        {
+            action: "ASSESSMENT_REJECTED",
+            channel: "EMAIL",
+            subject: "Update on Your Assessment",
+            headerTitle: "Assessment Update",
+            headerSubtitle: "Important information regarding your recent assessment.",
+            content:
+                "Hi {{name}},\n\nYour healthcare provider has reviewed your assessment and unfortunately, it could not be approved at this time. Please log in to your dashboard to see the doctor's notes and the next steps.",
+            showInfoCards: false,
+            isActive: true,
+        },
+        {
+            action: "ASSESSMENT_REFILL_REQUEST",
+            channel: "EMAIL",
+            subject: "More Information Required for Your Assessment",
+            headerTitle: "Action Required",
+            headerSubtitle: "Your doctor has requested additional information.",
+            content:
+                "Hi {{name}},\n\nYour healthcare provider needs a bit more information before they can approve your assessment. Please log in to your dashboard, review the doctor's feedback, and update your assessment.",
+            showInfoCards: false,
+            isActive: true,
+        },
+        {
+            action: "ASSESSMENT_EDIT_SUBMITTED",
+            channel: "EMAIL",
+            subject: "Patient Updated Assessment",
+            headerTitle: "Assessment Updated",
+            headerSubtitle: "A patient has submitted the requested updates.",
+            content:
+                "Hello Dr. {{doctorName}},\n\nPatient **{{name}}** has updated and resubmitted their assessment as requested. Please log in to review the new information.",
+            showInfoCards: false,
+            isActive: true,
+        },
+        {
+            action: "NEW_MESSAGE",
+            channel: "EMAIL",
+            subject: "You have a new message",
+            headerTitle: "New Message Received",
+            headerSubtitle: "You have a new unread message on WeightLossMD.",
+            content:
+                "Hi {{name}},\n\nYou have received a new message from **{{senderName}}**. Please log in to your account to read and reply to the message.",
+            showInfoCards: false,
+            isActive: true,
+        },
+        {
+            action: "NEW_PROPOSAL",
+            channel: "EMAIL",
+            subject: "You have a new proposal",
+            headerTitle: "New Proposal Received",
+            headerSubtitle: "A new treatment proposal requires your review.",
+            content:
+                "Hi {{name}},\n\nYou have received a new proposal from **{{senderName}}**. Please log in to your account to review and take action.",
+            showInfoCards: false,
+            isActive: true,
+        },
+        {
+            action: "PROPOSAL_ACCEPTED",
+            channel: "EMAIL",
+            subject: "Proposal Accepted",
+            headerTitle: "Proposal Accepted",
+            headerSubtitle: "Your proposal has been accepted.",
+            content:
+                "Hello,\n\nThe proposal sent to **{{name}}** has been accepted. You can log in to view the details.",
+            showInfoCards: false,
+            isActive: true,
+        },
+        {
+            action: "PROPOSAL_REJECTED",
+            channel: "EMAIL",
+            subject: "Proposal Rejected",
+            headerTitle: "Proposal Rejected",
+            headerSubtitle: "Your proposal has been rejected.",
+            content:
+                "Hello,\n\nThe proposal sent to **{{name}}** has been rejected. You can log in to view the details.",
+            showInfoCards: false,
+            isActive: true,
+        },
+        {
+            action: "SUBSCRIPTION_CANCELLED",
+            channel: "EMAIL",
+            subject: "Subscription Cancelled",
+            headerTitle: "Subscription Cancelled",
+            headerSubtitle: "A patient has cancelled their subscription.",
+            content:
+                "Hello,\n\nPatient **{{name}}** has cancelled their subscription for the service **{{serviceName}}**.",
+            showInfoCards: false,
+            isActive: true,
+        },
     ];
 
     for (const t of templates) {
@@ -187,7 +319,7 @@ export async function communicationTemplateSeed(prisma: PrismaClient) {
             content:
                 "Your WeightLossMD password reset code is: {{code}}. It expires in 10 minutes.",
             isActive: true,
-        },
+        }
     ];
 
     for (const t of smsTemplates) {

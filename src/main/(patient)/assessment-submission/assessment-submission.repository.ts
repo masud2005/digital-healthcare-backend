@@ -311,6 +311,7 @@ export class AssessmentSubmissionRepository {
             textResponse?: string | null;
             selectedOptionIds?: string[];
         }>,
+        newStatus?: import("@prisma/client").SubmissionStatus,
     ) {
         return this.prisma.$transaction(async (tx) => {
             for (const answer of answers) {
@@ -352,6 +353,13 @@ export class AssessmentSubmissionRepository {
                         },
                     });
                 }
+            }
+
+            if (newStatus) {
+                await tx.assessmentSubmission.update({
+                    where: { id },
+                    data: { status: newStatus },
+                });
             }
 
             return tx.assessmentSubmission.findUniqueOrThrow({
