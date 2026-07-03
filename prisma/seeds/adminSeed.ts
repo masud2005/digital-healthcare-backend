@@ -10,7 +10,7 @@ const adminAccounts = [
     "devlopersabbir@gmail.com",
     "doc4881@gmail.com",
     "alif.mia@softvence.com",
-    "mrshaikot01@gmail.com"
+    "mrshaikot01@gmail.com",
 ];
 
 function hashPassword(password: string) {

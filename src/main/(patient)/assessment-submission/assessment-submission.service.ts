@@ -165,13 +165,16 @@ export class AssessmentSubmissionService {
                 select: { name: true, email: true },
             });
             if (doctor?.email) {
-                const patientName = submission.user?.patientProfile?.name ?? submission.user?.name ?? "A patient";
-                await this.communicationService.dispatch({
-                    action: "ASSESSMENT_EDIT_SUBMITTED",
-                    channel: "EMAIL",
-                    to: doctor.email,
-                    payload: { doctorName: doctor.name ?? "Doctor", name: patientName },
-                }).catch(e => console.error("Failed to send edit submitted email:", e));
+                const patientName =
+                    submission.user?.patientProfile?.name ?? submission.user?.name ?? "A patient";
+                await this.communicationService
+                    .dispatch({
+                        action: "ASSESSMENT_EDIT_SUBMITTED",
+                        channel: "EMAIL",
+                        to: doctor.email,
+                        payload: { doctorName: doctor.name ?? "Doctor", name: patientName },
+                    })
+                    .catch((e) => console.error("Failed to send edit submitted email:", e));
             }
         }
 

@@ -75,9 +75,7 @@ export class JwtAuthGuard implements CanActivate {
             );
 
             // Collect permissions assigned directly to the user
-            const directPermissions = session.user.userPermissions.map(
-                (up) => up.permission.key,
-            );
+            const directPermissions = session.user.userPermissions.map((up) => up.permission.key);
 
             // Merge and deduplicate
             const permissions = [...new Set([...rolePermissions, ...directPermissions])];

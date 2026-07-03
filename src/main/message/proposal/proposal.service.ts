@@ -103,12 +103,14 @@ export class ProposalService {
         });
 
         if (doctor?.email) {
-            await this.communicationService.dispatch({
-                action: "PROPOSAL_REJECTED",
-                channel: "EMAIL",
-                to: doctor.email,
-                payload: { name: patientName },
-            }).catch((err) => console.error("Failed to send proposal rejected email:", err));
+            await this.communicationService
+                .dispatch({
+                    action: "PROPOSAL_REJECTED",
+                    channel: "EMAIL",
+                    to: doctor.email,
+                    payload: { name: patientName },
+                })
+                .catch((err) => console.error("Failed to send proposal rejected email:", err));
         }
 
         // Notify Admins
@@ -195,12 +197,14 @@ export class ProposalService {
         });
 
         if (doctor?.email) {
-            await this.communicationService.dispatch({
-                action: "PROPOSAL_ACCEPTED",
-                channel: "EMAIL",
-                to: doctor.email,
-                payload: { name: patientName },
-            }).catch((err) => console.error("Failed to send proposal accepted email:", err));
+            await this.communicationService
+                .dispatch({
+                    action: "PROPOSAL_ACCEPTED",
+                    channel: "EMAIL",
+                    to: doctor.email,
+                    payload: { name: patientName },
+                })
+                .catch((err) => console.error("Failed to send proposal accepted email:", err));
         }
 
         // Notify Admins
@@ -213,16 +217,20 @@ export class ProposalService {
 
         // Email to patient
         if (patient?.email) {
-            await this.communicationService.dispatch({
-                action: "PAYMENT_RECEIPT",
-                channel: "EMAIL",
-                to: patient.email,
-                payload: {
-                    name: patientName,
-                    total: Number(proposal.fee).toFixed(2),
-                    transactionId: payment.transactionId,
-                },
-            }).catch((err) => console.error("Failed to send proposal payment receipt email:", err));
+            await this.communicationService
+                .dispatch({
+                    action: "PAYMENT_RECEIPT",
+                    channel: "EMAIL",
+                    to: patient.email,
+                    payload: {
+                        name: patientName,
+                        total: Number(proposal.fee).toFixed(2),
+                        transactionId: payment.transactionId,
+                    },
+                })
+                .catch((err) =>
+                    console.error("Failed to send proposal payment receipt email:", err),
+                );
         }
 
         return {

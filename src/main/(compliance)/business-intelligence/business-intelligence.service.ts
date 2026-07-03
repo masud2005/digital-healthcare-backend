@@ -9,14 +9,14 @@ type TrendPoint = { label: string; revenue?: number; refund?: number; count?: nu
 export class BusinessIntelligenceService {
     constructor(
         private readonly repo: BusinessIntelligenceRepository,
-        private readonly storageService: StorageService
+        private readonly storageService: StorageService,
     ) {}
 
     // ── /stats ─────────────────────────────────────────────────────────────────
 
     async getStats(filter: TrendFilter) {
         const { gte, lte } = this.getDateRange(filter);
-        
+
         const [
             revenueAgg,
             refundAgg,
@@ -42,17 +42,21 @@ export class BusinessIntelligenceService {
 
         const accepted = submissionCounts.find((s) => s.status === "ACCEPTED")?._count.id ?? 0;
         const rejected = submissionCounts.find((s) => s.status === "REJECTED")?._count.id ?? 0;
-        const refillRequested = submissionCounts.find((s) => s.status === "REFIL_REQUESTED")?._count.id ?? 0;
+        const refillRequested =
+            submissionCounts.find((s) => s.status === "REFIL_REQUESTED")?._count.id ?? 0;
         const intakeDropOff = submissionCounts.find((s) => s.status === "DRAFT")?._count.id ?? 0;
 
         const totalApprovalBase = accepted + rejected;
-        const approvalRate = totalApprovalBase > 0 ? +((accepted / totalApprovalBase) * 100).toFixed(2) : 0;
-        const denialRate = totalApprovalBase > 0 ? +((rejected / totalApprovalBase) * 100).toFixed(2) : 0;
+        const approvalRate =
+            totalApprovalBase > 0 ? +((accepted / totalApprovalBase) * 100).toFixed(2) : 0;
+        const denialRate =
+            totalApprovalBase > 0 ? +((rejected / totalApprovalBase) * 100).toFixed(2) : 0;
 
         const pending = submissionCounts.find((s) => s.status === "PENDING")?._count.id ?? 0;
         const reviewed = submissionCounts.find((s) => s.status === "REVIEWED")?._count.id ?? 0;
         const totalSubmitted = accepted + rejected + refillRequested + pending + reviewed;
-        const refillRate = totalSubmitted > 0 ? +((refillRequested / totalSubmitted) * 100).toFixed(2) : 0;
+        const refillRate =
+            totalSubmitted > 0 ? +((refillRequested / totalSubmitted) * 100).toFixed(2) : 0;
 
         let providerTurnaround = "N/A";
         if (turnaroundMs > 0) {
@@ -228,9 +232,9 @@ export class BusinessIntelligenceService {
 
         if (filter === TrendFilter.TODAY) {
             gte = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-            
-            labels = Array.from({ length: 24 }, (_, i) => `${i.toString().padStart(2, '0')}:00`);
-            getLabel = (d: Date) => `${d.getHours().toString().padStart(2, '0')}:00`;
+
+            labels = Array.from({ length: 24 }, (_, i) => `${i.toString().padStart(2, "0")}:00`);
+            getLabel = (d: Date) => `${d.getHours().toString().padStart(2, "0")}:00`;
         } else if (filter === TrendFilter.LAST_7_DAYS) {
             gte = new Date(now);
             gte.setDate(now.getDate() - 6);
@@ -296,7 +300,7 @@ export class BusinessIntelligenceService {
                 const user = submission.user;
                 const activeSubmissionsCount = user.assessmentSubmissions.length;
                 const patientType = activeSubmissionsCount > 0 ? "Repeat Patient" : "New Patient";
-                
+
                 return {
                     id: submission.id,
                     userName: user.patientProfile?.name ?? user.name ?? "Unknown",
@@ -304,13 +308,16 @@ export class BusinessIntelligenceService {
                         ? await this.storageService.resolveKey(user.patientProfile.avatar.fileUrl)
                         : null,
                     email: user.email,
-                    assessmentName: submission.assessment.title ?? submission.assessment.category?.name ?? "Unknown",
+                    assessmentName:
+                        submission.assessment.title ??
+                        submission.assessment.category?.name ??
+                        "Unknown",
                     userType: patientType,
                     status: "Drop-Off",
                     ipAddress: user.authDevices?.[0]?.ipLastSeen ?? "Unknown",
                     timeStamp: submission.createdAt,
                 };
-            })
+            }),
         );
 
         return {
@@ -336,7 +343,8 @@ export class BusinessIntelligenceService {
                 ? await this.storageService.resolveKey(user.patientProfile.avatar.fileUrl)
                 : null,
             email: user.email,
-            assessmentName: submission.assessment.title ?? submission.assessment.category?.name ?? "Unknown",
+            assessmentName:
+                submission.assessment.title ?? submission.assessment.category?.name ?? "Unknown",
             userType: patientType,
             status: "Drop-Off",
             ipAddress: user.authDevices?.[0]?.ipLastSeen ?? "Unknown",

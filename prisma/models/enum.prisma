@@ -181,6 +181,20 @@ enum OtpStatus {
   FAILED
 }
 
+enum PageType {
+  ServiceCategory
+  Blog
+  BlogDetail
+  LabTest
+  MedicalTeam
+  HowItWorks
+  Eligiblity
+  Coverage
+  Faq
+  BillingCancellation
+  ShippingInfo
+}
+
 enum PaymentItemType {
   FEES
   PRODUCT

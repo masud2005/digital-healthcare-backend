@@ -319,7 +319,7 @@ export async function communicationTemplateSeed(prisma: PrismaClient) {
             content:
                 "Your WeightLossMD password reset code is: {{code}}. It expires in 10 minutes.",
             isActive: true,
-        }
+        },
     ];
 
     for (const t of smsTemplates) {

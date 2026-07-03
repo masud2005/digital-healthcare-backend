@@ -1,0 +1,16 @@
+model BottomCtaSection {
+    id String @id @default(uuid())
+
+    page PageType
+
+    sectionTitle  String @db.VarChar(255)
+    ctaButtonText String @db.VarChar(100)
+    url           String @db.Text
+
+    openInNewTab Boolean @default(false)
+
+    createdAt DateTime @default(now())
+    updatedAt DateTime @updatedAt
+
+    @@map("cta_sections")
+}
