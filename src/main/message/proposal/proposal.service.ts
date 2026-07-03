@@ -88,7 +88,7 @@ export class ProposalService {
         });
         const doctor = await this.prisma.user.findUnique({
             where: { id: providerId },
-            select: { name: true, doctorProfile: { select: { name: true } } },
+            select: { name: true, email: true, doctorProfile: { select: { name: true } } },
         });
         const patientName = patient?.patientProfile?.name ?? patient?.name ?? "A patient";
         const doctorName = doctor?.doctorProfile?.name ?? doctor?.name ?? "a doctor";
@@ -101,6 +101,15 @@ export class ProposalService {
             actionType: "PROPOSAL_REJECTED",
             referenceId: proposalId,
         });
+
+        if (doctor?.email) {
+            await this.communicationService.dispatch({
+                action: "PROPOSAL_REJECTED",
+                channel: "EMAIL",
+                to: doctor.email,
+                payload: { name: patientName },
+            }).catch((err) => console.error("Failed to send proposal rejected email:", err));
+        }
 
         // Notify Admins
         await this.notificationService.sendToAdmins({
@@ -171,7 +180,7 @@ export class ProposalService {
         });
         const doctor = await this.prisma.user.findUnique({
             where: { id: providerId },
-            select: { name: true, doctorProfile: { select: { name: true } } },
+            select: { name: true, email: true, doctorProfile: { select: { name: true } } },
         });
         const patientName = patient?.patientProfile?.name ?? patient?.name ?? "A patient";
         const doctorName = doctor?.doctorProfile?.name ?? doctor?.name ?? "a doctor";
@@ -184,6 +193,15 @@ export class ProposalService {
             actionType: "PROPOSAL_ACCEPTED",
             referenceId: proposalId,
         });
+
+        if (doctor?.email) {
+            await this.communicationService.dispatch({
+                action: "PROPOSAL_ACCEPTED",
+                channel: "EMAIL",
+                to: doctor.email,
+                payload: { name: patientName },
+            }).catch((err) => console.error("Failed to send proposal accepted email:", err));
+        }
 
         // Notify Admins
         await this.notificationService.sendToAdmins({

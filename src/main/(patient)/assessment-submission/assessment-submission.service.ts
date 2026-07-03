@@ -14,6 +14,7 @@ import {
 } from "./assessment-submission.repository";
 import { CreateAssessmentSubmissionDto } from "./dto/create-assessment-submission.dto";
 import { UpdateAssessmentSubmissionDto } from "./dto/update-assessment-submission.dto";
+import { CommunicationService } from "@global/communication/communication.service";
 
 type NormalizedAnswer = {
     questionId: string;
@@ -37,6 +38,7 @@ export class AssessmentSubmissionService {
         private readonly assessmentSubmissionRepository: AssessmentSubmissionRepository,
         private readonly storageService: StorageService,
         private readonly prisma: PrismaService,
+        private readonly communicationService: CommunicationService,
     ) {}
 
     async getMyAssessmentsSummary(
@@ -149,10 +151,30 @@ export class AssessmentSubmissionService {
         const questionMap = new Map(questions.map((q) => [q.id, q]));
         this.validateAnswers(normalizedAnswers, submittedQuestions, questionMap);
 
+        const newStatus = submission.status === "REFIL_REQUESTED" ? "PENDING" : undefined;
+
         const updated = await this.assessmentSubmissionRepository.updateSubmission(
             submissionId,
             normalizedAnswers,
+            newStatus,
         );
+
+        if (newStatus === "PENDING" && submission.reviewedBy) {
+            const doctor = await this.prisma.user.findUnique({
+                where: { id: submission.reviewedBy },
+                select: { name: true, email: true },
+            });
+            if (doctor?.email) {
+                const patientName = submission.user?.patientProfile?.name ?? submission.user?.name ?? "A patient";
+                await this.communicationService.dispatch({
+                    action: "ASSESSMENT_EDIT_SUBMITTED",
+                    channel: "EMAIL",
+                    to: doctor.email,
+                    payload: { doctorName: doctor.name ?? "Doctor", name: patientName },
+                }).catch(e => console.error("Failed to send edit submitted email:", e));
+            }
+        }
+
         return this.mapBlueprint(updated);
     }
 

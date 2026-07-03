@@ -50,6 +50,7 @@ export class MessageRepository {
                     select: {
                         id: true,
                         name: true,
+                        email: true,
                         patientProfile: {
                             select: { name: true, avatar: { select: { id: true, fileUrl: true } } },
                         },
@@ -59,6 +60,7 @@ export class MessageRepository {
                     select: {
                         id: true,
                         name: true,
+                        email: true,
                         doctorProfile: {
                             select: {
                                 name: true,

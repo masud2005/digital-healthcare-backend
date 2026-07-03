@@ -17,15 +17,25 @@ export class ServiceCategoryService {
         const categories = await this.serviceCategoryRepository.findAll(categoryName);
 
         return Promise.all(
-            categories.map(async (category) => ({
-                ...category,
-                assessments: await Promise.all(
-                    category.assessments.map(async (assessment) => ({
-                        ...assessment,
-                        thumbnail: await this.storageService.resolveKey(assessment.thumbnail),
-                    })),
-                ),
-            })),
+            categories.map(async (category) => {
+                const resolvedIcon = category.icon
+                    ? {
+                          ...category.icon,
+                          fileUrl: await this.storageService.getSignedUrl(category.icon.fileUrl),
+                      }
+                    : null;
+
+                return {
+                    ...category,
+                    icon: resolvedIcon,
+                    assessments: await Promise.all(
+                        category.assessments.map(async (assessment) => ({
+                            ...assessment,
+                            thumbnail: await this.storageService.resolveKey(assessment.thumbnail),
+                        })),
+                    ),
+                };
+            }),
         );
     }
 

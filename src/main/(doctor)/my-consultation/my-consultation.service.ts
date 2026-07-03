@@ -6,6 +6,7 @@ import { ConsultationTab, UpdateConsultationStatusDto } from "./dto/my-consultat
 import { DoctorMyConsultationRepository } from "./my-consultation.repository";
 import { NotificationService } from "../../notification/notification.service";
 import { PrismaService } from "@global/prisma/prisma.service";
+import { CommunicationService } from "@global/communication/communication.service";
 
 @Injectable()
 export class DoctorMyConsultationService {
@@ -17,6 +18,7 @@ export class DoctorMyConsultationService {
         private readonly notificationService: NotificationService,
         private readonly prisma: PrismaService,
         private readonly cloverService: CloverService,
+        private readonly communicationService: CommunicationService,
     ) {}
 
     async getMyConsultations(userId: string, tab?: ConsultationTab, page?: number, limit?: number) {
@@ -187,6 +189,24 @@ export class DoctorMyConsultationService {
             actionType: "ASSESSMENT_STATUS_UPDATED",
             referenceId: submissionId,
         });
+
+        // Email to patient based on status
+        const patientUser = await this.prisma.user.findUnique({ where: { id: result.userId }, select: { email: true } });
+        if (patientUser?.email) {
+            let action: any = null;
+            if (status === SubmissionStatus.ACCEPTED) action = "ASSESSMENT_APPROVED";
+            else if (status === SubmissionStatus.REJECTED) action = "ASSESSMENT_REJECTED";
+            else if (status === SubmissionStatus.REFIL_REQUESTED) action = "ASSESSMENT_REFILL_REQUEST";
+
+            if (action) {
+                await this.communicationService.dispatch({
+                    action,
+                    channel: "EMAIL",
+                    to: patientUser.email,
+                    payload: { name: patientName }
+                }).catch(e => console.error("Failed to send status update email:", e));
+            }
+        }
 
         // Notify Admins
         await this.notificationService.sendToAdmins({

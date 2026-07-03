@@ -270,6 +270,7 @@ export class AssessmentSubmissionController {
         description:
             "Replaces ALL existing answers with the new payload — partial update is not supported. " +
             "Only allowed when submission status is DRAFT or REFIL_REQUESTED. " +
+            "Updating a REFIL_REQUESTED submission will automatically change its status to PENDING. " +
             "Other statuses (PENDING, REVIEWED, ACCEPTED, REJECTED) will return 403. " +
             "Answer rules are identical to POST — see the POST endpoint for per-type details.",
     })
