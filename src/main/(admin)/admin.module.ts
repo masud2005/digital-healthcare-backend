@@ -19,6 +19,7 @@ import { AdminServicePageModule } from "./service-page/service-page.module";
 import { EmployeePermissionModule } from "./employee-permission/employee-permission.module";
 import { BlogsModule } from "./blogs/blogs.module";
 import { WebsiteManageModule } from "./website-manage/website-manage.module";
+import { NewsletterModule } from "./newsletter/newsletter.module";
 
 @Module({
     imports: [
@@ -42,6 +43,7 @@ import { WebsiteManageModule } from "./website-manage/website-manage.module";
         BlogsModule,
         AdminServicePageModule,
         WebsiteManageModule,
+        NewsletterModule,
     ],
 })
 export class AdminModule {}

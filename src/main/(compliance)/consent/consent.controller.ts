@@ -25,13 +25,16 @@ import type { Response } from "express";
 import { ConsentService } from "./consent.service";
 import { CreateConsentDto } from "./dto/create-consent.dto";
 import { ConsentQueryDto } from "./dto/consent-query.dto";
+import { CookieConsentDto } from "./dto/cookie-consent.dto";
 import {
     ConsentListResponseDto,
     ConsentResponseDto,
     ConsentStatsResponseDto,
 } from "./dto/consent-response.dto";
 import { CurrentUser } from "@common/decorators/current-user.decorator";
-import { OptionalJwtAuthGuard } from "@common/guards/optional-jwt-auth.guard";
+import { OptionalJwtAuthGuard, JwtAuthGuard, PermissionsGuard } from "@common/guards";
+import { RequirePermissions } from "@common/decorators";
+import { AppPermission } from "@common/auth/permissions.constants";
 import type { AuthenticatedUser } from "@main/auth/auth.types";
 
 @ApiTags("(Compliance) Consent Management")
@@ -39,7 +42,18 @@ import type { AuthenticatedUser } from "@main/auth/auth.types";
 export class ConsentController {
     constructor(private readonly consentService: ConsentService) {}
 
+    @Post("cookies")
+    @UseGuards(OptionalJwtAuthGuard)
+    @ApiBearerAuth()
+    @ApiOperation({ summary: "Confirm cookie consent preferences (ANALYTICS and MARKETING)" })
+    confirmCookies(@Body() payload: CookieConsentDto, @CurrentUser() user?: AuthenticatedUser) {
+        return this.consentService.confirmCookies(payload, user);
+    }
+
     @Get("stats")
+    @UseGuards(JwtAuthGuard, PermissionsGuard)
+    @RequirePermissions(AppPermission.VIEW_CONSENT_MANAGEMENT)
+    @ApiBearerAuth()
     @ApiOperation({ summary: "Get consent stats overview" })
     @ApiOkResponse({ type: ConsentStatsResponseDto })
     getStats() {
@@ -47,14 +61,19 @@ export class ConsentController {
     }
 
     @Get()
+    @UseGuards(JwtAuthGuard, PermissionsGuard)
+    @RequirePermissions(AppPermission.VIEW_CONSENT_MANAGEMENT)
+    @ApiBearerAuth()
     @ApiOperation({ summary: "Get consent logs with filtering and pagination" })
     @ApiOkResponse({ type: ConsentListResponseDto })
     findAll(@Query() query: ConsentQueryDto) {
         return this.consentService.findAll(query);
     }
 
+
     @Get("export")
-    @UseGuards(OptionalJwtAuthGuard)
+    @UseGuards(JwtAuthGuard, PermissionsGuard)
+    @RequirePermissions(AppPermission.VIEW_CONSENT_MANAGEMENT)
     @ApiBearerAuth()
     @ApiOperation({ summary: "Export consents as CSV" })
     @ApiProduces("text/csv")
@@ -108,6 +127,9 @@ export class ConsentController {
     }
 
     @Get(":id")
+    @UseGuards(JwtAuthGuard, PermissionsGuard)
+    @RequirePermissions(AppPermission.VIEW_CONSENT_MANAGEMENT)
+    @ApiBearerAuth()
     @ApiOperation({ summary: "Get single consent log details" })
     @ApiOkResponse({ type: ConsentResponseDto })
     findOne(@Param("id") id: string) {
@@ -115,6 +137,9 @@ export class ConsentController {
     }
 
     @Patch(":id")
+    @UseGuards(JwtAuthGuard, PermissionsGuard)
+    @RequirePermissions(AppPermission.MANAGE_CONSENT_MANAGEMENT)
+    @ApiBearerAuth()
     @ApiOperation({ summary: "Update consent details" })
     @ApiOkResponse({ type: ConsentResponseDto })
     update(@Param("id") id: string, @Body() payload: Partial<CreateConsentDto>) {
@@ -122,6 +147,9 @@ export class ConsentController {
     }
 
     @Delete(":id")
+    @UseGuards(JwtAuthGuard, PermissionsGuard)
+    @RequirePermissions(AppPermission.MANAGE_CONSENT_MANAGEMENT)
+    @ApiBearerAuth()
     @HttpCode(204)
     @ApiOperation({ summary: "Delete consent record" })
     @ApiNoContentResponse({ description: "Consent deleted successfully" })
@@ -129,3 +157,5 @@ export class ConsentController {
         await this.consentService.remove(id);
     }
 }
+
+
