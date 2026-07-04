@@ -111,7 +111,21 @@ export class PaymentRepository {
                             submissionId,
                         },
                     });
+
+                    // 2a. Mirror DATA_PROCESSING consent in the Consent table
+                    // so the compliance dashboard reflects the patient's agreement.
+                    if (complianceConfirmation.agreedToTermsAndPrivacy) {
+                        await tx.consent.create({
+                            data: {
+                                userId,
+                                type: "DATA_PROCESSING",
+                                status: "ACCEPTED",
+                                source: "WEB",
+                            },
+                        });
+                    }
                 }
+
             }
 
             // 3. Create Order
