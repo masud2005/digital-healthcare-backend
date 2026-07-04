@@ -7,4 +7,4 @@
 
 - [x] Report & side effect
 - [x] Request your record
-- [ ] Shipping info
+- [x] Shipping info
