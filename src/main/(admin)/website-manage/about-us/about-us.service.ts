@@ -1,10 +1,14 @@
 import { Injectable } from "@nestjs/common";
+import { StorageService } from "@global/storage/storage.service";
 import { AboutUsRepository } from "./about-us.repository";
 import { UpdateAboutUsDto } from "./dto/update-about-us.dto";
 
 @Injectable()
 export class AboutUsService {
-    constructor(private readonly aboutUsRepository: AboutUsRepository) {}
+    constructor(
+        private readonly aboutUsRepository: AboutUsRepository,
+        private readonly storageService: StorageService,
+    ) {}
 
     async get() {
         let record = await this.aboutUsRepository.findFirst();
@@ -56,8 +60,28 @@ export class AboutUsService {
         return {
             success: true,
             message: "About Us content retrieved successfully",
-            data: record,
+            data: await this.resolveRecordUrls(record),
         };
+    }
+
+    private async resolveRecordUrls(record: any) {
+        if (!record) return record;
+        const resolved = { ...record };
+        const imageFields = [
+            "bodySection1Image",
+            "bodySection2Image",
+            "bodySection3Image",
+            "faqCardImage",
+        ];
+        for (const field of imageFields) {
+            if (resolved[field]?.fileUrl) {
+                resolved[field] = {
+                    ...resolved[field],
+                    fileUrl: await this.storageService.getSignedUrl(resolved[field].fileUrl),
+                };
+            }
+        }
+        return resolved;
     }
 
     async update(dto: UpdateAboutUsDto) {
@@ -123,7 +147,7 @@ export class AboutUsService {
         return {
             success: true,
             message: "About Us content updated successfully",
-            data: record,
+            data: await this.resolveRecordUrls(record),
         };
     }
 }
