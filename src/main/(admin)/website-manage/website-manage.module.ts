@@ -7,6 +7,7 @@ import { MedicalTeamSectionModule } from "./medical-team-section/medical-team-se
 import { ContactSideWidgetModule } from "./contact-side-widget/contact-side-widget.module";
 import { ContactPartnerSectionModule } from "./contact-partner-section/contact-partner-section.module";
 import { LabTestingModule } from "./lab-testing/lab-testing.module";
+import { AboutUsModule } from "./about-us/about-us.module";
 
 @Module({
     imports: [
@@ -18,6 +19,7 @@ import { LabTestingModule } from "./lab-testing/lab-testing.module";
         ContactSideWidgetModule,
         ContactPartnerSectionModule,
         LabTestingModule,
+        AboutUsModule,
     ],
 })
 export class WebsiteManageModule {}
