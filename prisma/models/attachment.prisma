@@ -41,6 +41,9 @@ model Attachment {
   contactSideWidgets ContactSideWidget[] @relation("ContactSideWidgetImage")
   contactPartners    ContactPartner[]    @relation("ContactPartnerImage")
 
+  labTestingHeroes LabTestingHero[] @relation("LabTestingHeroImage")
+  labTestServices  LabTestService[] @relation("LabTestServiceImage")
+
   conversationId String?
   conversation   Conversation? @relation(fields: [conversationId], references: [id], onDelete: Cascade)
 

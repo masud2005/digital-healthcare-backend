@@ -1,0 +1,60 @@
+model LabTestingHero {
+    id String @id @default(uuid())
+
+    title       String
+    description String @db.Text
+
+    buttonText String?
+    buttonUrl  String?
+    isBlank    Boolean @default(false)
+
+    imageId String?
+    image   Attachment? @relation("LabTestingHeroImage", fields: [imageId], references: [id], onDelete: SetNull)
+
+    createdAt DateTime @default(now())
+    updatedAt DateTime @updatedAt
+}
+
+model LabTestingSection {
+    id String @id @default(uuid())
+
+    sectionTitle       String
+    sectionDescription String @db.Text
+
+    services LabTestService[]
+
+    createdAt DateTime @default(now())
+    updatedAt DateTime @updatedAt
+}
+
+model LabTestService {
+    id String @id @default(uuid())
+
+    sectionId String
+    section   LabTestingSection @relation(fields: [sectionId], references: [id], onDelete: Cascade)
+
+    title       String
+    description String @db.Text
+
+    imageId String?
+    image   Attachment? @relation("LabTestServiceImage", fields: [imageId], references: [id], onDelete: SetNull)
+
+    tests LabTest[]
+
+    createdAt DateTime @default(now())
+    updatedAt DateTime @updatedAt
+}
+
+model LabTest {
+    id String @id @default(uuid())
+
+    serviceId String
+    service   LabTestService @relation(fields: [serviceId], references: [id], onDelete: Cascade)
+
+    name        String
+    duration    String
+    description String @db.Text
+
+    createdAt DateTime @default(now())
+    updatedAt DateTime @updatedAt
+}

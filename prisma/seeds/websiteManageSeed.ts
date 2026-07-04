@@ -102,5 +102,32 @@ export const websiteManageSeed = async (prisma: PrismaClient) => {
         console.log("✅ Seeded Contact Partner Section");
     }
 
+    // Seed Lab Testing Hero
+    const existingLabTestingHero = await prisma.labTestingHero.findFirst();
+    if (!existingLabTestingHero) {
+        await prisma.labTestingHero.create({
+            data: {
+                title: "WLMD Lab Tests",
+                description: "Learn about our extensive lab testing services.",
+                buttonText: "Book a consultation",
+                buttonUrl: "https://weightlossmd.com",
+                isBlank: true
+            },
+        });
+        console.log("✅ Seeded Lab Testing Hero");
+    }
+
+    // Seed Lab Testing Section
+    const existingLabTestingSection = await prisma.labTestingSection.findFirst();
+    if (!existingLabTestingSection) {
+        await prisma.labTestingSection.create({
+            data: {
+                sectionTitle: "See what's inside the panel",
+                sectionDescription: "Measure what matters—up to 130 biomarker tests, twice a year on the Advanced plan."
+            },
+        });
+        console.log("✅ Seeded Lab Testing Section");
+    }
+
     console.log("✅ Website Manage seeding completed!");
 };
