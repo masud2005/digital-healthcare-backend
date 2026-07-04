@@ -10,6 +10,7 @@ import { LabTestingModule } from "./lab-testing/lab-testing.module";
 import { ReportSideEffectModule } from "./report-side-effect/report-side-effect.module";
 import { AboutUsModule } from "./about-us/about-us.module";
 import { RequestRecordsModule } from "./request-records/request-records.module";
+import { HowItWorksModule } from "./how-it-works/how-it-works.module";
 
 @Module({
     imports: [
@@ -24,6 +25,7 @@ import { RequestRecordsModule } from "./request-records/request-records.module";
         ReportSideEffectModule,
         AboutUsModule,
         RequestRecordsModule,
+        HowItWorksModule,
     ],
 })
 export class WebsiteManageModule {}

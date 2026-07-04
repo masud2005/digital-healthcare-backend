@@ -1,7 +1,7 @@
 ## Your daily TODO should be here...
 
 - [x] About us page need be dynamic
-- [ ] How it works
+- [x] How it works
 - [ ] Eligibility
 
 - [ ] Billing & cancel
