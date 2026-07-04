@@ -48,11 +48,17 @@ export class IncidentRepository {
         return this.prisma.incident.create({ data });
     }
 
-    findLatest() {
-        return this.prisma.incident.findFirst({
-            orderBy: { createdAt: "desc" },
-        });
+    async findLatest() {
+        const result = await this.prisma.$queryRaw<{ incidentId: string }[]>`
+            SELECT "incidentId"
+            FROM incidents
+            WHERE "incidentId" ~ '^INC-[0-9]+$'
+            ORDER BY CAST(SUBSTRING("incidentId" FROM 5) AS INTEGER) DESC
+            LIMIT 1
+        `;
+        return result[0] ?? null;
     }
+
 
     async findAll(params: IncidentFindAllParams) {
         const { page, limit } = params;
