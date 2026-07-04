@@ -8,6 +8,7 @@ import { ContactSideWidgetModule } from "./contact-side-widget/contact-side-widg
 import { ContactPartnerSectionModule } from "./contact-partner-section/contact-partner-section.module";
 import { LabTestingModule } from "./lab-testing/lab-testing.module";
 import { ReportSideEffectModule } from "./report-side-effect/report-side-effect.module";
+import { AboutUsModule } from "./about-us/about-us.module";
 
 @Module({
     imports: [
@@ -20,6 +21,7 @@ import { ReportSideEffectModule } from "./report-side-effect/report-side-effect.
         ContactPartnerSectionModule,
         LabTestingModule,
         ReportSideEffectModule,
+        AboutUsModule,
     ],
 })
 export class WebsiteManageModule {}

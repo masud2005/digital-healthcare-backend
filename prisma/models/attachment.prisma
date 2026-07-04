@@ -44,6 +44,11 @@ model Attachment {
   labTestingHeroes LabTestingHero[] @relation("LabTestingHeroImage")
   labTestServices  LabTestService[] @relation("LabTestServiceImage")
 
+  aboutUsBodySection1Image AboutUs[] @relation("AboutUsBodySection1Image")
+  aboutUsBodySection2Image AboutUs[] @relation("AboutUsBodySection2Image")
+  aboutUsBodySection3Image AboutUs[] @relation("AboutUsBodySection3Image")
+  aboutUsFaqCardImage      AboutUs[] @relation("AboutUsFaqCardImage")
+
   conversationId String?
   conversation   Conversation? @relation(fields: [conversationId], references: [id], onDelete: Cascade)
 
