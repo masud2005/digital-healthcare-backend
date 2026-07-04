@@ -1,0 +1,36 @@
+model ContactSideWidget {
+  id      String @id @default(uuid())
+  title   String
+  opening String
+  offDay  String
+  phone   String
+  email   String
+
+  imageId String?
+  image   Attachment? @relation("ContactSideWidgetImage", fields: [imageId], references: [id], onDelete: SetNull)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model ContactPartnerSection {
+  id           String @id @default(uuid())
+  sectionTitle String
+
+  partners ContactPartner[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model ContactPartner {
+  id        String                @id @default(uuid())
+  sectionId String
+  section   ContactPartnerSection @relation(fields: [sectionId], references: [id], onDelete: Cascade)
+
+  imageId String
+  image   Attachment @relation("ContactPartnerImage", fields: [imageId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}

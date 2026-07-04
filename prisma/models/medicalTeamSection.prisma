@@ -1,8 +1,8 @@
 model MedicalTeamSection {
-    id          String @id @default(uuid())
-    title       String
-    description String
+  id          String @id @default(uuid())
+  title       String
+  description String
 
-    createdAt DateTime @default(now())
-    updatedAt DateTime @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
