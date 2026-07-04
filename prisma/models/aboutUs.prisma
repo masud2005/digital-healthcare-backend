@@ -1,0 +1,56 @@
+model AboutUs {
+  id String @id @default(uuid())
+
+  // Hero Section
+  heroTitle       String
+  heroDescription String  @db.Text
+  heroButtonText  String?
+  heroButtonUrl   String?
+  heroTargetBlank Boolean @default(true)
+
+  // Body Section 1
+  bodySection1Title       String
+  bodySection1Description String      @db.Text
+  bodySection1ButtonText  String?
+  bodySection1ButtonUrl   String?
+  bodySection1TargetBlank Boolean     @default(true)
+  bodySection1ImageId     String?
+  bodySection1Image       Attachment? @relation("AboutUsBodySection1Image", fields: [bodySection1ImageId], references: [id], onDelete: SetNull)
+
+  // Body Section 2
+  bodySection2Tag         String?
+  bodySection2Title       String
+  bodySection2Description String      @db.Text
+  bodySection2ButtonText  String?
+  bodySection2ButtonUrl   String?
+  bodySection2TargetBlank Boolean     @default(true)
+  bodySection2ImageId     String?
+  bodySection2Image       Attachment? @relation("AboutUsBodySection2Image", fields: [bodySection2ImageId], references: [id], onDelete: SetNull)
+
+  // Body Section 3
+  bodySection3Tag         String?
+  bodySection3Title       String
+  bodySection3Description String      @db.Text
+  bodySection3Points      Json? // array of strings: string[]
+  bodySection3ButtonText  String?
+  bodySection3ButtonUrl   String?
+  bodySection3TargetBlank Boolean     @default(true)
+  bodySection3ImageId     String?
+  bodySection3Image       Attachment? @relation("AboutUsBodySection3Image", fields: [bodySection3ImageId], references: [id], onDelete: SetNull)
+
+  // FAQ Section
+  faqSectionTitle    String
+  faqCardTitle       String
+  faqCardDescription String      @db.Text
+  faqButtonText      String?
+  faqButtonUrl       String?
+  faqTargetBlank     Boolean     @default(true)
+  faqCardImageId     String?
+  faqCardImage       Attachment? @relation("AboutUsFaqCardImage", fields: [faqCardImageId], references: [id], onDelete: SetNull)
+  faqs               Json? // Array of { question: string, answer: string }
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("about_us")
+}
