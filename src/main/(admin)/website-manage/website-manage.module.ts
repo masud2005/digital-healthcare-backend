@@ -1,5 +1,6 @@
 import { Module } from "@nestjs/common";
 import { AboutUsModule } from "./about-us/about-us.module";
+import { BillingCancellationModule } from "./billing-cancellation/billing-cancellation.module";
 import { ContactPartnerSectionModule } from "./contact-partner-section/contact-partner-section.module";
 import { ContactSideWidgetModule } from "./contact-side-widget/contact-side-widget.module";
 import { CoverageSectionModule } from "./coverage-section/coverage-section.module";
@@ -30,6 +31,7 @@ import { TermsOfServiceModule } from "./terms-of-service/terms-of-service.module
         HowItWorksModule,
         EligibilityModule,
         ShippingInfoModule,
+        BillingCancellationModule,
     ],
 })
 export class WebsiteManageModule {}
