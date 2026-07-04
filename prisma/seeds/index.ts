@@ -13,6 +13,7 @@ import { pageSectionsSeed } from "./pageSectionsSeed";
 import { heroSeed } from "./heroSeed";
 import { sideWidgetSeed } from "./sideWidgetSeed";
 import { websiteManageSeed } from "./websiteManageSeed";
+import { faqSeed } from "./faqSeed";
 
 expand(config({ path: path.resolve(process.cwd(), ".env") }));
 
@@ -32,6 +33,7 @@ async function main() {
     await heroSeed(prisma);
     await sideWidgetSeed(prisma);
     await websiteManageSeed(prisma);
+    await faqSeed(prisma);
     console.log("✅ Prisma seed finished");
 }
 
