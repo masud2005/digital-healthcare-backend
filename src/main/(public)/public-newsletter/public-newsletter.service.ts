@@ -17,18 +17,19 @@ export class PublicNewsletterService {
             throw new ConflictException("This email is already subscribed to our newsletter.");
         }
 
-        await this.prisma.consent.create({
-            data: {
-                email,
-                type: "MARKETING",
-                status: "ACCEPTED",
-                source: "WEB",
-            },
-        }).catch(() => {});
+        await this.prisma.consent
+            .create({
+                data: {
+                    email,
+                    type: "MARKETING",
+                    status: "ACCEPTED",
+                    source: "WEB",
+                },
+            })
+            .catch(() => {});
 
         return this.prisma.newsletter.create({
             data: { email },
         });
     }
 }
-

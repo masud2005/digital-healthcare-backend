@@ -76,7 +76,10 @@ export class ConsentService implements OnModuleInit {
         });
     }
 
-    async confirmCookies(payload: { analytics: boolean; marketing: boolean; source?: any }, loggedInUser?: AuthenticatedUser) {
+    async confirmCookies(
+        payload: { analytics: boolean; marketing: boolean; source?: any },
+        loggedInUser?: AuthenticatedUser,
+    ) {
         const userId = loggedInUser?.id ?? null;
         let userName: string | null = null;
         let email: string | null = null;
@@ -117,7 +120,6 @@ export class ConsentService implements OnModuleInit {
             marketing: results[1],
         };
     }
-
 
     async getStats() {
         return this.consentRepository.getStats();

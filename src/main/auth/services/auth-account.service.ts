@@ -75,7 +75,10 @@ export class AuthAccountService {
                 source: "WEB",
             })
             .catch((err) => {
-                this.logger.error(`Failed to auto-create DATA_PROCESSING consent for user ${user.id}`, err);
+                this.logger.error(
+                    `Failed to auto-create DATA_PROCESSING consent for user ${user.id}`,
+                    err,
+                );
             });
 
         // Audit log: new registration
