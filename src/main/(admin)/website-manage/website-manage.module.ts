@@ -11,6 +11,7 @@ import { ReportSideEffectModule } from "./report-side-effect/report-side-effect.
 import { AboutUsModule } from "./about-us/about-us.module";
 import { RequestRecordsModule } from "./request-records/request-records.module";
 import { HowItWorksModule } from "./how-it-works/how-it-works.module";
+import { ShippingInfoModule } from "./shipping-info/shipping-info.module";
 
 @Module({
     imports: [
@@ -26,6 +27,7 @@ import { HowItWorksModule } from "./how-it-works/how-it-works.module";
         AboutUsModule,
         RequestRecordsModule,
         HowItWorksModule,
+        ShippingInfoModule,
     ],
 })
 export class WebsiteManageModule {}
