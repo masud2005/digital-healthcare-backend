@@ -1,10 +1,10 @@
 ## Your daily TODO should be here...
 
 - [x] About us page need be dynamic
-- [ ] How it works
-- [ ] Eligibility
-
+- [x] How it works
+- [x] Eligibility
 - [ ] Billing & cancel
-- [ ] Report & side effect
-- [ ] Request your record
-- [ ] Shipping info
+
+- [x] Report & side effect
+- [x] Request your record
+- [x] Shipping info

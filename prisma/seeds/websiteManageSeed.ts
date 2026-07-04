@@ -170,5 +170,102 @@ export const websiteManageSeed = async (prisma: PrismaClient) => {
         console.log("✅ Seeded Emergency Contact Widget");
     }
 
+    // Seed Request Records
+    const existingRequestRecordsWidget = await prisma.requestRecordWidget.findFirst();
+    if (!existingRequestRecordsWidget) {
+        await prisma.requestRecordWidget.create({
+            data: {
+                title: "Processing Time",
+                order: 1,
+                items: {
+                    create: [
+                        { text: "Medical Records: Up to 30 days", order: 1 },
+                        { text: "Prescription History: 3-5 business days", order: 2 },
+                        { text: "Billing Records: 1-3 business days", order: 3 },
+                        { text: "Account Deletion: Up to 45 days", order: 4 },
+                    ]
+                }
+            }
+        });
+        await prisma.requestRecordWidget.create({
+            data: {
+                title: "HIPAA Rights",
+                order: 2,
+                items: {
+                    create: [
+                        { text: "Right to access your medical records", order: 1 },
+                        { text: "Right to request corrections", order: 2 },
+                        { text: "Right to receive an accounting of disclosures", order: 3 },
+                        { text: "Right to restrict certain uses", order: 4 },
+                        { text: "Right to receive records in electronic format", order: 5 },
+                    ]
+                }
+            }
+        });
+        console.log("✅ Seeded Request Records Widgets");
+    }
+
+    // Seed Shipping Info
+    const existingPartnerSection = await prisma.partnerPharmacySection.findFirst();
+    if (!existingPartnerSection) {
+        await prisma.partnerPharmacySection.create({
+            data: {
+                title: "Partner Pharmacy Network",
+                description: "Pharmacy assignment is based on your state, medication type, and current provider relationships.",
+                partners: {
+                    create: [
+                        { name: "Olympia Pharmaceuticals", address: "503B Outsourcer + 503A Pharmacy", order: 1 },
+                        { name: "CasaPharma RX", address: "503A Pharmacy", order: 2 }
+                    ]
+                }
+            }
+        });
+        console.log("✅ Seeded Partner Pharmacy Section");
+    }
+
+    const existingTimelineSection = await prisma.shippingTimelineSection.findFirst();
+    if (!existingTimelineSection) {
+        await prisma.shippingTimelineSection.create({
+            data: {
+                title: "Shipping Timeline",
+                description: "Timelines are estimates. Expedited options may be available. Cold-chain medications may require signature.",
+                steps: {
+                    create: [
+                        { title: "Rx Received", description: "Day 0", order: 1 },
+                        { title: "Processing", description: "Day 1-2", order: 2 },
+                        { title: "Shipped", description: "Day 2-4", order: 3 },
+                        { title: "In Transit", description: "Day 2-7", order: 4 },
+                        { title: "Delivered", description: "Day 3-7", order: 5 },
+                    ]
+                }
+            }
+        });
+        console.log("✅ Seeded Shipping Timeline Section");
+    }
+
+    const existingPolicySection = await prisma.shippingPolicySection.findFirst();
+    if (!existingPolicySection) {
+        await prisma.shippingPolicySection.create({
+            data: {
+                title: "Shipping Policy",
+                description: "",
+                disclaimerTitle: "Prescription & Pharmacy Disclosure:",
+                disclaimerDescription: "All medications dispensed through our platform require a valid prescription from a licensed provider. We partner only with NABP-accredited or PCAB-accredited pharmacies. Compounded medications are not FDA-approved drug products and are prepared by state-licensed compounding pharmacies.",
+                policies: {
+                    create: [
+                        { text: "Tracking number emailed when shipped", order: 1 },
+                        { text: "Track in your patient portal", order: 2 },
+                        { text: "SMS notifications available", order: 3 },
+                        { text: "Only ships within the US", order: 4 },
+                        { text: "Cannot ship to states without licensed providers", order: 5 },
+                        { text: "P.O. boxes may not be eligible for cold-chain meds", order: 6 },
+                        { text: "No international shipments", order: 7 },
+                    ]
+                }
+            }
+        });
+        console.log("✅ Seeded Shipping Policy Section");
+    }
+
     console.log("✅ Website Manage seeding completed!");
 };

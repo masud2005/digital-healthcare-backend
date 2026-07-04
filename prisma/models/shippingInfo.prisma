@@ -1,0 +1,85 @@
+// 1. Partner Pharmacy Section
+model PartnerPharmacySection {
+  id          String @id @default(uuid())
+  title       String @db.VarChar(255)
+  description String @db.Text
+
+  partners PartnerPharmacy[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model PartnerPharmacy {
+  id String @id @default(uuid())
+
+  sectionId String
+  section   PartnerPharmacySection @relation(fields: [sectionId], references: [id], onDelete: Cascade)
+
+  name    String @db.VarChar(255)
+  address String @db.VarChar(255)
+
+  logoId String?
+  logo   Attachment? @relation("PartnerPharmacyLogo", fields: [logoId], references: [id], onDelete: SetNull)
+
+  order Int @default(0)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+// 2. Shipping Timeline Section
+model ShippingTimelineSection {
+  id          String @id @default(uuid())
+  title       String @db.VarChar(255)
+  description String @db.Text
+
+  steps ShippingTimelineStep[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model ShippingTimelineStep {
+  id String @id @default(uuid())
+
+  sectionId String
+  section   ShippingTimelineSection @relation(fields: [sectionId], references: [id], onDelete: Cascade)
+
+  title       String @db.VarChar(255)
+  description String @db.VarChar(255)
+
+  order Int @default(0)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+// 3. Shipping Policy Section
+model ShippingPolicySection {
+  id          String @id @default(uuid())
+  title       String @db.VarChar(255)
+  description String @db.Text
+
+  policies ShippingPolicyItem[]
+
+  disclaimerTitle       String @db.VarChar(255)
+  disclaimerDescription String @db.Text
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model ShippingPolicyItem {
+  id String @id @default(uuid())
+
+  sectionId String
+  section   ShippingPolicySection @relation(fields: [sectionId], references: [id], onDelete: Cascade)
+
+  text String @db.VarChar(255)
+
+  order Int @default(0)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}

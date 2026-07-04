@@ -1,0 +1,44 @@
+model Eligibility {
+  id String @id @default(uuid())
+
+  // General Eligibility Criteria
+  generalTitle      String
+  generalPoints     Json?   // Array of { point: string, status: boolean }
+  generalBottomDesc String  @db.Text
+
+  // Qualification Section
+  qualificationTitle         String
+  qualificationbmi27Text     String
+  qualification27Description String @db.Text
+  qualificationbmi30Text     String
+  qualification30Description String @db.Text
+
+  // Who Can/Cannot Service
+  weightConditionSecTitle String
+  weightConditions        Json?   // Array of strings: string[]
+
+  // Disease-Related Exclusions (Contraindications Section)
+  contraindicationsSectionTitle String
+  contraindicationsSectionWrite Json?   // Array of strings: string[]
+
+  // Surgical/Medical Exclusions (Required Lab Work Section)
+  requiredlabWorkSectionTitle            String
+  requiredlabWorkSectionContraindications Json?   // Array of strings: string[]
+
+  // Drug-Related Exclusions (Ongoing Monitoring Section)
+  ongoingMonitoringSectionTitle          String
+  ongoingMonitoringSectionContraindication Json?   // Array of strings: string[]
+
+  // Medical Evaluation (Disclaimer Section)
+  disclaimerSectionTitle String
+  disclaimerSectionDes   String @db.Text
+
+  // FAQ Section
+  faqTitle String
+  faqs     Json?   // Array of { question: string, answer: string }
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("eligibility")
+}

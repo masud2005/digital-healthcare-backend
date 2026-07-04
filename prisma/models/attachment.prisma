@@ -44,6 +44,8 @@ model Attachment {
   labTestingHeroes LabTestingHero[] @relation("LabTestingHeroImage")
   labTestServices  LabTestService[] @relation("LabTestServiceImage")
 
+  partnerPharmacies PartnerPharmacy[] @relation("PartnerPharmacyLogo")
+
   aboutUsBodySection1Image AboutUs[] @relation("AboutUsBodySection1Image")
   aboutUsBodySection2Image AboutUs[] @relation("AboutUsBodySection2Image")
   aboutUsBodySection3Image AboutUs[] @relation("AboutUsBodySection3Image")
