@@ -16,15 +16,15 @@ export class LabTestingService {
         let record = await this.prisma.labTestingHero.findFirst({
             include: { image: true },
         });
-        
+
         if (!record) {
             record = await this.prisma.labTestingHero.create({
-                data: { 
-                    title: "WLMD Lab Tests", 
+                data: {
+                    title: "WLMD Lab Tests",
                     description: "Learn about our extensive lab testing services.",
                     buttonText: "Book a consultation",
                     buttonUrl: "https://weightlossmd.com",
-                    isBlank: true
+                    isBlank: true,
                 },
                 include: { image: true },
             });
@@ -48,11 +48,12 @@ export class LabTestingService {
             record = await this.prisma.labTestingHero.create({
                 data: {
                     title: dto.title || "WLMD Lab Tests",
-                    description: dto.description || "Learn about our extensive lab testing services.",
+                    description:
+                        dto.description || "Learn about our extensive lab testing services.",
                     buttonText: dto.buttonText,
                     buttonUrl: dto.buttonUrl,
                     isBlank: dto.isBlank ?? true,
-                    imageId: dto.imageId
+                    imageId: dto.imageId,
                 },
             });
         } else {
@@ -64,11 +65,13 @@ export class LabTestingService {
 
         const updatedRecord = await this.prisma.labTestingHero.findFirst({
             where: { id: record.id },
-            include: { image: true }
+            include: { image: true },
         });
 
         if (updatedRecord?.image?.fileUrl) {
-            updatedRecord.image.fileUrl = await this.storageService.getSignedUrl(updatedRecord.image.fileUrl);
+            updatedRecord.image.fileUrl = await this.storageService.getSignedUrl(
+                updatedRecord.image.fileUrl,
+            );
         }
 
         return {
@@ -81,34 +84,38 @@ export class LabTestingService {
     // SECTION
     async getSection() {
         let record = await this.prisma.labTestingSection.findFirst({
-            include: { 
+            include: {
                 services: {
-                    include: { 
+                    include: {
                         image: true,
-                        tests: { orderBy: { createdAt: "asc" } }
+                        tests: { orderBy: { createdAt: "asc" } },
                     },
-                    orderBy: { createdAt: "asc" }
-                } 
+                    orderBy: { createdAt: "asc" },
+                },
             },
         });
-        
+
         if (!record) {
             record = await this.prisma.labTestingSection.create({
-                data: { 
+                data: {
                     sectionTitle: "See what's inside the panel",
-                    sectionDescription: "Measure what matters—up to 130 biomarker tests..."
+                    sectionDescription: "Measure what matters—up to 130 biomarker tests...",
                 },
                 include: { services: { include: { image: true, tests: true } } },
             });
         }
 
         if (record.services && record.services.length > 0) {
-            record.services = await Promise.all(record.services.map(async (service) => {
-                if (service.image?.fileUrl) {
-                    service.image.fileUrl = await this.storageService.getSignedUrl(service.image.fileUrl);
-                }
-                return service;
-            }));
+            record.services = await Promise.all(
+                record.services.map(async (service) => {
+                    if (service.image?.fileUrl) {
+                        service.image.fileUrl = await this.storageService.getSignedUrl(
+                            service.image.fileUrl,
+                        );
+                    }
+                    return service;
+                }),
+            );
         }
 
         return {
@@ -125,22 +132,24 @@ export class LabTestingService {
             record = await this.prisma.labTestingSection.create({
                 data: {
                     sectionTitle: dto.sectionTitle || "See what's inside the panel",
-                    sectionDescription: dto.sectionDescription || "Measure what matters—up to 130 biomarker tests..."
+                    sectionDescription:
+                        dto.sectionDescription ||
+                        "Measure what matters—up to 130 biomarker tests...",
                 },
             });
         } else {
             record = await this.prisma.labTestingSection.update({
                 where: { id: record.id },
-                data: { 
+                data: {
                     sectionTitle: dto.sectionTitle,
-                    sectionDescription: dto.sectionDescription
+                    sectionDescription: dto.sectionDescription,
                 },
             });
         }
 
         if (dto.services) {
             await this.prisma.labTestService.deleteMany({
-                where: { sectionId: record.id }
+                where: { sectionId: record.id },
             });
 
             for (const service of dto.services) {
@@ -151,37 +160,41 @@ export class LabTestingService {
                         description: service.description || "",
                         imageId: service.imageId,
                         tests: {
-                            create: (service.tests || []).map(t => ({
+                            create: (service.tests || []).map((t) => ({
                                 name: t.name || "",
                                 duration: t.duration || "",
-                                description: t.description || ""
-                            }))
-                        }
-                    }
+                                description: t.description || "",
+                            })),
+                        },
+                    },
                 });
             }
         }
 
         const updatedRecord = await this.prisma.labTestingSection.findFirst({
             where: { id: record.id },
-            include: { 
+            include: {
                 services: {
-                    include: { 
+                    include: {
                         image: true,
-                        tests: { orderBy: { createdAt: "asc" } }
+                        tests: { orderBy: { createdAt: "asc" } },
                     },
-                    orderBy: { createdAt: "asc" }
-                } 
-            }
+                    orderBy: { createdAt: "asc" },
+                },
+            },
         });
 
         if (updatedRecord?.services && updatedRecord.services.length > 0) {
-            updatedRecord.services = await Promise.all(updatedRecord.services.map(async (service) => {
-                if (service.image?.fileUrl) {
-                    service.image.fileUrl = await this.storageService.getSignedUrl(service.image.fileUrl);
-                }
-                return service;
-            }));
+            updatedRecord.services = await Promise.all(
+                updatedRecord.services.map(async (service) => {
+                    if (service.image?.fileUrl) {
+                        service.image.fileUrl = await this.storageService.getSignedUrl(
+                            service.image.fileUrl,
+                        );
+                    }
+                    return service;
+                }),
+            );
         }
 
         return {
