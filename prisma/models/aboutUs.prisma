@@ -31,7 +31,7 @@ model AboutUs {
   bodySection3Tag         String?
   bodySection3Title       String
   bodySection3Description String      @db.Text
-  bodySection3Points      Json?       // array of strings: string[]
+  bodySection3Points      Json? // array of strings: string[]
   bodySection3ButtonText  String?
   bodySection3ButtonUrl   String?
   bodySection3TargetBlank Boolean     @default(true)
@@ -39,15 +39,15 @@ model AboutUs {
   bodySection3Image       Attachment? @relation("AboutUsBodySection3Image", fields: [bodySection3ImageId], references: [id], onDelete: SetNull)
 
   // FAQ Section
-  faqSectionTitle     String
-  faqCardTitle        String
-  faqCardDescription  String      @db.Text
-  faqButtonText       String?
-  faqButtonUrl        String?
-  faqTargetBlank      Boolean     @default(true)
-  faqCardImageId      String?
-  faqCardImage        Attachment? @relation("AboutUsFaqCardImage", fields: [faqCardImageId], references: [id], onDelete: SetNull)
-  faqs                Json?       // Array of { question: string, answer: string }
+  faqSectionTitle    String
+  faqCardTitle       String
+  faqCardDescription String      @db.Text
+  faqButtonText      String?
+  faqButtonUrl       String?
+  faqTargetBlank     Boolean     @default(true)
+  faqCardImageId     String?
+  faqCardImage       Attachment? @relation("AboutUsFaqCardImage", fields: [faqCardImageId], references: [id], onDelete: SetNull)
+  faqs               Json? // Array of { question: string, answer: string }
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt

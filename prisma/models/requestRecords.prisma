@@ -1,0 +1,25 @@
+model RequestRecordWidget {
+  id String @id @default(uuid())
+
+  title String @db.VarChar(255)
+
+  items RequestRecordWidgetItem[]
+
+  order Int @default(0)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model RequestRecordWidgetItem {
+  id String @id @default(uuid())
+
+  widgetId String
+  widget   RequestRecordWidget @relation(fields: [widgetId], references: [id], onDelete: Cascade)
+
+  text  String @db.Text
+  order Int    @default(0)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
