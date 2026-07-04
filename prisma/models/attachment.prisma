@@ -36,6 +36,8 @@ model Attachment {
   servicePageHeroSection   ServicePageHeroSection?   @relation("HeroBanner")
   servicePageSecondSection ServicePageSecondSection? @relation("SecondSectionMedia")
 
+  sideWidgets SideWidget[]
+
   conversationId String?
   conversation   Conversation? @relation(fields: [conversationId], references: [id], onDelete: Cascade)
 

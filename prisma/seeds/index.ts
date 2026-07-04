@@ -11,6 +11,7 @@ import { permissionSeed } from "./permissionSeed";
 import { blogSeed } from "./blogSeed";
 import { pageSectionsSeed } from "./pageSectionsSeed";
 import { heroSeed } from "./heroSeed";
+import { sideWidgetSeed } from "./sideWidgetSeed";
 
 expand(config({ path: path.resolve(process.cwd(), ".env") }));
 
@@ -28,6 +29,7 @@ async function main() {
     await blogSeed(prisma);
     await pageSectionsSeed(prisma);
     await heroSeed(prisma);
+    await sideWidgetSeed(prisma);
     console.log("✅ Prisma seed finished");
 }
 

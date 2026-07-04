@@ -4,6 +4,7 @@ import { CloverModule } from "@global/clover/clover.module";
 import { CommunicationModule } from "@global/communication/communication.module";
 import { CtaSectionModule } from "@global/cta-section/cta-section.module";
 import { HeroSectionModule } from "@global/hero-section/hero-section.module";
+import { SideWidgetModule } from "@global/side-widget/side-widget.module";
 import { Module } from "@nestjs/common";
 import { ScheduleModule } from "@nestjs/schedule";
 import { HealthController } from "./health.controller";
@@ -18,6 +19,7 @@ import { MainModule } from "./main/main.module";
         CloverModule,
         CtaSectionModule,
         HeroSectionModule,
+        SideWidgetModule,
         ScheduleModule.forRoot(),
     ],
     controllers: [HealthController],
