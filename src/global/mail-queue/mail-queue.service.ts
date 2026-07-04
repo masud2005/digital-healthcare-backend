@@ -1,7 +1,7 @@
 import { MailService } from "@global/mail/mail.service";
 import { PrismaService } from "@global/prisma/prisma.service";
 import { Injectable, Logger } from "@nestjs/common";
-import { Cron } from "@nestjs/schedule";
+import { Cron, CronExpression } from "@nestjs/schedule";
 
 @Injectable()
 export class MailQueueService {
@@ -14,7 +14,7 @@ export class MailQueueService {
     ) {}
 
     /**
-     * Add a mail to the queue and trigger processing immediately
+     * Add a mail to the queue (to be processed by the cron job)
      */
     async queueMail(to: string, subject: string, body: string) {
         try {
@@ -26,22 +26,15 @@ export class MailQueueService {
                 },
             });
             this.logger.log(`Queued email to ${to} with subject: "${subject}"`);
-
-            // Trigger processing asynchronously (macro-task) so it does not block the current request
-            setImmediate(() => {
-                this.processQueue().catch((err) => {
-                    this.logger.error("Error in immediately triggered queue processing", err);
-                });
-            });
         } catch (error) {
             this.logger.error(`Failed to queue email to ${to}`, error as Error);
         }
     }
 
     /**
-     * Cron fallback to process any pending or failed messages every 30 seconds
+     * Process pending and failed messages every 2 hours
      */
-    @Cron("*/30 * * * * *")
+    @Cron(CronExpression.EVERY_2_HOURS)
     async handleCron() {
         this.logger.debug("Running scheduled mail queue check...");
         await this.processQueue();
