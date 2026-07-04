@@ -10,6 +10,7 @@ import { UpdateEligibilityDto } from "./dto/update-eligibility.dto";
 export class EligibilityController {
     constructor(private readonly eligibilityService: EligibilityService) {}
 
+    //
     @Get()
     @ApiOperation({ summary: "Get Eligibility page content (Public API)" })
     get() {
