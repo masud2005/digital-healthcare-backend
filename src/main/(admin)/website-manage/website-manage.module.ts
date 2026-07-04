@@ -11,6 +11,7 @@ import { ReportSideEffectModule } from "./report-side-effect/report-side-effect.
 import { AboutUsModule } from "./about-us/about-us.module";
 import { HowItWorksModule } from "./how-it-works/how-it-works.module";
 import { EligibilityModule } from "./eligibility/eligibility.module";
+import { BillingCancellationModule } from "./billing-cancellation/billing-cancellation.module";
 
 @Module({
     imports: [
@@ -26,6 +27,7 @@ import { EligibilityModule } from "./eligibility/eligibility.module";
         AboutUsModule,
         HowItWorksModule,
         EligibilityModule,
+        BillingCancellationModule,
     ],
 })
 export class WebsiteManageModule {}

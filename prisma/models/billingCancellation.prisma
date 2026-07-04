@@ -1,0 +1,33 @@
+model BillingCancellation {
+  id String @id @default(uuid())
+
+  page PageType @default(BillingCancellation)
+
+  // Billing Timeline Section
+  timelineTitle                 String
+  timelineSteps                 Json?   // Array of { step: string, description: string }
+  timelineDisclaimerTitle      String
+  timelineDisclaimerDescription String  @db.Text
+
+  // Billing Cancellation Section
+  cancelTitle       String
+  cancelDescription String  @db.Text
+  cancelSteps       Json?   // Array of strings: string[]
+
+  // Eligible for Refund Section
+  refundEligibleTitle      String
+  refundEligibleConditions Json?   // Array of strings: string[]
+
+  // Not Eligible for Refund Section
+  refundNotEligibleTitle      String
+  refundNotEligibleConditions Json?   // Array of strings: string[]
+
+  // FAQ Section
+  faqTitle String
+  faqs     Json?   // Array of { question: string, answer: string }
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("billing_cancellation")
+}
