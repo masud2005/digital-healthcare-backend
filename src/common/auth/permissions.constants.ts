@@ -42,6 +42,8 @@ export const AppPermission = {
     VIEW_DOCUMENT_CENTER: "view:document_center",
     MANAGE_DOCUMENT_CENTER: "manage:document_center",
     VIEW_SYSTEM_HEALTH: "view:system_health",
+    VIEW_NEWSLETTER: "view:newsletter",
+    MANAGE_NEWSLETTER: "manage:newsletter",
 } as const;
 
 export type AppPermissionType = (typeof AppPermission)[keyof typeof AppPermission];

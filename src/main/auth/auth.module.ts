@@ -5,6 +5,7 @@ import { SystemHealthModule } from "@main/(compliance)/system-healthar/system-he
 import { Module } from "@nestjs/common";
 import { AuditLogModule } from "../(compliance)/audit-log/audit-log.module";
 import { NotificationModule } from "../notification/notification.module";
+import { ConsentModule } from "../(compliance)/consent/consent.module";
 import { AuthRepository } from "./auth.repository";
 import { AuthAccountController } from "./controllers/auth-account.controller";
 import { AuthOtpController } from "./controllers/auth-otp.controller";
@@ -28,7 +29,9 @@ import { AuthService } from "./services/auth.service";
         MailModule,
         StorageModule,
         NotificationModule,
+        ConsentModule,
     ],
+
     controllers: [
         AuthAccountController,
         AuthOtpController,
