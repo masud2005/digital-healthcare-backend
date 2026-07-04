@@ -14,15 +14,15 @@ export class ContactSideWidgetService {
         let record = await this.prisma.contactSideWidget.findFirst({
             include: { image: true },
         });
-        
+
         if (!record) {
             record = await this.prisma.contactSideWidget.create({
-                data: { 
-                    title: "Office Hours", 
+                data: {
+                    title: "Office Hours",
                     opening: "Monday - Friday: 9 AM - 6 PM",
                     offDay: "Our Office is closed from 2 PM to 3 PM for lunch.",
                     phone: "(720) 279-1164",
-                    email: "info@wlmd.net"
+                    email: "info@wlmd.net",
                 },
                 include: { image: true },
             });
@@ -50,7 +50,7 @@ export class ContactSideWidgetService {
                     offDay: dto.offDay || "Our Office is closed from 2 PM to 3 PM for lunch.",
                     phone: dto.phone || "(720) 279-1164",
                     email: dto.email || "info@wlmd.net",
-                    imageId: dto.imageId
+                    imageId: dto.imageId,
                 },
             });
         } else {
@@ -63,11 +63,13 @@ export class ContactSideWidgetService {
         // Re-fetch with image to resolve url
         const updatedRecord = await this.prisma.contactSideWidget.findFirst({
             where: { id: record.id },
-            include: { image: true }
+            include: { image: true },
         });
 
         if (updatedRecord?.image?.fileUrl) {
-            updatedRecord.image.fileUrl = await this.storageService.getSignedUrl(updatedRecord.image.fileUrl);
+            updatedRecord.image.fileUrl = await this.storageService.getSignedUrl(
+                updatedRecord.image.fileUrl,
+            );
         }
 
         return {

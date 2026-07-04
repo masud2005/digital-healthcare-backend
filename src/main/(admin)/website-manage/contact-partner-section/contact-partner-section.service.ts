@@ -12,17 +12,17 @@ export class ContactPartnerSectionService {
 
     async get() {
         let record = await this.prisma.contactPartnerSection.findFirst({
-            include: { 
+            include: {
                 partners: {
-                    include: { image: true }
-                } 
+                    include: { image: true },
+                },
             },
         });
-        
+
         if (!record) {
             record = await this.prisma.contactPartnerSection.create({
-                data: { 
-                    sectionTitle: "Our partner pharmacies"
+                data: {
+                    sectionTitle: "Our partner pharmacies",
                 },
                 include: { partners: { include: { image: true } } },
             });
@@ -30,12 +30,16 @@ export class ContactPartnerSectionService {
 
         // Map signed urls for all partner images
         if (record.partners && record.partners.length > 0) {
-            record.partners = await Promise.all(record.partners.map(async (partner) => {
-                if (partner.image?.fileUrl) {
-                    partner.image.fileUrl = await this.storageService.getSignedUrl(partner.image.fileUrl);
-                }
-                return partner;
-            }));
+            record.partners = await Promise.all(
+                record.partners.map(async (partner) => {
+                    if (partner.image?.fileUrl) {
+                        partner.image.fileUrl = await this.storageService.getSignedUrl(
+                            partner.image.fileUrl,
+                        );
+                    }
+                    return partner;
+                }),
+            );
         }
 
         return {
@@ -51,7 +55,7 @@ export class ContactPartnerSectionService {
         if (!record) {
             record = await this.prisma.contactPartnerSection.create({
                 data: {
-                    sectionTitle: dto.sectionTitle || "Our partner pharmacies"
+                    sectionTitle: dto.sectionTitle || "Our partner pharmacies",
                 },
             });
         } else if (dto.sectionTitle) {
@@ -65,16 +69,16 @@ export class ContactPartnerSectionService {
         if (dto.imageIds) {
             // First delete existing
             await this.prisma.contactPartner.deleteMany({
-                where: { sectionId: record.id }
+                where: { sectionId: record.id },
             });
-            
+
             // Create new ones
             if (dto.imageIds.length > 0) {
                 await this.prisma.contactPartner.createMany({
-                    data: dto.imageIds.map(imageId => ({
+                    data: dto.imageIds.map((imageId) => ({
                         sectionId: record.id,
-                        imageId
-                    }))
+                        imageId,
+                    })),
                 });
             }
         }
@@ -82,20 +86,24 @@ export class ContactPartnerSectionService {
         // Re-fetch with images to resolve url
         const updatedRecord = await this.prisma.contactPartnerSection.findFirst({
             where: { id: record.id },
-            include: { 
+            include: {
                 partners: {
-                    include: { image: true }
-                } 
-            }
+                    include: { image: true },
+                },
+            },
         });
 
         if (updatedRecord?.partners && updatedRecord.partners.length > 0) {
-            updatedRecord.partners = await Promise.all(updatedRecord.partners.map(async (partner) => {
-                if (partner.image?.fileUrl) {
-                    partner.image.fileUrl = await this.storageService.getSignedUrl(partner.image.fileUrl);
-                }
-                return partner;
-            }));
+            updatedRecord.partners = await Promise.all(
+                updatedRecord.partners.map(async (partner) => {
+                    if (partner.image?.fileUrl) {
+                        partner.image.fileUrl = await this.storageService.getSignedUrl(
+                            partner.image.fileUrl,
+                        );
+                    }
+                    return partner;
+                }),
+            );
         }
 
         return {

@@ -60,6 +60,14 @@ export class CategoryRepository {
                           },
                       }
                     : {}),
+                ctaSections: {
+                    create: {
+                        page: "ServiceCategory",
+                        sectionTitle: "Explore This Category",
+                        ctaButtonText: "Learn More",
+                        url: "/register",
+                    },
+                },
             },
             include: this.categoryInclude,
         });

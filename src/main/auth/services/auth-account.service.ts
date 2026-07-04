@@ -111,7 +111,6 @@ export class AuthAccountService {
                 throw new UnauthorizedException("Invalid credentials");
             }
 
-
             if (user.status !== "ACTIVE") {
                 throw new BadRequestException("Account is not active");
             }
@@ -132,7 +131,6 @@ export class AuthAccountService {
                     .catch(() => {});
                 throw new UnauthorizedException("Invalid credentials");
             }
-
 
             await this.systemHealthService.recordLoginAttempt(true).catch(() => {});
 

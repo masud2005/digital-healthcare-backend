@@ -15,7 +15,7 @@ export class ContactPartnerSectionController {
     get() {
         return this.service.get();
     }
-    
+
     @Patch()
     @UseGuards(JwtAuthGuard, RolesGuard)
     @Roles("ADMIN")

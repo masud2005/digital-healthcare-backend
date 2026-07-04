@@ -7,7 +7,10 @@ export class UpdateContactPartnerSectionDto {
     @IsString()
     sectionTitle?: string;
 
-    @ApiPropertyOptional({ type: [String], description: "Array of attachment IDs for partner logos" })
+    @ApiPropertyOptional({
+        type: [String],
+        description: "Array of attachment IDs for partner logos",
+    })
     @IsOptional()
     @IsArray()
     @IsString({ each: true })

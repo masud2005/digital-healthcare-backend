@@ -80,13 +80,13 @@ export const websiteManageSeed = async (prisma: PrismaClient) => {
     const existingContactSideWidget = await prisma.contactSideWidget.findFirst();
     if (!existingContactSideWidget) {
         await prisma.contactSideWidget.create({
-            data: { 
-                title: "Office Hours", 
+            data: {
+                title: "Office Hours",
                 opening: "Monday - Friday: 9 AM - 6 PM",
                 offDay: "Our Office is closed from 2 PM to 3 PM for lunch during the week.",
                 phone: "(720) 279-1164",
-                email: "info@wlmd.net"
-            }
+                email: "info@wlmd.net",
+            },
         });
         console.log("✅ Seeded Contact Side Widget");
     }
@@ -95,9 +95,9 @@ export const websiteManageSeed = async (prisma: PrismaClient) => {
     const existingContactPartnerSection = await prisma.contactPartnerSection.findFirst();
     if (!existingContactPartnerSection) {
         await prisma.contactPartnerSection.create({
-            data: { 
-                sectionTitle: "Our partner pharmacies" 
-            }
+            data: {
+                sectionTitle: "Our partner pharmacies",
+            },
         });
         console.log("✅ Seeded Contact Partner Section");
     }

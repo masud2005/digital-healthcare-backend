@@ -29,6 +29,6 @@ export class CtaSectionController {
     @Get()
     @ApiOperation({ summary: "Get CTA sections filtered by pageType (Public API)" })
     findAll(@Query() query: GetCtaSectionQueryDto) {
-        return this.ctaSectionService.findAll(query.pageType);
+        return this.ctaSectionService.findAll(query);
     }
 }
