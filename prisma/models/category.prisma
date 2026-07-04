@@ -24,6 +24,7 @@ model Category {
   servicePageHeroSection   ServicePageHeroSection?
   servicePageSecondSection ServicePageSecondSection?
   servicePageFaqSection    ServicePageFaqSection?
+  ctaSections              BottomCtaSection[]
 
   createdAt     DateTime       @default(now())
   updatedAt     DateTime       @updatedAt

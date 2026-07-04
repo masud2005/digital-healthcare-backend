@@ -1,0 +1,23 @@
+model Newsletter {
+  id        String   @id @default(uuid())
+  email     String   @unique
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@map("newsletters")
+}
+
+model MailQueue {
+  id        String   @id @default(uuid())
+  to        String
+  subject   String
+  body      String   @db.Text
+  status    String   @default("pending") // "pending", "processing", "completed", "failed"
+  attempts  Int      @default(0)
+  error     String?
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@index([status])
+  @@map("mail_queue")
+}

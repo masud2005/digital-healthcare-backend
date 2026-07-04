@@ -15,6 +15,7 @@ model Product {
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+  status    String   @default("publish")
 
   @@index([categoryId])
   @@index([name])

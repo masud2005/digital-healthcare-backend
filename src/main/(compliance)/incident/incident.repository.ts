@@ -59,7 +59,6 @@ export class IncidentRepository {
         return result[0] ?? null;
     }
 
-
     async findAll(params: IncidentFindAllParams) {
         const { page, limit } = params;
         const where = this.buildWhere(params);
