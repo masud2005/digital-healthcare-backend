@@ -220,4 +220,29 @@ export class StateCoverageService implements OnModuleInit {
         await this.findOne(id);
         return this.stateCoverageRepository.delete(id);
     }
+
+    async checkAvailability(query: { categoryId?: string; stateId?: string }) {
+        const data = await this.stateCoverageRepository.checkAvailability({
+            categoryId: query.categoryId,
+            stateId: query.stateId,
+        });
+
+        // Resolve restricted categories for each state
+        const allCategories = await this.prisma.category.findMany({
+            where: { status: "ACTIVE" },
+            select: { id: true, name: true },
+        });
+
+        return data.map((state) => {
+            const allowedIds = new Set(state.allowedCategories.map((c) => c.id));
+            const restrictedCategories = state.isComingSoon
+                ? []
+                : allCategories.filter((c) => !allowedIds.has(c.id));
+
+            return {
+                ...state,
+                restrictedCategories,
+            };
+        });
+    }
 }
