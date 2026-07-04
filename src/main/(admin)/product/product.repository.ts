@@ -10,6 +10,7 @@ type ProductCreateData = {
     stockQuantity?: number | null;
     description?: string | null;
     categoryId: string;
+    status?: string;
     variants?: Array<{
         size: string;
         price: string;
@@ -25,6 +26,7 @@ type ProductUpdateData = {
     stockQuantity?: number | null;
     description?: string | null;
     categoryId?: string;
+    status?: string;
     variants?: Array<{
         size: string;
         price: string;

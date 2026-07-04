@@ -11,6 +11,9 @@ import { ProductQueryDto } from "./dto/product-query.dto";
 import { UpdateProductDto } from "./dto/update-product.dto";
 import { ProductRepository } from "./product.repository";
 
+import { MailQueueService } from "@global/mail-queue/mail-queue.service";
+import { PrismaService } from "@global/prisma/prisma.service";
+
 const DEFAULT_PAGE = 1;
 const DEFAULT_LIMIT = 10;
 
@@ -19,6 +22,8 @@ export class ProductService {
     constructor(
         private readonly productRepository: ProductRepository,
         private readonly storageService: StorageService,
+        private readonly prisma: PrismaService,
+        private readonly mailQueueService: MailQueueService,
     ) {}
 
     async create(payload: CreateProductDto) {
@@ -32,6 +37,35 @@ export class ProductService {
 
         try {
             const product = await this.productRepository.create(data);
+
+            if (product.status === "publish") {
+                const subscribers = await this.prisma.newsletter.findMany({
+                    select: { email: true },
+                });
+                if (subscribers.length > 0) {
+                    const categoryName = product.category?.name || "General";
+                    const resolvedProduct = await this.resolveProductImages(product);
+                    const imageUrl = resolvedProduct.images?.[0]?.fileUrl || null;
+
+                    const emailBody = this.mailQueueService.getProductTemplate({
+                        productName: product.name,
+                        price: product.price ? String(product.price) : null,
+                        description: product.description,
+                        categoryName,
+                        slug: product.slug,
+                        imageUrl,
+                    });
+
+                    for (const sub of subscribers) {
+                        await this.mailQueueService.queueMail(
+                            sub.email,
+                            `New Product Alert: ${product.name}`,
+                            emailBody,
+                        );
+                    }
+                }
+            }
+
             return this.resolveProductImages(product);
         } catch (error) {
             this.throwKnownPrismaError(error);
@@ -217,6 +251,7 @@ export class ProductService {
             stockQuantity: payload.stockQuantity ?? 0,
             description: this.parseDescription(payload.description),
             categoryId: payload.categoryId,
+            status: payload.status?.trim() || "publish",
             variants: payload.variants
                 ? payload.variants.map((v) => ({
                       size: v.size.trim(),
@@ -236,6 +271,7 @@ export class ProductService {
             stockQuantity?: number;
             description?: string | null;
             categoryId?: string;
+            status?: string;
             variants?: Array<{
                 size: string;
                 price: string;
@@ -275,6 +311,10 @@ export class ProductService {
 
         if (payload.categoryId !== undefined) {
             data.categoryId = payload.categoryId;
+        }
+
+        if (payload.status !== undefined) {
+            data.status = payload.status?.trim();
         }
 
         if (Object.keys(data).length === 0) {
