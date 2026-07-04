@@ -247,5 +247,12 @@ export const pageType = [
     "Faq",
     "BillingCancellation",
     "ShippingInfo",
+    "AboutUs",
+    "ContactUs",
+    "PrivacyPolicy",
+    "TermsOfService",
+    "HippaNotice",
+    "ReportSideEffect",
+    "RequestRecord",
 ] as const;
 export type PageType = (typeof pageType)[number];

@@ -57,15 +57,17 @@ export class GoogleReviewService {
             return [];
         }
 
-        return data.reviews.map((review: any): GooglePlaceReview => ({
-            // `review.name` is the stable unique identifier for this review across calls
-            googleReviewId: review.name as string,
-            clientName: review.authorAttribution?.displayName ?? "Anonymous",
-            profilePhotoUrl: review.authorAttribution?.photoUri,
-            rating: review.rating ?? 0,
-            // Places API v1 returns localised text object: { text, languageCode }
-            feedback: review.text?.text ?? "",
-            date: review.publishTime ? new Date(review.publishTime) : new Date(),
-        }));
+        return data.reviews.map(
+            (review: any): GooglePlaceReview => ({
+                // `review.name` is the stable unique identifier for this review across calls
+                googleReviewId: review.name as string,
+                clientName: review.authorAttribution?.displayName ?? "Anonymous",
+                profilePhotoUrl: review.authorAttribution?.photoUri,
+                rating: review.rating ?? 0,
+                // Places API v1 returns localised text object: { text, languageCode }
+                feedback: review.text?.text ?? "",
+                date: review.publishTime ? new Date(review.publishTime) : new Date(),
+            }),
+        );
     }
 }

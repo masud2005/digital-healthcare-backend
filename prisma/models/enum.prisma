@@ -193,6 +193,13 @@ enum PageType {
   Faq
   BillingCancellation
   ShippingInfo
+  AboutUs
+  ContactUs
+  PrivacyPolicy
+  TermsOfService
+  HippaNotice
+  ReportSideEffect
+  RequestRecord
 }
 
 enum PaymentItemType {

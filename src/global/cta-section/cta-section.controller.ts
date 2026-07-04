@@ -1,14 +1,6 @@
 import { Roles } from "@common/decorators";
 import { JwtAuthGuard, RolesGuard } from "@common/guards";
-import {
-    Body,
-    Controller,
-    Get,
-    Param,
-    Patch,
-    Query,
-    UseGuards,
-} from "@nestjs/common";
+import { Body, Controller, Get, Param, Patch, Query, UseGuards } from "@nestjs/common";
 import {
     ApiBearerAuth,
     ApiOperation,

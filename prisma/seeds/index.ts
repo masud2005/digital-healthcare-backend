@@ -10,6 +10,7 @@ import { communicationTemplateSeed } from "./communicationTemplateSeed";
 import { permissionSeed } from "./permissionSeed";
 import { blogSeed } from "./blogSeed";
 import { pageSectionsSeed } from "./pageSectionsSeed";
+import { heroSeed } from "./heroSeed";
 
 expand(config({ path: path.resolve(process.cwd(), ".env") }));
 
@@ -26,6 +27,7 @@ async function main() {
     await communicationTemplateSeed(prisma);
     await blogSeed(prisma);
     await pageSectionsSeed(prisma);
+    await heroSeed(prisma);
     console.log("✅ Prisma seed finished");
 }
 
