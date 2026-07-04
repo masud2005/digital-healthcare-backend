@@ -3,16 +3,16 @@ model HowItWorks {
 
   // How It Works Section
   sectionTitle       String
-  sectionDescription String  @db.Text
-  steps              Json?   // Array of { title: string, timeline: string, description: string }
+  sectionDescription String @db.Text
+  steps              Json? // Array of { title: string, timeline: string, description: string }
 
   // Disclaimer Section
   disclaimerTitle       String
-  disclaimerDescription String  @db.Text
+  disclaimerDescription String @db.Text
 
   // FAQ Section
   faqSectionTitle String
-  faqs            Json?   // Array of { question: string, answer: string }
+  faqs            Json? // Array of { question: string, answer: string }
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
