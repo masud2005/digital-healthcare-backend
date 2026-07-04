@@ -3,6 +3,7 @@ import { AttachmentModule } from "@global/attachment/attachment.module";
 import { CloverModule } from "@global/clover/clover.module";
 import { CommunicationModule } from "@global/communication/communication.module";
 import { CtaSectionModule } from "@global/cta-section/cta-section.module";
+import { FaqModule } from "@global/faq/faq.module";
 import { HeroSectionModule } from "@global/hero-section/hero-section.module";
 import { SideWidgetModule } from "@global/side-widget/side-widget.module";
 import { MailQueueModule } from "@global/mail-queue/mail-queue.module";
@@ -20,6 +21,7 @@ import { MainModule } from "./main/main.module";
         CloverModule,
         CtaSectionModule,
         HeroSectionModule,
+        FaqModule,
         SideWidgetModule,
         MailQueueModule,
         ScheduleModule.forRoot(),

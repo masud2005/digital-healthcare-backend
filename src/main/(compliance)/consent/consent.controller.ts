@@ -70,7 +70,6 @@ export class ConsentController {
         return this.consentService.findAll(query);
     }
 
-
     @Get("export")
     @UseGuards(JwtAuthGuard, PermissionsGuard)
     @RequirePermissions(AppPermission.VIEW_CONSENT_MANAGEMENT)
@@ -157,5 +156,3 @@ export class ConsentController {
         await this.consentService.remove(id);
     }
 }
-
-
