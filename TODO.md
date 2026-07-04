@@ -2,9 +2,9 @@
 
 - [x] About us page need be dynamic
 - [x] How it works
-- [ ] Eligibility
-
+- [x] Eligibility
 - [ ] Billing & cancel
-- [ ] Report & side effect
-- [ ] Request your record
+
+- [x] Report & side effect
+- [x] Request your record
 - [ ] Shipping info

@@ -10,6 +10,7 @@ import { LabTestingModule } from "./lab-testing/lab-testing.module";
 import { ReportSideEffectModule } from "./report-side-effect/report-side-effect.module";
 import { AboutUsModule } from "./about-us/about-us.module";
 import { HowItWorksModule } from "./how-it-works/how-it-works.module";
+import { EligibilityModule } from "./eligibility/eligibility.module";
 
 @Module({
     imports: [
@@ -24,6 +25,7 @@ import { HowItWorksModule } from "./how-it-works/how-it-works.module";
         ReportSideEffectModule,
         AboutUsModule,
         HowItWorksModule,
+        EligibilityModule,
     ],
 })
 export class WebsiteManageModule {}
