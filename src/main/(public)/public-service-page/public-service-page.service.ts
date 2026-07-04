@@ -40,11 +40,15 @@ export class PublicServicePageService {
         });
 
         if (heroSection?.bannerImage) {
-            heroSection.bannerImage.fileUrl = await this.storageService.getSignedUrl(heroSection.bannerImage.fileUrl);
+            heroSection.bannerImage.fileUrl = await this.storageService.getSignedUrl(
+                heroSection.bannerImage.fileUrl,
+            );
         }
 
         if (secondSection?.featuredMedia) {
-            secondSection.featuredMedia.fileUrl = await this.storageService.getSignedUrl(secondSection.featuredMedia.fileUrl);
+            secondSection.featuredMedia.fileUrl = await this.storageService.getSignedUrl(
+                secondSection.featuredMedia.fileUrl,
+            );
         }
 
         return {
