@@ -1,5 +1,12 @@
 import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
-import { IsBoolean, IsArray, IsOptional, IsString, ValidateNested, IsNumber } from "class-validator";
+import {
+    IsBoolean,
+    IsArray,
+    IsOptional,
+    IsString,
+    ValidateNested,
+    IsNumber,
+} from "class-validator";
 import { Type } from "class-transformer";
 
 export class UpdateServicePageHeroSectionDto {

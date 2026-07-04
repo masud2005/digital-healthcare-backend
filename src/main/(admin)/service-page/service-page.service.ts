@@ -41,11 +41,15 @@ export class AdminServicePageService {
         });
 
         if (heroSection?.bannerImage) {
-            heroSection.bannerImage.fileUrl = await this.storageService.getSignedUrl(heroSection.bannerImage.fileUrl);
+            heroSection.bannerImage.fileUrl = await this.storageService.getSignedUrl(
+                heroSection.bannerImage.fileUrl,
+            );
         }
 
         if (secondSection?.featuredMedia) {
-            secondSection.featuredMedia.fileUrl = await this.storageService.getSignedUrl(secondSection.featuredMedia.fileUrl);
+            secondSection.featuredMedia.fileUrl = await this.storageService.getSignedUrl(
+                secondSection.featuredMedia.fileUrl,
+            );
         }
 
         return {
@@ -144,16 +148,35 @@ export class AdminServicePageService {
                 });
             }
 
-            const updatedHeroSection = heroSection || (await tx.servicePageHeroSection.findUnique({ where: { categoryId }, include: { bannerImage: true } }));
-            const updatedSecondSection = secondSection || (await tx.servicePageSecondSection.findUnique({ where: { categoryId }, include: { featuredMedia: true } }));
-            const updatedFaqSection = faqSection || (await tx.servicePageFaqSection.findUnique({ where: { categoryId }, include: { faqs: true } }));
+            const updatedHeroSection =
+                heroSection ||
+                (await tx.servicePageHeroSection.findUnique({
+                    where: { categoryId },
+                    include: { bannerImage: true },
+                }));
+            const updatedSecondSection =
+                secondSection ||
+                (await tx.servicePageSecondSection.findUnique({
+                    where: { categoryId },
+                    include: { featuredMedia: true },
+                }));
+            const updatedFaqSection =
+                faqSection ||
+                (await tx.servicePageFaqSection.findUnique({
+                    where: { categoryId },
+                    include: { faqs: true },
+                }));
 
             if (updatedHeroSection?.bannerImage) {
-                updatedHeroSection.bannerImage.fileUrl = await this.storageService.getSignedUrl(updatedHeroSection.bannerImage.fileUrl);
+                updatedHeroSection.bannerImage.fileUrl = await this.storageService.getSignedUrl(
+                    updatedHeroSection.bannerImage.fileUrl,
+                );
             }
 
             if (updatedSecondSection?.featuredMedia) {
-                updatedSecondSection.featuredMedia.fileUrl = await this.storageService.getSignedUrl(updatedSecondSection.featuredMedia.fileUrl);
+                updatedSecondSection.featuredMedia.fileUrl = await this.storageService.getSignedUrl(
+                    updatedSecondSection.featuredMedia.fileUrl,
+                );
             }
 
             return {

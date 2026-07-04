@@ -1,0 +1,16 @@
+model SideWidget {
+  id         String   @id @default(uuid())
+  page       PageType
+  title      String?  @db.VarChar(255)
+  buttonText String?  @db.VarChar(100)
+  buttonUrl  String?  @db.VarChar(255)
+  isBlank    Boolean  @default(false)
+
+  imageId String?
+  image   Attachment? @relation(fields: [imageId], references: [id], onDelete: SetNull)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("side_widget")
+}
