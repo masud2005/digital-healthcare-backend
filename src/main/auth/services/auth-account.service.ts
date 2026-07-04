@@ -104,11 +104,13 @@ export class AuthAccountService {
                         userRole: "Unknown",
                         activityType: "Login",
                         event: "Failed login attempt — account not found",
+                        ipAddress: context?.ipAddress ?? undefined,
                         status: "FAILED",
                     })
                     .catch(() => {});
                 throw new UnauthorizedException("Invalid credentials");
             }
+
 
             if (user.status !== "ACTIVE") {
                 throw new BadRequestException("Account is not active");
@@ -124,11 +126,13 @@ export class AuthAccountService {
                         userRole,
                         activityType: "Login",
                         event: "Failed login attempt — invalid credentials",
+                        ipAddress: context?.ipAddress ?? undefined,
                         status: "FAILED",
                     })
                     .catch(() => {});
                 throw new UnauthorizedException("Invalid credentials");
             }
+
 
             await this.systemHealthService.recordLoginAttempt(true).catch(() => {});
 
