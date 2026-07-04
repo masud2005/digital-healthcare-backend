@@ -76,6 +76,49 @@ export class ConsentService implements OnModuleInit {
         });
     }
 
+    async confirmCookies(payload: { analytics: boolean; marketing: boolean; source?: any }, loggedInUser?: AuthenticatedUser) {
+        const userId = loggedInUser?.id ?? null;
+        let userName: string | null = null;
+        let email: string | null = null;
+
+        if (userId) {
+            const user = await this.prisma.user.findUnique({
+                where: { id: userId },
+            });
+            if (user) {
+                userName = user.name || null;
+                email = user.email || null;
+            }
+        }
+
+        const source = payload.source ?? "WEB";
+
+        const results = await Promise.all([
+            this.consentRepository.create({
+                userId,
+                userName,
+                email,
+                type: "ANALYTICS",
+                status: payload.analytics ? "ACCEPTED" : "REVOKED",
+                source,
+            }),
+            this.consentRepository.create({
+                userId,
+                userName,
+                email,
+                type: "MARKETING",
+                status: payload.marketing ? "ACCEPTED" : "REVOKED",
+                source,
+            }),
+        ]);
+
+        return {
+            analytics: results[0],
+            marketing: results[1],
+        };
+    }
+
+
     async getStats() {
         return this.consentRepository.getStats();
     }

@@ -188,6 +188,16 @@ const defaultPermissions = [
         name: "View System Health",
         description: "Access system health checks",
     },
+    {
+        key: "view:newsletter",
+        name: "View Newsletter",
+        description: "Access to view newsletter subscriber list and stats",
+    },
+    {
+        key: "manage:newsletter",
+        name: "Manage Newsletter",
+        description: "Manage newsletter subscriber list and configurations",
+    },
 ];
 
 export async function permissionSeed(prisma: PrismaClient) {

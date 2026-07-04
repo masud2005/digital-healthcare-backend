@@ -26,4 +26,9 @@ export class UpdateCtaSectionDto {
     @IsOptional()
     @IsBoolean()
     openInNewTab?: boolean;
+
+    @ApiPropertyOptional()
+    @IsOptional()
+    @IsString()
+    categoryId?: string;
 }

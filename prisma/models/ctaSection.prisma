@@ -3,6 +3,9 @@ model BottomCtaSection {
 
   page PageType
 
+  categoryId String?
+  category   Category? @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+
   sectionTitle  String @db.VarChar(255)
   ctaButtonText String @db.VarChar(100)
   url           String @db.Text

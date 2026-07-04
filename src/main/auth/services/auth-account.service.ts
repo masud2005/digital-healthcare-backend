@@ -4,10 +4,12 @@ import {
     BadRequestException,
     ConflictException,
     Injectable,
+    Logger,
     NotFoundException,
     UnauthorizedException,
 } from "@nestjs/common";
 import { AuditLogService } from "../../(compliance)/audit-log/audit-log.service";
+import { ConsentRepository } from "../../(compliance)/consent/consent.repository";
 import { NotificationService } from "../../notification/notification.service";
 import { AuthRepository } from "../auth.repository";
 import { LoginDto } from "../dto/login.dto";
@@ -18,6 +20,8 @@ import { AuthSharedService } from "./auth-shared.service";
 
 @Injectable()
 export class AuthAccountService {
+    private readonly logger = new Logger(AuthAccountService.name);
+
     constructor(
         private readonly authRepository: AuthRepository,
         private readonly authSharedService: AuthSharedService,
@@ -26,6 +30,7 @@ export class AuthAccountService {
         private readonly storageService: StorageService,
         private readonly notificationService: NotificationService,
         private readonly authSessionService: AuthSessionService,
+        private readonly consentRepository: ConsentRepository,
     ) {}
 
     async register(payload: RegisterDto) {
@@ -58,6 +63,20 @@ export class AuthAccountService {
         if (!user) {
             throw new NotFoundException("User not found");
         }
+
+        // Auto-record DATA_PROCESSING consent on registration internally
+        await this.consentRepository
+            .create({
+                userId: user.id,
+                userName: email,
+                email: email,
+                type: "DATA_PROCESSING",
+                status: "ACCEPTED",
+                source: "WEB",
+            })
+            .catch((err) => {
+                this.logger.error(`Failed to auto-create DATA_PROCESSING consent for user ${user.id}`, err);
+            });
 
         // Audit log: new registration
         this.auditLogService
@@ -111,7 +130,6 @@ export class AuthAccountService {
                 throw new UnauthorizedException("Invalid credentials");
             }
 
-
             if (user.status !== "ACTIVE") {
                 throw new BadRequestException("Account is not active");
             }
@@ -132,7 +150,6 @@ export class AuthAccountService {
                     .catch(() => {});
                 throw new UnauthorizedException("Invalid credentials");
             }
-
 
             await this.systemHealthService.recordLoginAttempt(true).catch(() => {});
 
