@@ -102,5 +102,73 @@ export const websiteManageSeed = async (prisma: PrismaClient) => {
         console.log("✅ Seeded Contact Partner Section");
     }
 
+    // Seed Lab Testing Hero
+    const existingLabTestingHero = await prisma.labTestingHero.findFirst();
+    if (!existingLabTestingHero) {
+        await prisma.labTestingHero.create({
+            data: {
+                title: "WLMD Lab Tests",
+                description: "Learn about our extensive lab testing services.",
+                buttonText: "Book a consultation",
+                buttonUrl: "https://weightlossmd.com",
+                isBlank: true,
+            },
+        });
+        console.log("✅ Seeded Lab Testing Hero");
+    }
+
+    // Seed Lab Testing Section
+    const existingLabTestingSection = await prisma.labTestingSection.findFirst();
+    if (!existingLabTestingSection) {
+        await prisma.labTestingSection.create({
+            data: {
+                sectionTitle: "See what's inside the panel",
+                sectionDescription:
+                    "Measure what matters—up to 130 biomarker tests, twice a year on the Advanced plan.",
+            },
+        });
+        console.log("✅ Seeded Lab Testing Section");
+    }
+
+    // Seed Report Side Effect
+    const existingSymptom = await prisma.symptomSeverity.findFirst();
+    if (!existingSymptom) {
+        await prisma.symptomSeverity.createMany({
+            data: [
+                { text: "Mild - Manageable, not affecting daily life", order: 1 },
+                { text: "Moderate - Affecting daily activities", order: 2 },
+                { text: "Severe - Significant impact, may need medical attention", order: 3 },
+                { text: "Life-threatening - Requires immediate emergency care", order: 4 },
+            ],
+        });
+        console.log("✅ Seeded Symptom Severity");
+    }
+
+    const existingWidget = await prisma.emergencyContactWidget.findFirst();
+    if (!existingWidget) {
+        await prisma.emergencyContactWidget.create({
+            data: {
+                sectionTitle: "Billing FAQ",
+                contacts: {
+                    create: [
+                        {
+                            title: "Emergency Line",
+                            contact: "911",
+                            notes: "For life-threatening emergencies",
+                            order: 1,
+                        },
+                        {
+                            title: "Clinical Support",
+                            contact: "1-800-555-0199",
+                            notes: "Mon-Sun, 7AM-10PM CT",
+                            order: 2,
+                        },
+                    ],
+                },
+            },
+        });
+        console.log("✅ Seeded Emergency Contact Widget");
+    }
+
     console.log("✅ Website Manage seeding completed!");
 };

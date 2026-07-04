@@ -1,29 +1,29 @@
 model Faq {
-    id String @id @default(uuid())
+  id String @id @default(uuid())
 
-    sectionTitle String   @db.VarChar(255)
-    pageType     PageType
+  sectionTitle String   @db.VarChar(255)
+  pageType     PageType
 
-    faqs FaqItem[]
+  faqs FaqItem[]
 
-    createdAt DateTime @default(now())
-    updatedAt DateTime @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
-    @@map("faqs")
+  @@map("faqs")
 }
 
 model FaqItem {
-    id    String @id @default(uuid())
-    faqId String
-    faq   Faq    @relation(fields: [faqId], references: [id], onDelete: Cascade)
+  id    String @id @default(uuid())
+  faqId String
+  faq   Faq    @relation(fields: [faqId], references: [id], onDelete: Cascade)
 
-    question String @db.Text
-    answer   String @db.Text
+  question String @db.Text
+  answer   String @db.Text
 
-    order Int @default(0)
+  order Int @default(0)
 
-    createdAt DateTime @default(now())
-    updatedAt DateTime @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
-    @@map("faq_items")
+  @@map("faq_items")
 }

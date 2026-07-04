@@ -6,6 +6,9 @@ import { CoverageSectionModule } from "./coverage-section/coverage-section.modul
 import { MedicalTeamSectionModule } from "./medical-team-section/medical-team-section.module";
 import { ContactSideWidgetModule } from "./contact-side-widget/contact-side-widget.module";
 import { ContactPartnerSectionModule } from "./contact-partner-section/contact-partner-section.module";
+import { LabTestingModule } from "./lab-testing/lab-testing.module";
+import { ReportSideEffectModule } from "./report-side-effect/report-side-effect.module";
+import { AboutUsModule } from "./about-us/about-us.module";
 
 @Module({
     imports: [
@@ -16,6 +19,9 @@ import { ContactPartnerSectionModule } from "./contact-partner-section/contact-p
         MedicalTeamSectionModule,
         ContactSideWidgetModule,
         ContactPartnerSectionModule,
+        LabTestingModule,
+        ReportSideEffectModule,
+        AboutUsModule,
     ],
 })
 export class WebsiteManageModule {}
