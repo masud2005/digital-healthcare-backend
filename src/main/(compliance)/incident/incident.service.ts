@@ -136,22 +136,41 @@ export class IncidentService implements OnModuleInit {
         source?: CreateIncidentDto["source"];
         metadata?: any;
     }) {
-        const incidentId = await this.getNextIncidentId();
-        try {
-            return await this.incidentRepository.create({
-                incidentId,
-                type: payload.type,
-                severity: payload.severity,
-                reportedBy: payload.reportedBy,
-                affectedSystem: payload.affectedSystem,
-                description: payload.description,
-                status: payload.status ?? "OPEN",
-                source: payload.source ?? "SYSTEM_MONITORING",
-                metadata: payload.metadata ?? {},
-                isActive: true,
-            });
-        } catch (error) {
-            this.logger.error(`Failed to trigger internal incident ${incidentId}`, error as Error);
+        const MAX_RETRIES = 3;
+
+        for (let attempt = 1; attempt <= MAX_RETRIES; attempt++) {
+            const incidentId = await this.getNextIncidentId();
+            try {
+                return await this.incidentRepository.create({
+                    incidentId,
+                    type: payload.type,
+                    severity: payload.severity,
+                    reportedBy: payload.reportedBy,
+                    affectedSystem: payload.affectedSystem,
+                    description: payload.description,
+                    status: payload.status ?? "OPEN",
+                    source: payload.source ?? "SYSTEM_MONITORING",
+                    metadata: payload.metadata ?? {},
+                    isActive: true,
+                });
+            } catch (error) {
+                const prismaError = error as { code?: string };
+
+                if (prismaError.code === "P2002" && attempt < MAX_RETRIES) {
+                    // Race condition: another concurrent incident was inserted with the same ID.
+                    // Re-fetch the latest and retry with a fresh incremented ID.
+                    this.logger.warn(
+                        `incidentId collision on "${incidentId}" (attempt ${attempt}/${MAX_RETRIES}), retrying with a fresh ID...`,
+                    );
+                    continue;
+                }
+
+                this.logger.error(
+                    `Failed to trigger internal incident "${incidentId}" after ${attempt} attempt(s)`,
+                    error as Error,
+                );
+                return undefined;
+            }
         }
     }
 

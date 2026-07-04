@@ -51,5 +51,30 @@ export const websiteManageSeed = async (prisma: PrismaClient) => {
         console.log("✅ Seeded Terms of Service");
     }
 
+    // Seed Coverage Section
+    const existingCoverage = await prisma.coverageSection.findFirst();
+    if (!existingCoverage) {
+        await prisma.coverageSection.create({
+            data: {
+                title: "Our Coverage",
+                description: "We provide comprehensive coverage across multiple states.",
+            },
+        });
+        console.log("✅ Seeded Coverage Section");
+    }
+
+    // Seed Medical Team Section
+    const existingMedicalTeam = await prisma.medicalTeamSection.findFirst();
+    if (!existingMedicalTeam) {
+        await prisma.medicalTeamSection.create({
+            data: {
+                title: "Meet Our Medical Team",
+                description:
+                    "Our team consists of highly qualified professionals dedicated to your health.",
+            },
+        });
+        console.log("✅ Seeded Medical Team Section");
+    }
+
     console.log("✅ Website Manage seeding completed!");
 };

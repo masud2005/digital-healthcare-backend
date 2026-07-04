@@ -112,6 +112,29 @@ export class StateCoverageRepository {
         });
     }
 
+    async checkAvailability(params: { categoryId?: string; stateId?: string }) {
+        const { categoryId, stateId } = params;
+
+        const where: Prisma.StateCoverageWhereInput = {
+            ...(stateId ? { id: stateId } : {}),
+            ...(categoryId
+                ? {
+                      allowedCategories: {
+                          some: {
+                              id: categoryId,
+                          },
+                      },
+                  }
+                : {}),
+        };
+
+        return this.prisma.stateCoverage.findMany({
+            where,
+            include: stateInclude,
+            orderBy: { stateName: "asc" },
+        });
+    }
+
     private buildWhere(params: StateCoverageFindAllParams): Prisma.StateCoverageWhereInput {
         return {
             ...(params.status ? { status: params.status } : {}),
