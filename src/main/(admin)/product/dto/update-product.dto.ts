@@ -65,4 +65,9 @@ export class UpdateProductDto {
     @IsOptional()
     @IsUUID()
     categoryId?: string;
+
+    @ApiPropertyOptional({ example: "publish", enum: ["draft", "publish"] })
+    @IsOptional()
+    @IsString()
+    status?: string;
 }

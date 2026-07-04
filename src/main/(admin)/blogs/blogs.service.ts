@@ -7,6 +7,8 @@ import { CreateBlogDto } from "./dto/create-blog.dto";
 import { UpdateBlogDto } from "./dto/update-blog.dto";
 import { BlogQueryDto } from "./dto/blog-query.dto";
 
+import { MailQueueService } from "@global/mail-queue/mail-queue.service";
+
 const DEFAULT_PAGE = 1;
 const DEFAULT_LIMIT = 10;
 
@@ -16,6 +18,7 @@ export class BlogsService {
         private readonly blogsRepository: BlogsRepository,
         private readonly prisma: PrismaService,
         private readonly storageService: StorageService,
+        private readonly mailQueueService: MailQueueService,
     ) {}
 
     async create(payload: CreateBlogDto, authorId: string) {
@@ -39,6 +42,36 @@ export class BlogsService {
         };
 
         const blog = await this.blogsRepository.create(blogData);
+
+        if (blog.isPublished) {
+            const subscribers = await this.prisma.newsletter.findMany({
+                select: { email: true },
+            });
+            if (subscribers.length > 0) {
+                const categoryName = blog.category?.name || "General";
+                // Strip HTML from blog content for email description snippet
+                const cleanContent = blog.content.replace(/<[^>]*>/g, "").substring(0, 200) + "...";
+                const resolvedBlog = await this.resolveUrls(blog);
+                const imageUrl = resolvedBlog.featuredImage?.fileUrl || null;
+
+                const emailBody = this.mailQueueService.getBlogTemplate({
+                    blogTitle: blog.title,
+                    description: cleanContent,
+                    categoryName,
+                    slug: blog.slug,
+                    imageUrl,
+                });
+
+                for (const sub of subscribers) {
+                    await this.mailQueueService.queueMail(
+                        sub.email,
+                        `New Blog Published: ${blog.title}`,
+                        emailBody,
+                    );
+                }
+            }
+        }
+
         return this.resolveUrls(blog);
     }
 

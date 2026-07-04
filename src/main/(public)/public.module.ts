@@ -7,6 +7,7 @@ import { PublicWebsiteModule } from "./public-website/public-website.module";
 import { PublicSideEffectReportModule } from "./public-side-effect-report/public-side-effect-report.module";
 import { PublicProductModule } from "./public-product/public-product.module";
 import { PublicServicePageModule } from "./public-service-page/public-service-page.module";
+import { PublicNewsletterModule } from "./public-newsletter/public-newsletter.module";
 
 @Module({
     imports: [
@@ -18,6 +19,7 @@ import { PublicServicePageModule } from "./public-service-page/public-service-pa
         PublicSideEffectReportModule,
         PublicProductModule,
         PublicServicePageModule,
+        PublicNewsletterModule,
     ],
 })
 export class PublicModule {}
