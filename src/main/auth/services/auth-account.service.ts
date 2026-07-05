@@ -420,10 +420,22 @@ export class AuthAccountService {
         for (const session of activeSessions) {
             const isCurrentSession = session.id === currentSessionId;
             // Determine device name based on platform or name
-            let deviceName = session.device?.name || "Unknown device";
+            let deviceName = session.device?.name || undefined;
             if (session.device?.platform) {
                 deviceName = `${session.device.platform} device`;
             }
+
+            // Fallback to basic User-Agent parsing if headers were missing
+            if (!deviceName && session.device?.userAgent) {
+                const ua = session.device.userAgent.toLowerCase();
+                if (ua.includes("android")) deviceName = "Android device";
+                else if (ua.includes("iphone") || ua.includes("ipad")) deviceName = "iOS device";
+                else if (ua.includes("windows")) deviceName = "Windows PC";
+                else if (ua.includes("mac")) deviceName = "Mac";
+                else if (ua.includes("linux")) deviceName = "Linux PC";
+            }
+
+            deviceName = deviceName || "Unknown device";
 
             if (!devicesMap.has(deviceName)) {
                 devicesMap.set(deviceName, {

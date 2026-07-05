@@ -49,6 +49,7 @@ export class AuthProfileController {
         return this.authAccountService.updatePreference(user.id, dto);
     }
 
+    // All sessions of current user
     @Get("sessions")
     @ApiOperation({ summary: "Get current authenticated user device sessions" })
     getSessions(@Req() req: any) {

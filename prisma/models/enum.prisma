@@ -259,6 +259,19 @@ enum RefundStatus {
   REJECTED
 }
 
+enum RequestRecordStatus {
+  PENDING
+  REVIEWED
+  COMPLETED
+}
+
+enum RequestRecordType {
+  MEDICAL_RECORDS
+  PRESCRIPTION_HISTORY
+  BILLING_RECORDS
+  ACCOUNT_DELETION
+}
+
 enum SideEffectSeverity {
   MILD
   MODERATE
