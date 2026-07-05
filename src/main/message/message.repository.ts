@@ -80,18 +80,22 @@ export class MessageRepository {
             where: {
                 OR: [{ patientId: userId }, { providerId: userId }],
                 ...(search && {
-                    OR: [
+                    AND: [
                         {
-                            patient: {
-                                patientProfile: { name: { contains: search, mode: "insensitive" } },
-                            },
+                            OR: [
+                                {
+                                    patient: {
+                                        patientProfile: { name: { contains: search, mode: "insensitive" } },
+                                    },
+                                },
+                                {
+                                    provider: {
+                                        doctorProfile: { name: { contains: search, mode: "insensitive" } },
+                                    },
+                                },
+                                { service: { name: { contains: search, mode: "insensitive" } } },
+                            ],
                         },
-                        {
-                            provider: {
-                                doctorProfile: { name: { contains: search, mode: "insensitive" } },
-                            },
-                        },
-                        { service: { name: { contains: search, mode: "insensitive" } } },
                     ],
                 }),
             },
