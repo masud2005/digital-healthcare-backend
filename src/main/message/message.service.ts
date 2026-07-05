@@ -285,6 +285,17 @@ export class MessageService {
             throw new ForbiddenException("Access denied");
         }
 
+        // Check if there is an active subscription before allowing to send a message
+        const subscriptionInfo = await this.repo.findServiceInfo(
+            conversation.patientId,
+            conversation.serviceID,
+        );
+        if (!subscriptionInfo) {
+            throw new ForbiddenException(
+                "Your active subscription for this service has expired or been cancelled. You can no longer send messages.",
+            );
+        }
+
         // Validate all E2E fields are present and non-empty
         if (!dto.senderCopy || !dto.recipientCopy || !dto.iv || !dto.encryptedKey) {
             throw new BadRequestException("Missing encryption fields");
