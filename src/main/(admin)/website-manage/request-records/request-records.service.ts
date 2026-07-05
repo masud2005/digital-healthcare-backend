@@ -8,8 +8,8 @@ export class RequestRecordsService {
 
     async get() {
         let widgets = await this.prisma.requestRecordWidget.findMany({
-            include: { items: { orderBy: { order: 'asc' } } },
-            orderBy: { order: 'asc' }
+            include: { items: { orderBy: { order: "asc" } } },
+            orderBy: { order: "asc" },
         });
 
         if (widgets.length === 0) {
@@ -24,9 +24,9 @@ export class RequestRecordsService {
                             { text: "Prescription History: 3-5 business days", order: 2 },
                             { text: "Billing Records: 1-3 business days", order: 3 },
                             { text: "Account Deletion: Up to 45 days", order: 4 },
-                        ]
-                    }
-                }
+                        ],
+                    },
+                },
             });
             await this.prisma.requestRecordWidget.create({
                 data: {
@@ -39,21 +39,21 @@ export class RequestRecordsService {
                             { text: "Right to receive an accounting of disclosures", order: 3 },
                             { text: "Right to restrict certain uses", order: 4 },
                             { text: "Right to receive records in electronic format", order: 5 },
-                        ]
-                    }
-                }
+                        ],
+                    },
+                },
             });
-            
+
             widgets = await this.prisma.requestRecordWidget.findMany({
-                include: { items: { orderBy: { order: 'asc' } } },
-                orderBy: { order: 'asc' }
+                include: { items: { orderBy: { order: "asc" } } },
+                orderBy: { order: "asc" },
             });
         }
 
         return {
             success: true,
             message: "Request Records retrieved successfully",
-            data: widgets
+            data: widgets,
         };
     }
 
@@ -61,7 +61,7 @@ export class RequestRecordsService {
         if (dto.widgets) {
             // Delete all existing widgets (cascade will handle items)
             await this.prisma.requestRecordWidget.deleteMany({});
-            
+
             if (dto.widgets.length > 0) {
                 for (let i = 0; i < dto.widgets.length; i++) {
                     const widgetDto = dto.widgets[i];
@@ -72,10 +72,10 @@ export class RequestRecordsService {
                             items: {
                                 create: (widgetDto.items || []).map((item, index) => ({
                                     text: item.text || "",
-                                    order: index
-                                }))
-                            }
-                        }
+                                    order: index,
+                                })),
+                            },
+                        },
                     });
                 }
             }

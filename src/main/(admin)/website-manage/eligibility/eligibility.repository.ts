@@ -16,7 +16,10 @@ export class EligibilityRepository {
         });
     }
 
-    update(id: string, data: Prisma.EligibilityUpdateInput | Prisma.EligibilityUncheckedUpdateInput) {
+    update(
+        id: string,
+        data: Prisma.EligibilityUpdateInput | Prisma.EligibilityUncheckedUpdateInput,
+    ) {
         return this.prisma.eligibility.update({
             where: { id },
             data: data as any,

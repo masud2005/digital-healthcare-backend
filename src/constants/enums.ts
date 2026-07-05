@@ -256,3 +256,14 @@ export const pageType = [
     "RequestRecord",
 ] as const;
 export type PageType = (typeof pageType)[number];
+
+export const requestRecordType = [
+    "MEDICAL_RECORDS",
+    "PRESCRIPTION_HISTORY",
+    "BILLING_RECORDS",
+    "ACCOUNT_DELETION",
+] as const;
+export type RequestRecordType = (typeof requestRecordType)[number];
+
+export const requestRecordStatus = ["PENDING", "REVIEWED", "COMPLETED"] as const;
+export type RequestRecordStatus = (typeof requestRecordStatus)[number];
