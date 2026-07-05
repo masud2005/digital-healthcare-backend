@@ -6,6 +6,7 @@ import { MyOrderModule } from "./my-order/my-order.module";
 import { PaymentModule } from "./payment/payment.module";
 import { ServiceCategoryModule } from "./service/service-category.module";
 import { SubscriptionModule } from "./subscription/subscription.module";
+import { PaymentCardModule } from "./payment-card/payment-card.module";
 
 @Module({
     imports: [
@@ -16,6 +17,7 @@ import { SubscriptionModule } from "./subscription/subscription.module";
         DashboardModule,
         MyOrderModule,
         SubscriptionModule,
+        PaymentCardModule,
     ],
 })
 export class PatientModule {}

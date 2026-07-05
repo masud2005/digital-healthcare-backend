@@ -1,5 +1,5 @@
 import { ApiProperty } from "@nestjs/swagger";
-import { IsNotEmpty, IsString } from "class-validator";
+import { IsNotEmpty, IsOptional, IsString } from "class-validator";
 
 export class AcceptProposalDto {
     @ApiProperty({ example: "CARD" })
@@ -7,23 +7,33 @@ export class AcceptProposalDto {
     @IsNotEmpty()
     paymentMethod: string;
 
-    @ApiProperty({ example: "John Doe" })
+    @ApiProperty({ required: false, description: "ID of a previously saved payment card." })
     @IsString()
-    @IsNotEmpty()
-    cardholderName: string;
+    @IsOptional()
+    savedCardId?: string;
 
-    @ApiProperty({ example: "4111111111111111" })
+    @ApiProperty({ required: false, description: "Clover secure token for frontend tokenization." })
     @IsString()
-    @IsNotEmpty()
-    cardNumber: string;
+    @IsOptional()
+    cloverToken?: string;
 
-    @ApiProperty({ example: "12/27" })
+    @ApiProperty({ required: false, example: "John Doe" })
     @IsString()
-    @IsNotEmpty()
-    expiryDate: string;
+    @IsOptional()
+    cardholderName?: string;
 
-    @ApiProperty({ example: "123" })
+    @ApiProperty({ required: false, example: "4111111111111111" })
     @IsString()
-    @IsNotEmpty()
-    cvv: string;
+    @IsOptional()
+    cardNumber?: string;
+
+    @ApiProperty({ required: false, example: "12/27" })
+    @IsString()
+    @IsOptional()
+    expiryDate?: string;
+
+    @ApiProperty({ required: false, example: "123" })
+    @IsString()
+    @IsOptional()
+    cvv?: string;
 }

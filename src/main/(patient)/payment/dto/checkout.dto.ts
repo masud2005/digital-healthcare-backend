@@ -51,28 +51,42 @@ export class PaymentInfoDto {
     @IsNotEmpty()
     method: string;
 
-    @ApiProperty({ example: "John Doe" })
-    @IsString()
-    @IsNotEmpty()
-    cardHolderName: string;
-
-    @ApiProperty({
-        example: "4111111111111111",
-        description: "Full card number (used to extract last4 and detect brand)",
+    @ApiPropertyOptional({
+        description: "ID of a previously saved payment card. If provided, other card details are not required.",
     })
     @IsString()
-    @IsNotEmpty()
-    cardNumber: string;
+    @IsOptional()
+    savedCardId?: string;
 
-    @ApiProperty({ example: "12/27" })
+    @ApiPropertyOptional({
+        description: "Clover secure token for frontend tokenization. Recommended over sending raw card data.",
+    })
     @IsString()
-    @IsNotEmpty()
-    expiredDate: string;
+    @IsOptional()
+    cloverToken?: string;
 
-    @ApiProperty({ example: "123" })
+    @ApiPropertyOptional({ example: "John Doe" })
     @IsString()
-    @IsNotEmpty()
-    cvv: string;
+    @IsOptional()
+    cardHolderName?: string;
+
+    @ApiPropertyOptional({
+        example: "4111111111111111",
+        description: "Full card number. (Not recommended, use cloverToken or savedCardId instead)",
+    })
+    @IsString()
+    @IsOptional()
+    cardNumber?: string;
+
+    @ApiPropertyOptional({ example: "12/27" })
+    @IsString()
+    @IsOptional()
+    expiredDate?: string;
+
+    @ApiPropertyOptional({ example: "123" })
+    @IsString()
+    @IsOptional()
+    cvv?: string;
 }
 
 export class ComplianceConfirmationDto {

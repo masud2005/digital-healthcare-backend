@@ -139,15 +139,39 @@ export class ProposalService {
         if (proposal.status === "EXPIRED")
             throw new BadRequestException("Expired proposals cannot be accepted.");
 
-        validateCard(dto.cardNumber, dto.expiryDate, dto.cvv);
+        let cloverCardToken: string;
+        let last4: string = "****";
+        let brand: string = "Card";
 
-        // Tokenize card via Clover
-        const cloverCardToken = await this.cloverService.createReusableCardToken({
-            cardNumber: dto.cardNumber,
-            expiredDate: dto.expiryDate,
-            cvv: dto.cvv,
-            cardHolderName: dto.cardholderName,
-        });
+        if (dto.savedCardId) {
+            const savedCard = await this.prisma.paymentCard.findFirst({
+                where: { id: dto.savedCardId, userId },
+            });
+            if (!savedCard) {
+                throw new NotFoundException("Saved payment card not found.");
+            }
+            cloverCardToken = savedCard.cloverToken;
+            last4 = savedCard.last4;
+            brand = savedCard.brand;
+        } else if (dto.cloverToken) {
+            cloverCardToken = dto.cloverToken;
+            if (dto.cardNumber) {
+                last4 = dto.cardNumber.replace(/\s+/g, "").slice(-4);
+                brand = detectCardBrand(dto.cardNumber);
+            }
+        } else if (dto.cardNumber && dto.expiryDate && dto.cvv && dto.cardholderName) {
+            validateCard(dto.cardNumber, dto.expiryDate, dto.cvv);
+            cloverCardToken = await this.cloverService.createReusableCardToken({
+                cardNumber: dto.cardNumber,
+                expiredDate: dto.expiryDate,
+                cvv: dto.cvv,
+                cardHolderName: dto.cardholderName,
+            });
+            last4 = dto.cardNumber.replace(/\s+/g, "").slice(-4);
+            brand = detectCardBrand(dto.cardNumber);
+        } else {
+            throw new BadRequestException("Must provide savedCardId, cloverToken, or complete raw card details.");
+        }
 
         // Charge via Clover
         const cloverCharge = await this.cloverService.chargeWithSavedToken({
@@ -156,9 +180,9 @@ export class ProposalService {
             description: `Doc App Proposal Payment - $${proposal.fee}`,
         });
 
-        // Extract card details from Clover response (fallback to local)
-        const last4 = cloverCharge.last4 || dto.cardNumber.replace(/\s+/g, "").slice(-4);
-        const brand = cloverCharge.brand || detectCardBrand(dto.cardNumber);
+        // Extract card details from Clover response
+        last4 = cloverCharge.last4 || last4;
+        brand = cloverCharge.brand || brand;
         const cloverChargeId = cloverCharge.id;
 
         await this.repo.acceptProposal(proposalId);

@@ -32,6 +32,7 @@ model User {
   // Payment relations
   subscriptions Subscription[]
   payments      Payment[]
+  paymentCards  PaymentCard[]
   orders        Order[]
   refunds       Refund[]
 
