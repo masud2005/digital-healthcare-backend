@@ -183,9 +183,9 @@ export const websiteManageSeed = async (prisma: PrismaClient) => {
                         { text: "Prescription History: 3-5 business days", order: 2 },
                         { text: "Billing Records: 1-3 business days", order: 3 },
                         { text: "Account Deletion: Up to 45 days", order: 4 },
-                    ]
-                }
-            }
+                    ],
+                },
+            },
         });
         await prisma.requestRecordWidget.create({
             data: {
@@ -198,9 +198,9 @@ export const websiteManageSeed = async (prisma: PrismaClient) => {
                         { text: "Right to receive an accounting of disclosures", order: 3 },
                         { text: "Right to restrict certain uses", order: 4 },
                         { text: "Right to receive records in electronic format", order: 5 },
-                    ]
-                }
-            }
+                    ],
+                },
+            },
         });
         console.log("✅ Seeded Request Records Widgets");
     }
@@ -211,14 +211,19 @@ export const websiteManageSeed = async (prisma: PrismaClient) => {
         await prisma.partnerPharmacySection.create({
             data: {
                 title: "Partner Pharmacy Network",
-                description: "Pharmacy assignment is based on your state, medication type, and current provider relationships.",
+                description:
+                    "Pharmacy assignment is based on your state, medication type, and current provider relationships.",
                 partners: {
                     create: [
-                        { name: "Olympia Pharmaceuticals", address: "503B Outsourcer + 503A Pharmacy", order: 1 },
-                        { name: "CasaPharma RX", address: "503A Pharmacy", order: 2 }
-                    ]
-                }
-            }
+                        {
+                            name: "Olympia Pharmaceuticals",
+                            address: "503B Outsourcer + 503A Pharmacy",
+                            order: 1,
+                        },
+                        { name: "CasaPharma RX", address: "503A Pharmacy", order: 2 },
+                    ],
+                },
+            },
         });
         console.log("✅ Seeded Partner Pharmacy Section");
     }
@@ -228,7 +233,8 @@ export const websiteManageSeed = async (prisma: PrismaClient) => {
         await prisma.shippingTimelineSection.create({
             data: {
                 title: "Shipping Timeline",
-                description: "Timelines are estimates. Expedited options may be available. Cold-chain medications may require signature.",
+                description:
+                    "Timelines are estimates. Expedited options may be available. Cold-chain medications may require signature.",
                 steps: {
                     create: [
                         { title: "Rx Received", description: "Day 0", order: 1 },
@@ -236,9 +242,9 @@ export const websiteManageSeed = async (prisma: PrismaClient) => {
                         { title: "Shipped", description: "Day 2-4", order: 3 },
                         { title: "In Transit", description: "Day 2-7", order: 4 },
                         { title: "Delivered", description: "Day 3-7", order: 5 },
-                    ]
-                }
-            }
+                    ],
+                },
+            },
         });
         console.log("✅ Seeded Shipping Timeline Section");
     }
@@ -250,7 +256,8 @@ export const websiteManageSeed = async (prisma: PrismaClient) => {
                 title: "Shipping Policy",
                 description: "",
                 disclaimerTitle: "Prescription & Pharmacy Disclosure:",
-                disclaimerDescription: "All medications dispensed through our platform require a valid prescription from a licensed provider. We partner only with NABP-accredited or PCAB-accredited pharmacies. Compounded medications are not FDA-approved drug products and are prepared by state-licensed compounding pharmacies.",
+                disclaimerDescription:
+                    "All medications dispensed through our platform require a valid prescription from a licensed provider. We partner only with NABP-accredited or PCAB-accredited pharmacies. Compounded medications are not FDA-approved drug products and are prepared by state-licensed compounding pharmacies.",
                 policies: {
                     create: [
                         { text: "Tracking number emailed when shipped", order: 1 },
@@ -260,9 +267,9 @@ export const websiteManageSeed = async (prisma: PrismaClient) => {
                         { text: "Cannot ship to states without licensed providers", order: 5 },
                         { text: "P.O. boxes may not be eligible for cold-chain meds", order: 6 },
                         { text: "No international shipments", order: 7 },
-                    ]
-                }
-            }
+                    ],
+                },
+            },
         });
         console.log("✅ Seeded Shipping Policy Section");
     }

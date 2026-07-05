@@ -5,6 +5,7 @@ import { PublicContactLeadModule } from "./public-contact-lead/public-contact-le
 import { PublicHomePageModule } from "./public-homepage/public-homepage.module";
 import { PublicWebsiteModule } from "./public-website/public-website.module";
 import { PublicSideEffectReportModule } from "./public-side-effect-report/public-side-effect-report.module";
+import { PublicRequestRecordModule } from "./public-request-record/public-request-record.module";
 import { PublicProductModule } from "./public-product/public-product.module";
 import { PublicServicePageModule } from "./public-service-page/public-service-page.module";
 import { PublicNewsletterModule } from "./public-newsletter/public-newsletter.module";
@@ -17,6 +18,7 @@ import { PublicNewsletterModule } from "./public-newsletter/public-newsletter.mo
         PublicHomePageModule,
         PublicWebsiteModule,
         PublicSideEffectReportModule,
+        PublicRequestRecordModule,
         PublicProductModule,
         PublicServicePageModule,
         PublicNewsletterModule,

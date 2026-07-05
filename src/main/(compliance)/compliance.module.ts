@@ -6,6 +6,7 @@ import { ConsentModule } from "./consent/consent.module";
 import { IncidentModule } from "./incident/incident.module";
 import { ProviderLicenseModule } from "./provider-license/provider-license.module";
 import { SideEffectReportModule } from "./side-effect-report/side-effect-report.module";
+import { RequestRecordModule } from "./request-record/request-record.module";
 import { StateCoverageModule } from "./state-coverage/state-coverage.module";
 import { SystemHealthModule } from "./system-healthar/system-health.module";
 
@@ -18,6 +19,7 @@ import { SystemHealthModule } from "./system-healthar/system-health.module";
         ProviderLicenseModule,
         ComplianceDashboardModule,
         SideEffectReportModule,
+        RequestRecordModule,
         StateCoverageModule,
         BusinessIntelligenceModule,
     ],
