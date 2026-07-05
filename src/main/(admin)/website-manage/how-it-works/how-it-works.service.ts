@@ -21,7 +21,8 @@ export class HowItWorksService {
                     },
                 ] as any,
                 disclaimerTitle: "Medical Disclaimer",
-                disclaimerDescription: "All consultations and prescriptions are subject to medical evaluation.",
+                disclaimerDescription:
+                    "All consultations and prescriptions are subject to medical evaluation.",
                 faqSectionTitle: "Frequently Asked Questions",
                 faqs: [
                     {
@@ -51,23 +52,30 @@ export class HowItWorksService {
         if (!record) {
             record = await this.howItWorksRepository.create({
                 sectionTitle: dto.sectionTitle || "How WeightLossMD Works",
-                sectionDescription: dto.sectionDescription || "Simple steps to start your weight loss journey.",
-                steps: dto.steps ? (dto.steps as any) : [
-                    {
-                        title: "Step 1",
-                        timeline: "10 mins",
-                        description: "Complete medical assessment.",
-                    },
-                ],
+                sectionDescription:
+                    dto.sectionDescription || "Simple steps to start your weight loss journey.",
+                steps: dto.steps
+                    ? (dto.steps as any)
+                    : [
+                          {
+                              title: "Step 1",
+                              timeline: "10 mins",
+                              description: "Complete medical assessment.",
+                          },
+                      ],
                 disclaimerTitle: dto.disclaimerTitle || "Medical Disclaimer",
-                disclaimerDescription: dto.disclaimerDescription || "All consultations and prescriptions are subject to medical evaluation.",
+                disclaimerDescription:
+                    dto.disclaimerDescription ||
+                    "All consultations and prescriptions are subject to medical evaluation.",
                 faqSectionTitle: dto.faqSectionTitle || "Frequently Asked Questions",
-                faqs: dto.faqs ? (dto.faqs as any) : [
-                    {
-                        question: "Is this covered by insurance?",
-                        answer: "No, we are a cash-pay service.",
-                    },
-                ],
+                faqs: dto.faqs
+                    ? (dto.faqs as any)
+                    : [
+                          {
+                              question: "Is this covered by insurance?",
+                              answer: "No, we are a cash-pay service.",
+                          },
+                      ],
             });
         } else {
             record = await this.howItWorksRepository.update(record.id, data);

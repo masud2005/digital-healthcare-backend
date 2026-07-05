@@ -19,14 +19,15 @@ export class BillingCancellationService {
                     { step: "Billing Monthly", description: "Flexible Auto-renewal billing" },
                 ] as any,
                 timelineDisclaimerTitle: "Auto-Renewal Policy",
-                timelineDisclaimerDescription: "Your membership automatically renews on a monthly basis until cancelled. You will receive a reminder email 5 days before each renewal. You can cancel at any time before the renewal date through your account settings or by contacting our support team. Cancellation takes effect at the end of your current billing cycle.",
+                timelineDisclaimerDescription:
+                    "Your membership automatically renews on a monthly basis until cancelled. You will receive a reminder email 5 days before each renewal. You can cancel at any time before the renewal date through your account settings or by contacting our support team. Cancellation takes effect at the end of your current billing cycle.",
 
                 cancelTitle: "Cancellation Process",
                 cancelDescription: "Simple, no-questions-asked cancellation",
                 cancelSteps: [
                     "Log in to your WeightLossMD account",
-                    "Navigate to \"Approved Consultation\"",
-                    "Open a consultation > click \"Cancel Treatment\" and confirm your choice",
+                    'Navigate to "Approved Consultation"',
+                    'Open a consultation > click "Cancel Treatment" and confirm your choice',
                     "Receive email confirmation within minutes",
                     "Access continues until end of billing period",
                 ] as any,
@@ -69,43 +70,54 @@ export class BillingCancellationService {
             ...dto,
             timelineSteps: dto.timelineSteps ? (dto.timelineSteps as any) : undefined,
             cancelSteps: dto.cancelSteps ? (dto.cancelSteps as any) : undefined,
-            refundEligibleConditions: dto.refundEligibleConditions ? (dto.refundEligibleConditions as any) : undefined,
-            refundNotEligibleConditions: dto.refundNotEligibleConditions ? (dto.refundNotEligibleConditions as any) : undefined,
+            refundEligibleConditions: dto.refundEligibleConditions
+                ? (dto.refundEligibleConditions as any)
+                : undefined,
+            refundNotEligibleConditions: dto.refundNotEligibleConditions
+                ? (dto.refundNotEligibleConditions as any)
+                : undefined,
             faqs: dto.faqs ? (dto.faqs as any) : undefined,
         };
 
         if (!record) {
             record = await this.repository.create({
                 timelineTitle: dto.timelineTitle || "Billing Timeline",
-                timelineSteps: dto.timelineSteps ? (dto.timelineSteps as any) : [
-                    { step: "Day 1", description: "Enrollment charged" },
-                ],
+                timelineSteps: dto.timelineSteps
+                    ? (dto.timelineSteps as any)
+                    : [{ step: "Day 1", description: "Enrollment charged" }],
                 timelineDisclaimerTitle: dto.timelineDisclaimerTitle || "Auto-Renewal Policy",
-                timelineDisclaimerDescription: dto.timelineDisclaimerDescription || "Your membership automatically renews on a monthly basis until cancelled.",
+                timelineDisclaimerDescription:
+                    dto.timelineDisclaimerDescription ||
+                    "Your membership automatically renews on a monthly basis until cancelled.",
 
                 cancelTitle: dto.cancelTitle || "Cancellation Process",
-                cancelDescription: dto.cancelDescription || "Simple, no-questions-asked cancellation",
-                cancelSteps: dto.cancelSteps ? (dto.cancelSteps as any) : [
-                    "Log in to your WeightLossMD account",
-                ],
+                cancelDescription:
+                    dto.cancelDescription || "Simple, no-questions-asked cancellation",
+                cancelSteps: dto.cancelSteps
+                    ? (dto.cancelSteps as any)
+                    : ["Log in to your WeightLossMD account"],
 
                 refundEligibleTitle: dto.refundEligibleTitle || "Eligible for Refund",
-                refundEligibleConditions: dto.refundEligibleConditions ? (dto.refundEligibleConditions as any) : [
-                    "Medical ineligibility determined within 30 days with no medication received",
-                ],
+                refundEligibleConditions: dto.refundEligibleConditions
+                    ? (dto.refundEligibleConditions as any)
+                    : [
+                          "Medical ineligibility determined within 30 days with no medication received",
+                      ],
 
                 refundNotEligibleTitle: dto.refundNotEligibleTitle || "Not Eligible for Refund",
-                refundNotEligibleConditions: dto.refundNotEligibleConditions ? (dto.refundNotEligibleConditions as any) : [
-                    "Medication already dispensed by pharmacy",
-                ],
+                refundNotEligibleConditions: dto.refundNotEligibleConditions
+                    ? (dto.refundNotEligibleConditions as any)
+                    : ["Medication already dispensed by pharmacy"],
 
                 faqTitle: dto.faqTitle || "Billing & Cancellation FAQ",
-                faqs: dto.faqs ? (dto.faqs as any) : [
-                    {
-                        question: "Can I cancel anytime?",
-                        answer: "Yes, you can cancel at any time.",
-                    },
-                ],
+                faqs: dto.faqs
+                    ? (dto.faqs as any)
+                    : [
+                          {
+                              question: "Can I cancel anytime?",
+                              answer: "Yes, you can cancel at any time.",
+                          },
+                      ],
             });
         } else {
             record = await this.repository.update(record.id, data);
