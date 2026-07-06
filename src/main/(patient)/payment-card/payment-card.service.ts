@@ -1,12 +1,20 @@
-import { Injectable, NotFoundException } from "@nestjs/common";
+import { BadRequestException, Injectable, NotFoundException } from "@nestjs/common";
 import { PrismaService } from "@global/prisma/prisma.service";
+import { CloverService } from "@global/clover/clover.service";
 import { CreatePaymentCardDto } from "./dto/payment-card.dto";
 
 @Injectable()
 export class PaymentCardService {
-    constructor(private readonly prisma: PrismaService) {}
+    constructor(
+        private readonly prisma: PrismaService,
+        private readonly cloverService: CloverService
+    ) {}
 
     async createCard(userId: string, dto: CreatePaymentCardDto) {
+        if (!dto.cloverToken) {
+            throw new BadRequestException("cloverToken is required for tokenized payments.");
+        }
+
         if (dto.isDefault) {
             await this.prisma.paymentCard.updateMany({
                 where: { userId },
@@ -22,10 +30,10 @@ export class PaymentCardService {
             data: {
                 userId,
                 cloverToken: dto.cloverToken,
-                last4: dto.last4,
-                brand: dto.brand,
-                expMonth: dto.expMonth,
-                expYear: dto.expYear,
+                last4: dto.last4 || "****",
+                brand: dto.brand || "Card",
+                expMonth: dto.expMonth || 0,
+                expYear: dto.expYear || 0,
                 cardHolderName: dto.cardHolderName,
                 isDefault,
             },
@@ -97,5 +105,24 @@ export class PaymentCardService {
         }
 
         return { success: true, message: "Payment card deleted successfully." };
+    }
+
+    async updateCard(userId: string, cardId: string, dto: import('./dto/payment-card.dto').UpdatePaymentCardDto) {
+        const card = await this.prisma.paymentCard.findFirst({
+            where: { id: cardId, userId },
+        });
+
+        if (!card) {
+            throw new NotFoundException("Payment card not found.");
+        }
+
+        return this.prisma.paymentCard.update({
+            where: { id: cardId },
+            data: {
+                cardHolderName: dto.cardHolderName ?? card.cardHolderName,
+                expMonth: dto.expMonth ?? card.expMonth,
+                expYear: dto.expYear ?? card.expYear,
+            },
+        });
     }
 }

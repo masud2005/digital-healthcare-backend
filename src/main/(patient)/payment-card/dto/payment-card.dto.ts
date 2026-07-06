@@ -2,38 +2,70 @@ import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
 import { IsBoolean, IsNotEmpty, IsNumber, IsOptional, IsString } from "class-validator";
 
 export class CreatePaymentCardDto {
-    @ApiProperty({ description: "Clover generated source token" })
+    @ApiPropertyOptional({ description: "Clover generated source token" })
     @IsString()
-    @IsNotEmpty()
-    cloverToken: string;
+    @IsOptional()
+    cloverToken?: string;
 
-    @ApiProperty()
+    @ApiPropertyOptional()
     @IsString()
-    @IsNotEmpty()
-    last4: string;
+    @IsOptional()
+    last4?: string;
 
-    @ApiProperty()
+    @ApiPropertyOptional()
     @IsString()
-    @IsNotEmpty()
-    brand: string;
+    @IsOptional()
+    brand?: string;
 
-    @ApiProperty()
+    @ApiPropertyOptional()
     @IsNumber()
-    @IsNotEmpty()
-    expMonth: number;
+    @IsOptional()
+    expMonth?: number;
 
-    @ApiProperty()
+    @ApiPropertyOptional()
     @IsNumber()
-    @IsNotEmpty()
-    expYear: number;
+    @IsOptional()
+    expYear?: number;
 
     @ApiPropertyOptional()
     @IsString()
     @IsOptional()
     cardHolderName?: string;
 
-    @ApiPropertyOptional({ default: false })
+    @ApiPropertyOptional()
+    @IsString()
+    @IsOptional()
+    cardNumber?: string;
+
+    @ApiPropertyOptional()
+    @IsString()
+    @IsOptional()
+    expiredDate?: string;
+
+    @ApiPropertyOptional()
+    @IsString()
+    @IsOptional()
+    cvv?: string;
+
+    @ApiPropertyOptional()
     @IsBoolean()
     @IsOptional()
     isDefault?: boolean;
+}
+
+export class UpdatePaymentCardDto {
+    @ApiPropertyOptional()
+    @IsString()
+    @IsOptional()
+    cardHolderName?: string;
+
+    @ApiPropertyOptional()
+    @IsNumber()
+    @IsOptional()
+    expMonth?: number;
+
+    @ApiPropertyOptional()
+    @IsNumber()
+    @IsOptional()
+    expYear?: number;
 }

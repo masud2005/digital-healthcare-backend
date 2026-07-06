@@ -11,29 +11,64 @@ import { CreatePaymentCardDto } from "./dto/payment-card.dto";
 @UseGuards(JwtAuthGuard)
 @Controller("payment-cards")
 export class PaymentCardController {
-    constructor(private readonly paymentCardService: PaymentCardService) {}
+    constructor(private readonly paymentCardService: PaymentCardService) { }
 
     @Post()
     @ApiOperation({ summary: "Add a new saved payment card" })
-    createCard(@CurrentUser() user: AuthenticatedUser, @Body() dto: CreatePaymentCardDto) {
-        return this.paymentCardService.createCard(user.id, dto);
+    async createCard(@CurrentUser() user: AuthenticatedUser, @Body() dto: CreatePaymentCardDto) {
+        const card = await this.paymentCardService.createCard(user.id, dto);
+        return {
+            success: true,
+            message: "Payment card added successfully",
+            data: card
+        };
     }
 
     @Get()
     @ApiOperation({ summary: "Get all saved payment cards" })
-    getMyCards(@CurrentUser() user: AuthenticatedUser) {
-        return this.paymentCardService.getMyCards(user.id);
+    async getMyCards(@CurrentUser() user: AuthenticatedUser) {
+        const cards = await this.paymentCardService.getMyCards(user.id);
+        return {
+            success: true,
+            message: "Payment cards fetched successfully",
+            data: cards
+        };
     }
 
     @Patch(":id/default")
     @ApiOperation({ summary: "Set a payment card as default" })
-    setDefaultCard(@CurrentUser() user: AuthenticatedUser, @Param("id") id: string) {
-        return this.paymentCardService.setDefaultCard(user.id, id);
+    async setDefaultCard(@CurrentUser() user: AuthenticatedUser, @Param("id") id: string) {
+        const card = await this.paymentCardService.setDefaultCard(user.id, id);
+        return {
+            success: true,
+            message: "Payment card set as default successfully",
+            data: card
+        };
     }
 
     @Delete(":id")
     @ApiOperation({ summary: "Delete a saved payment card" })
-    deleteCard(@CurrentUser() user: AuthenticatedUser, @Param("id") id: string) {
-        return this.paymentCardService.deleteCard(user.id, id);
+    async deleteCard(@CurrentUser() user: AuthenticatedUser, @Param("id") id: string) {
+        const card = await this.paymentCardService.deleteCard(user.id, id);
+        return {
+            success: true,
+            message: "Payment card deleted successfully",
+            data: card
+        };
+    }
+
+    @Patch(":id")
+    @ApiOperation({ summary: "Update a saved payment card" })
+    async updateCard(
+        @CurrentUser() user: AuthenticatedUser, 
+        @Param("id") id: string,
+        @Body() dto: import('./dto/payment-card.dto').UpdatePaymentCardDto
+    ) {
+        const card = await this.paymentCardService.updateCard(user.id, id, dto);
+        return {
+            success: true,
+            message: "Payment card updated successfully",
+            data: card
+        };
     }
 }
