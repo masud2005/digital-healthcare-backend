@@ -590,6 +590,10 @@ export class AuthRepository {
             title?: string | null;
             specialty?: string | null;
             officeLocation?: string | null;
+            address?: string | null;
+            city?: string | null;
+            state?: string | null;
+            zipCode?: string | null;
             avatarId?: string | null;
         },
     ) {
@@ -609,6 +613,10 @@ export class AuthRepository {
             title?: string | null;
             specialty?: string | null;
             officeLocation?: string | null;
+            address?: string | null;
+            city?: string | null;
+            state?: string | null;
+            zipCode?: string | null;
             avatarId?: string | null;
         },
     ) {

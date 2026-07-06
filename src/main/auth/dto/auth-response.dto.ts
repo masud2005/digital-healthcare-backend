@@ -1,5 +1,40 @@
 import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
 
+export class ProfileResponseDto {
+    @ApiPropertyOptional()
+    name?: string;
+
+    @ApiPropertyOptional()
+    avatar?: string | null;
+
+    @ApiPropertyOptional()
+    title?: string;
+
+    @ApiPropertyOptional()
+    featured?: boolean;
+
+    @ApiPropertyOptional()
+    specialty?: string;
+
+    @ApiPropertyOptional()
+    bio?: string;
+
+    @ApiPropertyOptional()
+    officeLocation?: string;
+
+    @ApiPropertyOptional()
+    address?: string;
+
+    @ApiPropertyOptional()
+    city?: string;
+
+    @ApiPropertyOptional()
+    state?: string;
+
+    @ApiPropertyOptional()
+    zipCode?: string;
+}
+
 export class AuthUserResponseDto {
     @ApiProperty()
     id!: string;
@@ -30,6 +65,9 @@ export class AuthUserResponseDto {
 
     @ApiPropertyOptional({ type: [String], example: ["view:dashboard"] })
     permissions?: string[];
+
+    @ApiPropertyOptional({ type: ProfileResponseDto })
+    profile?: ProfileResponseDto;
 }
 
 export class AuthMessageResponseDto {
