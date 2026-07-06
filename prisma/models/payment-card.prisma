@@ -1,0 +1,19 @@
+model PaymentCard {
+  id             String   @id @default(uuid())
+  userId         String
+  user           User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  cardHolderName String?
+  last4          String
+  brand          String
+  expMonth       Int
+  expYear        Int
+  
+  cloverToken    String
+  isDefault      Boolean  @default(false)
+  
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+  
+  @@index([userId])
+}
