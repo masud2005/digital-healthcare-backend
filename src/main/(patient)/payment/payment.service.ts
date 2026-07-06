@@ -79,12 +79,17 @@ export class PaymentService {
     ) {}
 
     async checkout(userId: string, dto: CheckoutDto) {
-        // 1. Validate card info upfront
-        validateCardInfo(
-            dto.paymentInfo.cardNumber,
-            dto.paymentInfo.expiredDate,
-            dto.paymentInfo.cvv,
-        );
+        // 1. Validate card info upfront if provided
+        if (!dto.paymentInfo.savedCardId && !dto.paymentInfo.cloverToken) {
+            if (!dto.paymentInfo.cardNumber || !dto.paymentInfo.expiredDate || !dto.paymentInfo.cvv) {
+                throw new BadRequestException("Must provide savedCardId, cloverToken, or complete raw card details.");
+            }
+            validateCardInfo(
+                dto.paymentInfo.cardNumber,
+                dto.paymentInfo.expiredDate,
+                dto.paymentInfo.cvv,
+            );
+        }
 
         // 2. Verify Assessment Submission
         let submission: Awaited<
@@ -278,13 +283,46 @@ export class PaymentService {
         if (isSubscribing) paymentType.push("FEES");
         if (hasCartItems) paymentType.push("PRODUCT");
 
-        // 10. Tokenize card first (get reusable token for recurring billing)
-        const cloverCardToken = await this.cloverService.createReusableCardToken({
-            cardNumber: dto.paymentInfo.cardNumber,
-            expiredDate: dto.paymentInfo.expiredDate,
-            cvv: dto.paymentInfo.cvv,
-            cardHolderName: dto.paymentInfo.cardHolderName,
-        });
+        // 10. Get Reusable Token (from Saved Card, Clover Token, or Raw Data)
+        let cloverCardToken: string;
+        let last4: string = "****";
+        let brand: string = "Card";
+
+        if (dto.paymentInfo.savedCardId) {
+            const savedCard = await this.prisma.paymentCard.findFirst({
+                where: { id: dto.paymentInfo.savedCardId, userId },
+            });
+            if (!savedCard) {
+                throw new NotFoundException("Saved payment card not found.");
+            }
+            cloverCardToken = savedCard.cloverToken;
+            last4 = savedCard.last4;
+            brand = savedCard.brand;
+        } else if (dto.paymentInfo.cloverToken) {
+            cloverCardToken = dto.paymentInfo.cloverToken;
+            if (dto.paymentInfo.cardNumber) {
+                last4 = dto.paymentInfo.cardNumber.replace(/\s+/g, "").slice(-4);
+                brand = detectCardBrand(dto.paymentInfo.cardNumber);
+            }
+        } else if (
+            dto.paymentInfo.cardNumber &&
+            dto.paymentInfo.expiredDate &&
+            dto.paymentInfo.cvv &&
+            dto.paymentInfo.cardHolderName
+        ) {
+            cloverCardToken = await this.cloverService.createReusableCardToken({
+                cardNumber: dto.paymentInfo.cardNumber,
+                expiredDate: dto.paymentInfo.expiredDate,
+                cvv: dto.paymentInfo.cvv,
+                cardHolderName: dto.paymentInfo.cardHolderName,
+            });
+            last4 = dto.paymentInfo.cardNumber.replace(/\s+/g, "").slice(-4);
+            brand = detectCardBrand(dto.paymentInfo.cardNumber);
+        } else {
+            throw new BadRequestException(
+                "Invalid payment info provided. Must provide savedCardId, cloverToken, or complete raw card details.",
+            );
+        }
 
         // 11. Charge the card using the token
         const cloverCharge = await this.cloverService.chargeWithSavedToken({
@@ -293,10 +331,9 @@ export class PaymentService {
             description: `Doc App payment - $${total}`,
         });
 
-        // 12. Extract card info from Clover response (fallback to local detection)
-        const last4 =
-            cloverCharge.last4 || dto.paymentInfo.cardNumber.replace(/\s+/g, "").slice(-4);
-        const brand = cloverCharge.brand || detectCardBrand(dto.paymentInfo.cardNumber);
+        // 12. Extract card info from Clover response
+        last4 = cloverCharge.last4 || last4;
+        brand = cloverCharge.brand || brand;
         const cloverChargeId = cloverCharge.id;
 
         // 13. Execute DB transaction (payment already confirmed by Clover)
