@@ -231,6 +231,10 @@ export class AuthAccountService {
                 specialty: p.specialty,
                 bio: p.bio,
                 officeLocation: p.officeLocation,
+                address: p.address,
+                city: p.city,
+                state: p.state,
+                zipCode: p.zipCode,
             };
         } else if (role === "ADMIN" && user.adminProfile) {
             const p = user.adminProfile;
@@ -243,6 +247,10 @@ export class AuthAccountService {
                 specialty: p.specialty,
                 bio: p.bio,
                 officeLocation: p.officeLocation,
+                address: p.address,
+                city: p.city,
+                state: p.state,
+                zipCode: p.zipCode,
             };
         } else if (user.patientProfile) {
             const p = user.patientProfile;
@@ -325,6 +333,10 @@ export class AuthAccountService {
                 ...(title !== undefined && { title }),
                 ...(specialty !== undefined && { specialty }),
                 ...(officeLocation !== undefined && { officeLocation }),
+                ...(address !== undefined && { address }),
+                ...(city !== undefined && { city }),
+                ...(state !== undefined && { state }),
+                ...(zipCode !== undefined && { zipCode }),
                 ...(avatarId !== undefined && { avatarId }),
             });
         } else if (role === "ADMIN") {
@@ -334,6 +346,10 @@ export class AuthAccountService {
                 ...(title !== undefined && { title }),
                 ...(specialty !== undefined && { specialty }),
                 ...(officeLocation !== undefined && { officeLocation }),
+                ...(address !== undefined && { address }),
+                ...(city !== undefined && { city }),
+                ...(state !== undefined && { state }),
+                ...(zipCode !== undefined && { zipCode }),
                 ...(avatarId !== undefined && { avatarId }),
             });
         } else {
