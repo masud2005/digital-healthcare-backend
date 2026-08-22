@@ -9,7 +9,7 @@ Tester writes must never touch production. When prerelease is accepted, deploy t
 
 ## Real-World Release Flow
 
-1. Build one immutable Docker image for every commit, for example `softvence/doc-backend:2026-05-17-a1b2c3d`.
+1. Build one immutable Docker image for every commit, for example `softvence/digital-healthcare-backend:2026-05-17-a1b2c3d`.
 2. Deploy that image to `app_pre`.
 3. Clone `db_live` into `db_pre`.
 4. Run database migrations against `db_pre`.
@@ -59,8 +59,8 @@ Set these on the server before running the release compose file:
 ```sh
 export LIVE_DOMAIN=prod.weightlossmdcherrycreek.com
 export PRE_DOMAIN=pre.weightlossmdcherrycreek.com
-export APP_IMAGE=softvence/doc-backend:stable
-export PRE_IMAGE=softvence/doc-backend:candidate
+export APP_IMAGE=softvence/digital-healthcare-backend:stable
+export PRE_IMAGE=softvence/digital-healthcare-backend:candidate
 export POSTGRES_USER=doc
 export POSTGRES_PASSWORD='change-me'
 export POSTGRES_DB=doc
@@ -139,7 +139,7 @@ Create these Jenkins credentials:
 - `dockerhub-creds`: username/password credential for Docker Hub.
 - `doc-vps-ssh`: SSH username/private key credential for `root@187.77.23.79`.
 
-Keep `.env.production` and `.env.prerelease` as server-only files in `/var/projects/doc-backend`.
+Keep `.env.production` and `.env.prerelease` as server-only files in `/var/projects/digital-healthcare-backend`.
 
 Install these Jenkins plugins:
 

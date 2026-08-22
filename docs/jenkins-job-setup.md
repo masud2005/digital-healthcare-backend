@@ -5,7 +5,7 @@ If the Jenkins build log only says this:
 ```text
 Started by GitLab push by Sabbir Hossain Shuvo
 Running as SYSTEM
-Building in workspace /var/jenkins_home/workspace/doc-backend
+Building in workspace /var/jenkins_home/workspace/digital-healthcare-backend
 Finished: SUCCESS
 ```
 
@@ -26,7 +26,7 @@ A real run should show stages like:
 Create or reconfigure the Jenkins job as a Pipeline job.
 
 1. Open Jenkins.
-2. Open the `doc-backend` job.
+2. Open the `digital-healthcare-backend` job.
 3. Click **Configure**.
 4. In **Definition**, choose **Pipeline script from SCM**.
 5. In **SCM**, choose **Git**.
@@ -99,8 +99,8 @@ These IDs must exist in Jenkins because the `Jenkinsfile` references them:
 The server should keep these env files in the deployment directory:
 
 ```text
-/var/projects/doc-backend/.env.production
-/var/projects/doc-backend/.env.prerelease
+/var/projects/digital-healthcare-backend/.env.production
+/var/projects/digital-healthcare-backend/.env.prerelease
 ```
 
 Use this in `.env.production`:

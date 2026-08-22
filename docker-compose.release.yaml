@@ -1,7 +1,7 @@
 services:
     caddy:
         image: caddy:2-alpine
-        container_name: doc-backend-caddy
+        container_name: digital-healthcare-backend-caddy
         environment:
             - LIVE_UPSTREAM=${LIVE_UPSTREAM:-app_live_blue:5056}
         ports:
@@ -17,8 +17,8 @@ services:
             - doc_release
 
     app_live_blue:
-        image: ${BLUE_IMAGE:-${APP_IMAGE:-softvence/doc-backend:latest}}
-        container_name: doc-backend-live-blue
+        image: ${BLUE_IMAGE:-${APP_IMAGE:-softvence/digital-healthcare-backend:latest}}
+        container_name: digital-healthcare-backend-live-blue
         env_file:
             - path: .env.production
               required: false
@@ -54,8 +54,8 @@ services:
             - doc_release
 
     app_live_green:
-        image: ${GREEN_IMAGE:-${APP_IMAGE:-softvence/doc-backend:latest}}
-        container_name: doc-backend-live-green
+        image: ${GREEN_IMAGE:-${APP_IMAGE:-softvence/digital-healthcare-backend:latest}}
+        container_name: digital-healthcare-backend-live-green
         env_file:
             - path: .env.production
               required: false
@@ -91,8 +91,8 @@ services:
             - doc_release
 
     app_pre:
-        image: ${PRE_IMAGE:-${APP_IMAGE:-softvence/doc-backend:latest}}
-        container_name: doc-backend-pre
+        image: ${PRE_IMAGE:-${APP_IMAGE:-softvence/digital-healthcare-backend:latest}}
+        container_name: digital-healthcare-backend-pre
         env_file:
             - path: .env.prerelease
               required: false
@@ -129,7 +129,7 @@ services:
 
     db_live:
         image: postgres:16-alpine
-        container_name: doc-backend-db-live
+        container_name: digital-healthcare-backend-db-live
         environment:
             - POSTGRES_USER=${POSTGRES_USER:-doc}
             - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-doc}
@@ -148,7 +148,7 @@ services:
 
     db_pre:
         image: postgres:16-alpine
-        container_name: doc-backend-db-pre
+        container_name: digital-healthcare-backend-db-pre
         environment:
             - POSTGRES_USER=${POSTGRES_USER:-doc}
             - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-doc}

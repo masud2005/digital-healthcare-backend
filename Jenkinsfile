@@ -9,9 +9,9 @@ pipeline {
   }
 
   environment {
-    APP_NAME = 'doc-backend'
-    DOCKER_IMAGE = 'softvence/doc-backend'
-    PRERELEASE_SOURCE_IMAGE = 'softvence/doc-backend:dev'
+    APP_NAME = 'digital-healthcare-backend'
+    DOCKER_IMAGE = 'softvence/digital-healthcare-backend'
+    PRERELEASE_SOURCE_IMAGE = 'softvence/digital-healthcare-backend:dev'
 
     DOCKER_CREDENTIALS_ID = 'dockerhub-creds'
     DEPLOY_SSH_CREDENTIALS_ID = 'doc-vps-ssh'
@@ -22,7 +22,7 @@ pipeline {
     PRE_DOMAIN = 'pre.weightlossmdcherrycreek.com'
     HEALTH_PATH = '/api/v1/api/health'
 
-    SERVER_DIR = '/var/projects/doc-backend'
+    SERVER_DIR = '/var/projects/digital-healthcare-backend'
     COMPOSE_FILE = 'docker-compose.release.yaml'
     RELEASE_DIR = './releases'
   }

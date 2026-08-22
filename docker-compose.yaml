@@ -1,7 +1,7 @@
 services:
     app:
-        image: softvence/doc-backend:prod
-        container_name: doc-backend-prod
+        image: softvence/digital-healthcare-backend:prod
+        container_name: digital-healthcare-backend-prod
         profiles:
             - prod
         platform: linux/amd64
